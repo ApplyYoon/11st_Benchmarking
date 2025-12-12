@@ -18,25 +18,34 @@ export const CartProvider = ({ children }) => {
 
     const addToCart = (product) => {
         setCart((prev) => {
-            const existing = prev.find((item) => item.id === product.id);
+            // 같은 상품 + 같은 사이즈인 경우에만 수량 증가
+            const existing = prev.find((item) => 
+                item.id === product.id && item.selectedSize === product.selectedSize
+            );
             if (existing) {
                 return prev.map((item) =>
-                    item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                    item.id === product.id && item.selectedSize === product.selectedSize
+                        ? { ...item, quantity: item.quantity + 1 }
+                        : item
                 );
             }
-            return [...prev, { ...product, quantity: 1 }];
+            // 장바구니 아이템에 고유 키 부여 (id + size 조합)
+            const cartItemId = product.selectedSize 
+                ? `${product.id}-${product.selectedSize}` 
+                : `${product.id}`;
+            return [...prev, { ...product, cartItemId, quantity: 1 }];
         });
     };
 
-    const removeFromCart = (productId) => {
-        setCart((prev) => prev.filter((item) => item.id !== productId));
+    const removeFromCart = (cartItemId) => {
+        setCart((prev) => prev.filter((item) => (item.cartItemId || item.id) !== cartItemId));
     };
 
-    const updateQuantity = (productId, quantity) => {
+    const updateQuantity = (cartItemId, quantity) => {
         if (quantity < 1) return;
         setCart((prev) =>
             prev.map((item) =>
-                item.id === productId ? { ...item, quantity } : item
+                (item.cartItemId || item.id) === cartItemId ? { ...item, quantity } : item
             )
         );
     };
