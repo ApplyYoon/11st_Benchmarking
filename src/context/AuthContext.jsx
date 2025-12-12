@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import client from '../api/client';
 
 const AuthContext = createContext();
 
@@ -6,62 +7,80 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
+    const loadUser = async () => {
+        try {
+            const response = await client.get('/auth/me');
+            const userData = response.data;
+            // Ensure compatibility with frontend expectations
+            const finalUser = {
+                ...userData,
+                coupons: userData.coupons || [],
+                orders: userData.orders || []
+            };
+            setUser(finalUser);
+            localStorage.setItem('user_profile', JSON.stringify(finalUser)); // Only for quick display, not auth
+        } catch (error) {
+            console.log("Not authenticated or session expired");
+            setUser(null);
+            localStorage.removeItem('user_profile');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
+    };
+
+    useEffect(() => {
+        // Optimistic load for UI
+        const storedProfile = localStorage.getItem('user_profile');
+        if (storedProfile) {
+            setUser(JSON.parse(storedProfile));
+        }
+
+        loadUser();
     }, []);
 
     const login = async (email, password) => {
-        // Mock login API call
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (email === 'test@11st.co.kr' && password === '1234') {
-                    const userData = {
-                        id: 'user_11st_001',
-                        name: '유지원',
-                        email: email,
-                        grade: 'VIP',
-                        points: 12500,
-                        coupons: [1, 3, 4], // Coupon IDs
-                        orders: []
-                    };
-                    setUser(userData);
-                    localStorage.setItem('user', JSON.stringify(userData));
-                    resolve(userData);
-                } else {
-                    reject(new Error('아이디 또는 비밀번호를 확인해주세요.'));
-                }
-            }, 600);
-        });
+        try {
+            // Expecting 200 OK and User object. Cookie set by browser.
+            const response = await client.post('/auth/login', { email, password });
+            const userResponse = response.data.user; // AuthResponse(token, user) - token is null/dummy, user is set
+
+            const finalUser = {
+                ...userResponse,
+                coupons: userResponse.coupons || [],
+                orders: userResponse.orders || []
+            };
+
+            setUser(finalUser);
+            localStorage.setItem('user_profile', JSON.stringify(finalUser));
+            return finalUser;
+        } catch (error) {
+            console.error(error);
+            throw new Error('아이디 또는 비밀번호를 확인해주세요.');
+        }
     };
 
-    const signup = async (userData) => {
-        // Mock signup API call
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const newUser = {
-                    ...userData,
-                    id: `user_${Date.now()}`,
-                    grade: 'FAMILY',
-                    points: 1000,
-                    coupons: [1],
-                    orders: []
-                };
-                setUser(newUser);
-                localStorage.setItem('user', JSON.stringify(newUser));
-                resolve(newUser);
-            }, 600);
-        });
+    const signup = async (signupData) => {
+        try {
+            await client.post('/auth/signup', signupData);
+            return true;
+        } catch (error) {
+            console.error(error);
+            throw new Error('회원가입 실패');
+        }
     };
 
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem('user');
+    const logout = async () => {
+        try {
+            await client.post('/auth/logout');
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setUser(null);
+            localStorage.removeItem('user_profile');
+        }
     };
 
+    // Placeholder functions
     const addOrder = (order) => {
         if (user) {
             // 포인트 적립 계산: 0.5%, 최대 5000포인트

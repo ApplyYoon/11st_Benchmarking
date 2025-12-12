@@ -124,7 +124,7 @@ const Payment = () => {
                 earnedPoints: earnedPoints
             });
         }
-    }, []);
+    };
 
     const handleInputChange = (field, value) => {
         setShippingInfo(prev => ({
@@ -182,6 +182,20 @@ const Payment = () => {
             easyPay: 'KAKAOPAY'
         });
     };
+
+    if (status === 'processing') {
+        return <div style={{ textAlign: 'center', padding: '100px' }}>결제 승인 중입니다...</div>;
+    }
+
+    if (status === 'fail') {
+        return (
+            <div style={{ textAlign: 'center', padding: '100px' }}>
+                <h2>결제 실패</h2>
+                <p>{errorMsg}</p>
+                <button onClick={() => navigate('/cart')}>장바구니로 돌아가기</button>
+            </div>
+        );
+    }
 
     if (status === 'success') {
         return (
