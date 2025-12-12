@@ -124,7 +124,7 @@ const Payment = () => {
                 earnedPoints: earnedPoints
             });
         }
-    };
+    }, []);
 
     const handleInputChange = (field, value) => {
         setShippingInfo(prev => ({

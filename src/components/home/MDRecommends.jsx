@@ -1,127 +1,77 @@
-import React, { useState, useEffect } from 'react';
-import { PRODUCTS } from '../../api/mockData';
+import React, { useState, useEffect, useRef } from 'react';
+import client from '../../api/client';
 import ProductCard from '../shared/ProductCard';
+import ProductSkeleton from '../shared/ProductSkeleton';
 
 const MDRecommends = () => {
-    // Start with non-Timedeal/Best items
-    const initialItems = PRODUCTS.filter(p => !p.isTimeDeal && !p.isBest);
-    const [items, setItems] = useState(initialItems);
+    const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [isVisible, setIsVisible] = useState(false); // 섹션 표시 여부
+    const [hasFetched, setHasFetched] = useState(false);
+    const sectionRef = useRef(null);
 
-    const loadMore = async () => {
-        if (loading) return;
-        setLoading(true);
-        // Simulate fetch
-        await new Promise(resolve => setTimeout(resolve, 800));
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !hasFetched) {
+                setLoading(true);
+                fetchItems();
+            }
+        }, { threshold: 0.1, rootMargin: '100px' });
 
-        // Generate mock unique items
-        const newItems = initialItems.map((item, idx) => ({
-            ...item,
-            id: Date.now() + idx + Math.random(),
-            name: `[추천] ${item.name}`
-        }));
+        if (sectionRef.current) {
+            observer.observe(sectionRef.current);
+        }
 
-        setItems(prev => [...prev, ...newItems]);
-        setLoading(false);
+        return () => observer.disconnect();
+    }, [hasFetched]);
+
+    const fetchItems = async () => {
+        try {
+            const response = await client.get('/products');
+            const allProducts = response.data;
+            const recommends = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
+            setItems(recommends.length > 0 ? recommends : allProducts);
+            setHasFetched(true);
+        } catch (error) {
+            console.error("Failed to fetch recommended items", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    // 11번가 베스트 섹션 감지 - 베스트가 화면에서 벗어나면 MD 추천 표시
-    useEffect(() => {
-        let observer;
-        let timeoutId;
-
-        // 11번가 베스트가 렌더링될 때까지 대기
-        const checkAndObserve = () => {
-            const bestSection = document.getElementById('best-section');
-            if (!bestSection) {
-                console.log('11번가 베스트 섹션을 찾을 수 없습니다. 재시도 중...');
-                // 100ms 후 다시 시도
-                timeoutId = setTimeout(checkAndObserve, 100);
-                return;
-            }
-
-            console.log('11번가 베스트 섹션 발견! Observer 설정');
-            observer = new IntersectionObserver((entries) => {
-                const entry = entries[0];
-                console.log('11번가 베스트 IntersectionObserver:', {
-                    isIntersecting: entry.isIntersecting,
-                    intersectionRatio: entry.intersectionRatio,
-                    boundingClientRect: entry.boundingClientRect.top,
-                    isVisible: isVisible
-                });
-
-                // 11번가 베스트의 하단이 화면 상단을 지나갔을 때
-                if (entry.boundingClientRect.top < 0 && !isVisible) {
-                    console.log('MD 추천 표시!');
-                    setIsVisible(true);
-                }
-            }, {
-                threshold: [0, 0.1, 0.5, 1],
-                rootMargin: '0px'
-            });
-
-            observer.observe(bestSection);
-        };
-
-        checkAndObserve();
-
-        // Cleanup function for useEffect
-        return () => {
-            if (observer) {
-                observer.disconnect();
-            }
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-        };
-    }, [isVisible]);
-
     return (
-        <>
-            {isVisible && (
-                <div>
-                    <h2 style={{ fontSize: '26px', fontWeight: '900', marginBottom: '20px', color: '#111' }}>MD 추천</h2>
+        <div ref={sectionRef}>
+            <h2 style={{ fontSize: '26px', fontWeight: '900', marginBottom: '20px', color: '#111' }}>MD 추천</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px 20px' }}>
+                {loading || (!hasFetched && items.length === 0) ? (
+                    Array.from({ length: 8 }).map((_, idx) => (
+                        <ProductSkeleton key={idx} />
+                    ))
+                ) : (
+                    items.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                    ))
+                )}
+            </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px 20px' }}>
-                        {items.map((product) => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '40px' }}>
-                        <button
-                            onClick={loadMore}
-                            disabled={loading}
-                            style={{
-                                padding: '14px 40px',
-                                fontSize: '15px',
-                                fontWeight: 'bold',
-                                color: '#333',
-                                backgroundColor: '#fff',
-                                border: '2px solid #333',
-                                borderRadius: '4px',
-                                cursor: loading ? 'not-allowed' : 'pointer',
-                                transition: 'all 0.2s',
-                                opacity: loading ? 0.6 : 1
-                            }}
-                            onMouseEnter={(e) => {
-                                if (!loading) {
-                                    e.target.style.backgroundColor = '#333';
-                                    e.target.style.color = '#fff';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                e.target.style.backgroundColor = '#fff';
-                                e.target.style.color = '#333';
-                            }}
-                        >
-                            {loading ? '로딩 중...' : '새상품 더보기'}
-                        </button>
-                    </div>
-                </div>
-            )}
-        </>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '40px' }}>
+                <button
+                    onClick={() => alert("더 많은 상품 보기 기능은 준비중입니다.")}
+                    style={{
+                        padding: '14px 40px',
+                        fontSize: '15px',
+                        fontWeight: 'bold',
+                        color: '#333',
+                        backgroundColor: '#fff',
+                        border: '2px solid #333',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    새상품 더보기
+                </button>
+            </div>
+        </div>
     );
 };
 

@@ -1,10 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PRODUCTS } from '../../api/mockData';
+import client from '../../api/client';
 
 const TimeDeal = () => {
-    const deals = PRODUCTS.filter(p => p.isTimeDeal).slice(0, 3);
+    const [deals, setDeals] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
+
+    useEffect(() => {
+        const fetchDeals = async () => {
+            try {
+                const response = await client.get('/products', {
+                    params: { type: 'timedeal' }
+                });
+                setDeals(response.data.slice(0, 3));
+            } catch (error) {
+                console.error("Failed to fetch time deals", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDeals();
+    }, []);
 
     useEffect(() => {
         const calculateTimeLeft = () => {
@@ -25,6 +42,9 @@ const TimeDeal = () => {
     }, []);
 
     const formatTime = (num) => String(num).padStart(2, '0');
+
+    if (loading) return null; // Or a skeleton loader
+    if (deals.length === 0) return null;
 
     return (
         <div id="timedeal-section" style={{ marginBottom: '60px' }}>
@@ -47,14 +67,14 @@ const TimeDeal = () => {
                     <Link to={`/product/${product.id}`} key={product.id} style={{ textDecoration: 'none', color: 'inherit' }}>
                         <div style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0', overflow: 'hidden', cursor: 'pointer', transition: 'box-shadow 0.2s' }}>
                             <div style={{ position: 'relative', paddingTop: '100%' }}>
-                                <img src={product.image} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                                <img src={product.imageUrl || product.image} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
                             </div>
                             <div style={{ padding: '20px' }}>
                                 <div style={{ fontSize: '16px', color: '#111', fontWeight: 'bold', height: '44px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', marginBottom: '10px' }}>
                                     {product.name}
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                                    <span style={{ color: '#f01a21', fontSize: '24px', fontWeight: '900' }}>{product.discount}%</span>
+                                    {product.discountRate > 0 && <span style={{ color: '#f01a21', fontSize: '24px', fontWeight: '900' }}>{product.discountRate}%</span>}
                                     <span style={{ color: '#111', fontSize: '24px', fontWeight: '900' }}>{product.price.toLocaleString()}</span>
                                     <span style={{ fontSize: '14px' }}>원</span>
                                 </div>
