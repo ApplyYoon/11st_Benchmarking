@@ -18,7 +18,7 @@ const Header = () => {
     };
 
     return (
-        <header style={{ borderBottom: '1px solid #e5e5e5', backgroundColor: 'white', zIndex: 100, position: 'sticky', top: 0 }}>
+        <header style={{ borderBottom: '1px solid #e5e5e5', backgroundColor: 'white', zIndex: 1000, position: 'sticky', top: 0 }}>
             {/* Main Header Row */}
             <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '30px', height: '80px' }}>
 

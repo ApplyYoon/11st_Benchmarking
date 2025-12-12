@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
+import ScrollToTop from './components/shared/ScrollToTop';
 
 // Lazy load pages for performance
 const Home = lazy(() => import('./pages/Home'));
@@ -10,22 +11,27 @@ const Signup = lazy(() => import('./pages/Signup'));
 const Cart = lazy(() => import('./pages/Cart'));
 const Payment = lazy(() => import('./pages/Payment'));
 const MyPage = lazy(() => import('./pages/MyPage'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 
 function App() {
     return (
-        <Layout>
-            <Suspense fallback={<div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>}>
-                <Routes>
+        <>
+            <ScrollToTop />
+            <Layout>
+                <Suspense fallback={<div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>}>
+                    <Routes>
                     <Route path="/" element={<Home />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/search" element={<Search />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/payment" element={<Payment />} />
                     <Route path="/mypage" element={<MyPage />} />
-                </Routes>
-            </Suspense>
-        </Layout>
+                    </Routes>
+                </Suspense>
+            </Layout>
+        </>
     );
 }
 
