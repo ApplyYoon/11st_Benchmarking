@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PRODUCTS } from '../../api/mockData';
 import ProductCard from '../shared/ProductCard';
 
@@ -7,7 +7,7 @@ const MDRecommends = () => {
     const initialItems = PRODUCTS.filter(p => !p.isTimeDeal && !p.isBest);
     const [items, setItems] = useState(initialItems);
     const [loading, setLoading] = useState(false);
-    const loadingRef = useRef(null);
+    const [isVisible, setIsVisible] = useState(false); // 섹션 표시 여부
 
     const loadMore = async () => {
         if (loading) return;
@@ -26,34 +26,102 @@ const MDRecommends = () => {
         setLoading(false);
     };
 
+    // 11번가 베스트 섹션 감지 - 베스트가 화면에서 벗어나면 MD 추천 표시
     useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting) {
-                loadMore();
-            }
-        }, { threshold: 0.1 });
+        let observer;
+        let timeoutId;
 
-        if (loadingRef.current) observer.observe(loadingRef.current);
-        return () => observer.disconnect();
-    }, [items]);
+        // 11번가 베스트가 렌더링될 때까지 대기
+        const checkAndObserve = () => {
+            const bestSection = document.getElementById('best-section');
+            if (!bestSection) {
+                console.log('11번가 베스트 섹션을 찾을 수 없습니다. 재시도 중...');
+                // 100ms 후 다시 시도
+                timeoutId = setTimeout(checkAndObserve, 100);
+                return;
+            }
+
+            console.log('11번가 베스트 섹션 발견! Observer 설정');
+            observer = new IntersectionObserver((entries) => {
+                const entry = entries[0];
+                console.log('11번가 베스트 IntersectionObserver:', {
+                    isIntersecting: entry.isIntersecting,
+                    intersectionRatio: entry.intersectionRatio,
+                    boundingClientRect: entry.boundingClientRect.top,
+                    isVisible: isVisible
+                });
+
+                // 11번가 베스트의 하단이 화면 상단을 지나갔을 때
+                if (entry.boundingClientRect.top < 0 && !isVisible) {
+                    console.log('MD 추천 표시!');
+                    setIsVisible(true);
+                }
+            }, {
+                threshold: [0, 0.1, 0.5, 1],
+                rootMargin: '0px'
+            });
+
+            observer.observe(bestSection);
+        };
+
+        checkAndObserve();
+
+        // Cleanup function for useEffect
+        return () => {
+            if (observer) {
+                observer.disconnect();
+            }
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+    }, [isVisible]);
 
     return (
-        <div>
-            <h2 style={{ fontSize: '26px', fontWeight: '900', marginBottom: '20px', color: '#111' }}>MD 추천</h2>
+        <>
+            {isVisible && (
+                <div>
+                    <h2 style={{ fontSize: '26px', fontWeight: '900', marginBottom: '20px', color: '#111' }}>MD 추천</h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px 20px' }}>
-                {items.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                ))}
-            </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px 20px' }}>
+                        {items.map((product) => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
+                    </div>
 
-            <div ref={loadingRef} style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {loading && (
-                    <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                )}
-            </div>
-            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-        </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '40px' }}>
+                        <button
+                            onClick={loadMore}
+                            disabled={loading}
+                            style={{
+                                padding: '14px 40px',
+                                fontSize: '15px',
+                                fontWeight: 'bold',
+                                color: '#333',
+                                backgroundColor: '#fff',
+                                border: '2px solid #333',
+                                borderRadius: '4px',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s',
+                                opacity: loading ? 0.6 : 1
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!loading) {
+                                    e.target.style.backgroundColor = '#333';
+                                    e.target.style.color = '#fff';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.backgroundColor = '#fff';
+                                e.target.style.color = '#333';
+                            }}
+                        >
+                            {loading ? '로딩 중...' : '새상품 더보기'}
+                        </button>
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
 
