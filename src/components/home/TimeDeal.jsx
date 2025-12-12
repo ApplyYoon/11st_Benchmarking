@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { PRODUCTS } from '../../api/mockData';
 
 const TimeDeal = () => {
+    const navigate = useNavigate();
     const deals = PRODUCTS.filter(p => p.isTimeDeal).slice(0, 3);
     const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
 
@@ -27,7 +29,7 @@ const TimeDeal = () => {
     const formatTime = (num) => String(num).padStart(2, '0');
 
     return (
-        <div style={{ marginBottom: '60px' }}>
+        <div id="timedeal-section" style={{ marginBottom: '60px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <h2 style={{ fontSize: '26px', fontWeight: '900', margin: 0, color: '#111' }}>타임딜</h2>
@@ -48,6 +50,23 @@ const TimeDeal = () => {
                         <div style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0', overflow: 'hidden', cursor: 'pointer', transition: 'box-shadow 0.2s' }}>
                             <div style={{ position: 'relative', paddingTop: '100%' }}>
                                 <img src={product.image} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                    <div
+                        key={product.id}
+                        onClick={() => navigate('/payment', {
+                            state: {
+                                amount: product.price,
+                                orderName: product.name,
+                                category: product.category // 카테고리 정보 전달
+                            }
+                        })}
+                        style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0', overflow: 'hidden', cursor: 'pointer' }}
+                    >
+                        <div style={{ position: 'relative', paddingTop: '100%' }}>
+                            <img src={product.image} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                        </div>
+                        <div style={{ padding: '20px' }}>
+                            <div style={{ fontSize: '16px', color: '#111', fontWeight: 'bold', height: '44px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', marginBottom: '10px' }}>
+                                {product.name}
                             </div>
                             <div style={{ padding: '20px' }}>
                                 <div style={{ fontSize: '16px', color: '#111', fontWeight: 'bold', height: '44px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', marginBottom: '10px' }}>

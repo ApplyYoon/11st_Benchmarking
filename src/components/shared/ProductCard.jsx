@@ -4,6 +4,7 @@ import { useCart } from '../../context/CartContext';
 import { ShoppingCart, X } from 'lucide-react';
 
 const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
     const { addToCart } = useCart();
@@ -51,6 +52,7 @@ const ProductCard = ({ product }) => {
         <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
         <div style={{ position: 'relative', width: '100%', backgroundColor: 'white' }}
             className="product-card"
+            onClick={handleCardClick}
         >
             {/* Image Area */}
             <div style={{ position: 'relative', paddingTop: '100%', overflow: 'hidden', borderRadius: '8px', backgroundColor: '#f4f4f4', marginBottom: '12px' }}>

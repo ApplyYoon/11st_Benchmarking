@@ -12,6 +12,9 @@ const Cart = lazy(() => import('./pages/Cart'));
 const Payment = lazy(() => import('./pages/Payment'));
 const MyPage = lazy(() => import('./pages/MyPage'));
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const Best = lazy(() => import('./pages/Best'));
+const MyCoupons = lazy(() => import('./pages/MyCoupons'));
+const UserInfo = lazy(() => import('./pages/UserInfo'));
 
 function App() {
     return (
@@ -23,15 +26,17 @@ function App() {
                     <Route path="/" element={<Home />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/search" element={<Search />} />
+                    <Route path="/best" element={<Best />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/payment" element={<Payment />} />
                     <Route path="/mypage" element={<MyPage />} />
-                    </Routes>
-                </Suspense>
-            </Layout>
-        </>
+                    <Route path="/my-coupons" element={<MyCoupons />} />
+                    <Route path="/user-info" element={<UserInfo />} />
+                </Routes>
+            </Suspense>
+        </Layout>
     );
 }
 
