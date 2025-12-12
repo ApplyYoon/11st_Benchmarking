@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { COUPONS } from '../api/mockData';
 
 const MyPage = () => {
-    const { user, cancelOrder } = useAuth();
+    const { user, cancelOrder, confirmPurchase } = useAuth();
     const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState('orders');
 
     if (!user) {
         navigate('/login');
@@ -24,46 +25,118 @@ const MyPage = () => {
 
                 <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid #eee' }}>
                     <div style={{ padding: '15px', fontWeight: 'bold', backgroundColor: '#f9f9f9', borderBottom: '1px solid #eee' }}>나의 쇼핑</div>
-                    <div style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer', color: '#f01a21' }}>주문/배송 조회</div>
-                    <div style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer' }}>취소/반품/교환</div>
-                    <div style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer' }}>찜한 상품</div>
-                    <div style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer' }}>최근 본 상품</div>
+                    <div onClick={() => setActiveTab('orders')} style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer', color: activeTab === 'orders' ? '#f01a21' : '#333', fontWeight: activeTab === 'orders' ? 'bold' : 'normal' }}>주문/배송 조회</div>
+                    <div onClick={() => setActiveTab('cancel')} style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer', color: activeTab === 'cancel' ? '#f01a21' : '#333', fontWeight: activeTab === 'cancel' ? 'bold' : 'normal' }}>취소/반품/교환</div>
+                    <div onClick={() => setActiveTab('wishlist')} style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer', color: activeTab === 'wishlist' ? '#f01a21' : '#333', fontWeight: activeTab === 'wishlist' ? 'bold' : 'normal' }}>찜한 상품</div>
+                    <div onClick={() => setActiveTab('recent')} style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer', color: activeTab === 'recent' ? '#f01a21' : '#333', fontWeight: activeTab === 'recent' ? 'bold' : 'normal' }}>최근 본 상품</div>
                 </div>
             </div>
 
             {/* Content */}
             <div style={{ flex: 1 }}>
                 <div style={{ marginBottom: '60px' }}>
-                    <h2 style={{ fontSize: '20px', fontWeight: 'bold', paddingBottom: '15px', borderBottom: '2px solid #333' }}>주문/배송 조회</h2>
+                    {activeTab === 'orders' && (
+                        <>
+                            <h2 style={{ fontSize: '20px', fontWeight: 'bold', paddingBottom: '15px', borderBottom: '2px solid #333' }}>주문/배송 조회</h2>
+                            {user.orders && user.orders.length > 0 ? (
+                                user.orders.map(order => (
+                                    <div key={order.id} style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '20px', marginTop: '15px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                                            <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{order.date}</span>
+                                            <span style={{ fontSize: '12px', color: '#888' }}>주문번호 {order.id}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <div>
+                                                <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px' }}>{order.name}</div>
+                                                <div style={{ fontSize: '14px' }}>{order.amount.toLocaleString()}원</div>
+                                            </div>
+                                            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                                <div style={{ fontSize: '16px', fontWeight: 'bold', color: order.status === '취소완료' ? '#ccc' : '#333', marginBottom: '8px' }}>{order.status}</div>
 
-                    {user.orders && user.orders.length > 0 ? (
-                        user.orders.map(order => (
-                            <div key={order.id} style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '20px', marginTop: '15px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-                                    <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{order.date}</span>
-                                    <span style={{ fontSize: '12px', color: '#888' }}>주문번호 {order.id}</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <div>
-                                        <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px' }}>{order.name}</div>
-                                        <div style={{ fontSize: '14px' }}>{order.amount.toLocaleString()}원</div>
+                                                {/* 주문완료 상태일 때 취소 가능 */}
+                                                {order.status === '주문완료' && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => confirmPurchase(order.id)}
+                                                            style={{ fontSize: '12px', padding: '5px 10px', border: '1px solid #f01a21', backgroundColor: '#f01a21', color: 'white', cursor: 'pointer', borderRadius: '2px' }}
+                                                        >
+                                                            구매확정
+                                                        </button>
+                                                        <button
+                                                            onClick={() => cancelOrder(order.id)}
+                                                            style={{ fontSize: '12px', padding: '5px 10px', border: '1px solid #ddd', backgroundColor: 'white', cursor: 'pointer', borderRadius: '2px' }}
+                                                        >
+                                                            주문취소
+                                                        </button>
+                                                    </>
+                                                )}
+
+                                                {/* 구매확정 상태일 때 리뷰 작성 가능 */}
+                                                {order.status === '구매확정' && (
+                                                    <button
+                                                        onClick={() => {
+                                                            const review = prompt('리뷰를 작성해주세요:');
+                                                            if (review) {
+                                                                alert('리뷰가 등록되었습니다! 포인트가 적립되었습니다.');
+                                                                // In a real app, call addReview API here
+                                                            }
+                                                        }}
+                                                        style={{ fontSize: '12px', padding: '5px 10px', border: '1px solid #333', backgroundColor: 'white', color: '#333', cursor: 'pointer', borderRadius: '2px' }}
+                                                    >
+                                                        리뷰쓰기
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '16px', fontWeight: 'bold', color: order.status === '취소완료' ? '#ccc' : '#333', marginBottom: '8px' }}>{order.status}</div>
-                                        {order.status === '주문완료' && (
-                                            <button
-                                                onClick={() => cancelOrder(order.id)}
-                                                style={{ fontSize: '12px', padding: '5px 10px', border: '1px solid #ddd', backgroundColor: 'white', cursor: 'pointer', borderRadius: '2px' }}
-                                            >
-                                                주문취소
-                                            </button>
-                                        )}
+                                ))
+                            ) : (
+                                <div style={{ padding: '50px 0', textAlign: 'center', color: '#888', borderBottom: '1px solid #eee' }}>최근 주문 내역이 없습니다.</div>
+                            )}
+                        </>
+                    )}
+
+                    {activeTab === 'cancel' && (
+                        <>
+                            <h2 style={{ fontSize: '20px', fontWeight: 'bold', paddingBottom: '15px', borderBottom: '2px solid #333' }}>취소/반품/교환 내역</h2>
+                            {user.orders && user.orders.filter(o => o.status === '취소완료').length > 0 ? (
+                                user.orders.filter(o => o.status === '취소완료').map(order => (
+                                    <div key={order.id} style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '20px', marginTop: '15px', opacity: 0.7 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                                            <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{order.date}</span>
+                                            <span style={{ fontSize: '12px', color: '#888' }}>주문번호 {order.id}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <div>
+                                                <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px' }}>{order.name}</div>
+                                                <div style={{ fontSize: '14px' }}>{order.amount.toLocaleString()}원</div>
+                                            </div>
+                                            <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#888' }}>취소완료</div>
+                                        </div>
                                     </div>
-                                </div>
+                                ))
+                            ) : (
+                                <div style={{ padding: '50px 0', textAlign: 'center', color: '#888', borderBottom: '1px solid #eee' }}>취소/반품/교환 내역이 없습니다.</div>
+                            )}
+                        </>
+                    )}
+
+                    {activeTab === 'wishlist' && (
+                        <>
+                            <h2 style={{ fontSize: '20px', fontWeight: 'bold', paddingBottom: '15px', borderBottom: '2px solid #333' }}>찜한 상품</h2>
+                            <div style={{ padding: '50px 0', textAlign: 'center', color: '#888', borderBottom: '1px solid #eee' }}>
+                                찜한 상품이 없습니다.
                             </div>
-                        ))
-                    ) : (
-                        <div style={{ padding: '50px 0', textAlign: 'center', color: '#888', borderBottom: '1px solid #eee' }}>최근 주문 내역이 없습니다.</div>
+                        </>
+                    )}
+
+                    {activeTab === 'recent' && (
+                        <>
+                            <h2 style={{ fontSize: '20px', fontWeight: 'bold', paddingBottom: '15px', borderBottom: '2px solid #333' }}>최근 본 상품</h2>
+                            <div style={{ padding: '50px 0', textAlign: 'center', color: '#888', borderBottom: '1px solid #eee' }}>
+                                최근 본 상품 내역이 없습니다.
+                            </div>
+                        </>
                     )}
                 </div>
 

@@ -27,6 +27,9 @@ public class AuthService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
+                .address(request.getAddress())
+                .detailAddress(request.getDetailAddress())
+                .zipCode(request.getZipCode())
                 .grade(User.Grade.FAMILY)
                 .points(1000)
                 .build();
