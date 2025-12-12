@@ -12,4 +12,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByIsTimeDealTrue();
 
     List<Product> findByIsBestTrueOrderByRankAsc();
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT * FROM products WHERE name % :keyword ORDER BY similarity(name, :keyword) DESC", nativeQuery = true)
+    List<Product> searchByNameFuzzy(@org.springframework.data.repository.query.Param("keyword") String keyword);
 }

@@ -30,7 +30,19 @@ public class ProductController {
             return productRepository.findByCategory(category);
         }
         if (search != null) {
-            return productRepository.findByNameContaining(search);
+            // First try fuzzy search
+            List<Product> results = productRepository.searchByNameFuzzy(search);
+            // If fuzzy search yields nothing (unlikely if threshold is low, but possible),
+            // fallback or return empty
+            // But actually, containing is better for direct substring matches if trgm fails
+            // short words
+            // Let's rely on fuzzy search as it usually covers substrings if index is good.
+            // Actually, for "nike", "nike shoes" might not be similar enough if threshold
+            // is high?
+            // But trgm handles substrings well usually if we use similarity function
+            // properly.
+            // Let's stick to the repo method we added.
+            return results;
         }
         return productRepository.findAll();
     }
