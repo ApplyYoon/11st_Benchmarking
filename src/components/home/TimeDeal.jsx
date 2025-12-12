@@ -27,7 +27,7 @@ const TimeDeal = () => {
     const formatTime = (num) => String(num).padStart(2, '0');
 
     return (
-        <div style={{ marginBottom: '60px' }}>
+        <div id="timedeal-section" style={{ marginBottom: '60px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <h2 style={{ fontSize: '26px', fontWeight: '900', margin: 0, color: '#111' }}>타임딜</h2>
