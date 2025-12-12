@@ -6,6 +6,7 @@ import { useCart } from '../../context/CartContext';
 
 const Header = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const { user, logout } = useAuth();
     const { cart } = useCart();
     const navigate = useNavigate();
@@ -18,7 +19,7 @@ const Header = () => {
     };
 
     return (
-        <header style={{ borderBottom: '1px solid #e5e5e5', backgroundColor: 'white', zIndex: 100, position: 'sticky', top: 0 }}>
+        <header style={{ borderBottom: '1px solid #e5e5e5', backgroundColor: 'white', zIndex: 1000, position: 'sticky', top: 0 }}>
             {/* Main Header Row */}
             <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '30px', height: '80px' }}>
 
@@ -75,12 +76,68 @@ const Header = () => {
                 {/* Right Actions */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '25px', marginLeft: 'auto' }}>
                     {user ? (
-                        <>
-                            <div style={{ fontSize: '13px', textAlign: 'center' }}>
-                                <span style={{ fontWeight: 'bold' }}>{user.name}</span>님 <br />
-                                <button onClick={logout} style={{ background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', color: '#888', fontSize: '11px' }}>로그아웃</button>
-                            </div>
-                        </>
+                        <div
+                            style={{ position: 'relative', cursor: 'pointer', zIndex: 1000, height: '100%', display: 'flex', alignItems: 'center' }}
+                            onMouseEnter={() => setIsUserMenuOpen(true)}
+                            onMouseLeave={() => setIsUserMenuOpen(false)}
+                        >
+                            <Link to="/user-info" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <User size={26} strokeWidth={1.5} color="#f01a21" />
+                                <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>{user.name}님</span>
+                            </Link>
+
+                            {/* Hover Dropdown Menu */}
+                            {isUserMenuOpen && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '40px',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '4px',
+                                    padding: '10px 0',
+                                    minWidth: '160px',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                    zIndex: 1001,
+                                    whiteSpace: 'nowrap'
+                                }}>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '-6px',
+                                        left: '50%',
+                                        transform: 'translateX(-50%) rotate(45deg)',
+                                        width: '10px',
+                                        height: '10px',
+                                        backgroundColor: 'white',
+                                        borderLeft: '1px solid #ddd',
+                                        borderTop: '1px solid #ddd',
+                                        zIndex: 1002
+                                    }}></div>
+
+                                    <Link to="/my-coupons" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                        나의 쿠폰
+                                    </Link>
+                                    <Link to="/mypage" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                        주문/배송조회
+                                    </Link>
+                                    <Link to="/mypage" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                        취소/반품/교환
+                                    </Link>
+                                    <div style={{ width: '100%', height: '1px', backgroundColor: '#eee', margin: '5px 0' }}></div>
+                                    <Link to="/" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                        고객센터
+                                    </Link>
+                                    <Link to="/user-info" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                        회원정보
+                                    </Link>
+                                    <div style={{ width: '100%', height: '1px', backgroundColor: '#eee', margin: '5px 0' }}></div>
+                                    <button onClick={logout} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 20px', background: 'none', border: 'none', color: '#888', fontSize: '12px', cursor: 'pointer' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                        로그아웃
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     ) : (
                         <Link to="/login" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <User size={26} strokeWidth={1.5} />
@@ -125,7 +182,7 @@ const Header = () => {
             {/* Secondary Navigation Row - Replicating top section of 11st */}
             <div style={{ borderTop: '1px solid #f0f0f0' }}>
                 <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', height: '48px', gap: '25px', fontSize: '14px' }}>
-                    <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>베스트</Link>
+                    <Link to="/best" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>베스트</Link>
                     <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>타임딜</Link>
                     <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>백화점/홈쇼핑</Link>
                     <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>이벤트/혜택</Link>
