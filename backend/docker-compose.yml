@@ -1,17 +1,13 @@
-version: '3.8'
-
 services:
-  db:
-    image: postgres:15
-    container_name: 11st-postgres
-    environment:
-      POSTGRES_DB: clone11st
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+  backend-ubuntu:
+    build: .
+    container_name: ubuntu_dev_env
     ports:
-      - "5433:5432"
+      - "8080:8080"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
+      - ./:/app
+      - /app/build
+      - /app/.gradle
+    env_file:
+      - .env
+    command: tail -f /dev/null
