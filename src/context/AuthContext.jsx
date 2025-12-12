@@ -8,33 +8,40 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     const loadUser = async () => {
+        // First, load from localStorage for immediate display
+        const storedProfile = localStorage.getItem('user_profile');
+        if (storedProfile) {
+            try {
+                setUser(JSON.parse(storedProfile));
+            } catch (e) {
+                localStorage.removeItem('user_profile');
+            }
+        }
+
+        // Try to validate with backend (for cookie-based auth)
         try {
             const response = await client.get('/auth/me');
             const userData = response.data;
-            // Ensure compatibility with frontend expectations
             const finalUser = {
                 ...userData,
                 coupons: userData.coupons || [],
                 orders: userData.orders || []
             };
             setUser(finalUser);
-            localStorage.setItem('user_profile', JSON.stringify(finalUser)); // Only for quick display, not auth
+            localStorage.setItem('user_profile', JSON.stringify(finalUser));
         } catch (error) {
-            console.log("Not authenticated or session expired");
-            setUser(null);
-            localStorage.removeItem('user_profile');
+            // Don't clear user if we have a valid localStorage profile (OAuth users)
+            // Only clear if there's no stored profile at all
+            if (!storedProfile) {
+                setUser(null);
+            }
+            console.log("Backend auth check failed, using localStorage if available");
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        // Optimistic load for UI
-        const storedProfile = localStorage.getItem('user_profile');
-        if (storedProfile) {
-            setUser(JSON.parse(storedProfile));
-        }
-
         loadUser();
     }, []);
 
@@ -149,8 +156,36 @@ export const AuthProvider = ({ children }) => {
         return { success: true, message: '쿠폰이 발급되었습니다!' };
     };
 
+    const updateAddress = async (addressData) => {
+        try {
+            // Call backend API
+            const response = await client.put('/users/me/address', addressData);
+            const updatedUser = {
+                ...user,
+                ...response.data
+            };
+            setUser(updatedUser);
+            localStorage.setItem('user_profile', JSON.stringify(updatedUser)); // Update cached profile
+            return updatedUser;
+        } catch (error) {
+            console.error('Failed to update address:', error);
+            throw error;
+        }
+    };
+
+    // Direct user setter for OAuth callbacks (skips API call)
+    const setUserDirectly = (userData) => {
+        const finalUser = {
+            ...userData,
+            coupons: userData.coupons || [],
+            orders: userData.orders || []
+        };
+        setUser(finalUser);
+        localStorage.setItem('user_profile', JSON.stringify(finalUser));
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, loading, addOrder, cancelOrder, confirmPurchase, addCoupon }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, loading, addOrder, cancelOrder, confirmPurchase, addCoupon, updateAddress, setUserDirectly }}>
             {children}
         </AuthContext.Provider>
     );

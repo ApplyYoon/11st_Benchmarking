@@ -7,13 +7,14 @@ import { CartProvider } from './context/CartContext'
 import './index.css'
 
 createRoot(document.getElementById('root')).render(
-    <StrictMode>
-        <BrowserRouter>
-            <AuthProvider>
-                <CartProvider>
-                    <App />
-                </CartProvider>
-            </AuthProvider>
-        </BrowserRouter>
-    </StrictMode>,
+    // StrictMode disabled temporarily for OAuth (causes double API calls)
+    // <StrictMode>
+    <BrowserRouter>
+        <AuthProvider>
+            <CartProvider>
+                <App />
+            </CartProvider>
+        </AuthProvider>
+    </BrowserRouter>
+    // </StrictMode>,
 )
