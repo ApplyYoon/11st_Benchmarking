@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PRODUCTS } from '../../api/mockData';
-import ProductCard from '../shared/ProductCard';
 
 const TimeDeal = () => {
+    const navigate = useNavigate();
     const deals = PRODUCTS.filter(p => p.isTimeDeal).slice(0, 3);
     const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
 
@@ -44,7 +45,17 @@ const TimeDeal = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                 {deals.map(product => (
-                    <div key={product.id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0', overflow: 'hidden' }}>
+                    <div
+                        key={product.id}
+                        onClick={() => navigate('/payment', {
+                            state: {
+                                amount: product.price,
+                                orderName: product.name,
+                                category: product.category // 카테고리 정보 전달
+                            }
+                        })}
+                        style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0', overflow: 'hidden', cursor: 'pointer' }}
+                    >
                         <div style={{ position: 'relative', paddingTop: '100%' }}>
                             <img src={product.image} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
                         </div>

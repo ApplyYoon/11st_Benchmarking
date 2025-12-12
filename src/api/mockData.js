@@ -32,5 +32,6 @@ export const COUPONS = [
     { id: 1, name: '신규가입 감사 쿠폰', discountAmount: 3000, minOrderAmount: 10000, type: 'amount' },
     { id: 2, name: '패션 카테고리 15% 할인', discountRate: 15, maxDiscountAmount: 10000, type: 'percent', category: 'fashion' },
     { id: 3, name: '전상품 10% 더블 할인', discountRate: 10, maxDiscountAmount: 5000, type: 'percent' },
-    { id: 4, name: '연말 감사제 5,000원 장바구니 쿠폰', discountAmount: 5000, minOrderAmount: 50000, type: 'amount' }
+    { id: 4, name: '연말 감사제 5,000원 장바구니 쿠폰', discountAmount: 5000, minOrderAmount: 50000, type: 'amount' },
+    { id: 5, name: '의류 대상 5,000원 할인 쿠폰', discountAmount: 5000, minOrderAmount: 30000, type: 'amount', category: 'fashion' }
 ];
