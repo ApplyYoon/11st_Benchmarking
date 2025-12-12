@@ -51,22 +51,30 @@ const Cart = () => {
             <div style={{ flex: 1 }}>
                 <h2 style={{ fontSize: '22px', fontWeight: 'bold', borderBottom: '2px solid #333', paddingBottom: '15px', marginBottom: '0' }}>장바구니</h2>
 
-                {cart.map(item => (
-                    <div key={item.id} style={{ display: 'flex', gap: '20px', padding: '20px 0', borderBottom: '1px solid #ddd' }}>
-                        <img src={item.image} alt={item.name} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '15px', color: '#333', marginBottom: '8px' }}>{item.name}</div>
-                            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{item.price.toLocaleString()}원</div>
+                {cart.map(item => {
+                    const itemKey = item.cartItemId || item.id;
+                    return (
+                        <div key={itemKey} style={{ display: 'flex', gap: '20px', padding: '20px 0', borderBottom: '1px solid #ddd' }}>
+                            <img src={item.image} alt={item.name} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '15px', color: '#333', marginBottom: '8px' }}>{item.name}</div>
+                                {item.selectedSize && (
+                                    <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>
+                                        사이즈: <span style={{ fontWeight: 'bold' }}>{item.selectedSize}</span>
+                                    </div>
+                                )}
+                                <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{item.price.toLocaleString()}원</div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <button onClick={() => updateQuantity(itemKey, item.quantity - 1)} style={{ width: '28px', height: '28px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' }}>-</button>
+                                <span style={{ width: '30px', textAlign: 'center', fontSize: '14px' }}>{item.quantity}</span>
+                                <button onClick={() => updateQuantity(itemKey, item.quantity + 1)} style={{ width: '28px', height: '28px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' }}>+</button>
+                            </div>
+                            <div style={{ width: '100px', textAlign: 'right', fontWeight: 'bold' }}>{(item.price * item.quantity).toLocaleString()}원</div>
+                            <button onClick={() => removeFromCart(itemKey)} style={{ alignSelf: 'flex-start', border: '1px solid #ddd', background: 'white', padding: '4px 8px', fontSize: '12px', color: '#666', cursor: 'pointer' }}>삭제</button>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <button onClick={() => updateQuantity(item.id, item.quantity - 1)} style={{ width: '28px', height: '28px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' }}>-</button>
-                            <span style={{ width: '30px', textAlign: 'center', fontSize: '14px' }}>{item.quantity}</span>
-                            <button onClick={() => updateQuantity(item.id, item.quantity + 1)} style={{ width: '28px', height: '28px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' }}>+</button>
-                        </div>
-                        <div style={{ width: '100px', textAlign: 'right', fontWeight: 'bold' }}>{(item.price * item.quantity).toLocaleString()}원</div>
-                        <button onClick={() => removeFromCart(item.id)} style={{ alignSelf: 'flex-start', border: '1px solid #ddd', background: 'white', padding: '4px 8px', fontSize: '12px', color: '#666', cursor: 'pointer' }}>삭제</button>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Payment Summary */}
