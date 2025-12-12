@@ -56,7 +56,7 @@ const ProductCard = ({ product }) => {
                     {/* Image Area */}
                     <div style={{ position: 'relative', paddingTop: '100%', overflow: 'hidden', borderRadius: '8px', backgroundColor: '#f4f4f4', marginBottom: '12px' }}>
                         <img
-                            src={product.imageUrl || product.image}
+                            src={product.image}
                             alt={product.name}
                             loading="lazy"
                             onLoad={() => setImageLoaded(true)}
@@ -169,7 +169,7 @@ const ProductCard = ({ product }) => {
                         {/* Product Info */}
                         <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #eee' }}>
                             <img
-                                src={product.imageUrl || product.image}
+                                src={product.image}
                                 alt={product.name}
                                 style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
                             />

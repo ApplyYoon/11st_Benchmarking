@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import client from '../api/client';
-import { REVIEWS, QNA } from '../api/mockData';
+import { PRODUCTS, REVIEWS, QNA } from '../api/mockData';
 import { useCart } from '../context/CartContext';
 import { ShoppingCart, Heart, Share2, ChevronLeft, Truck, Shield, RotateCcw } from 'lucide-react';
 
@@ -9,9 +8,6 @@ const ProductDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { addToCart } = useCart();
-
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [isWished, setIsWished] = useState(false);
     const [selectedSize, setSelectedSize] = useState(null);
@@ -26,20 +22,6 @@ const ProductDetail = () => {
         { id: 'qna', label: 'Q&A' }
     ];
 
-    useEffect(() => {
-        const fetchProduct = async () => {
-            try {
-                const response = await client.get(`/products/${id}`);
-                setProduct(response.data);
-            } catch (error) {
-                console.error("Failed to fetch product detail", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProduct();
-    }, [id]);
-
     const handleMouseMove = (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -47,7 +29,9 @@ const ProductDetail = () => {
         setMousePosition({ x, y });
     };
 
-    // 해당 상품의 리뷰와 Q&A 필터링 (Mock 데이터 유지)
+    const product = PRODUCTS.find(p => p.id === Number(id));
+
+    // 해당 상품의 리뷰와 Q&A 필터링
     const productReviews = REVIEWS.filter(r => r.productId === Number(id));
     const productQna = QNA.filter(q => q.productId === Number(id));
 
@@ -60,8 +44,6 @@ const ProductDetail = () => {
     const ratingCounts = [5, 4, 3, 2, 1].map(rating =>
         productReviews.filter(r => r.rating === rating).length
     );
-
-    if (loading) return <div style={{ padding: '100px', textAlign: 'center' }}>Loading...</div>;
 
     if (!product) {
         return (
