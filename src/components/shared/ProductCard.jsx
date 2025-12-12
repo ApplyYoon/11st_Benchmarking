@@ -1,26 +1,56 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, X } from 'lucide-react';
+
+const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
     const { addToCart } = useCart();
     const [imageLoaded, setImageLoaded] = useState(false);
-    const navigate = useNavigate();
+    const [showSizeModal, setShowSizeModal] = useState(false);
+    const [selectedSize, setSelectedSize] = useState(null);
 
-    const handleCardClick = () => {
-        navigate('/payment', {
-            state: {
-                amount: product.price,
-                orderName: product.name,
-                category: product.category // 카테고리 정보 전달
-            }
-        });
+    const handleCartClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (product.category === 'fashion') {
+            setShowSizeModal(true);
+            setSelectedSize(null);
+        } else {
+            addToCart(product);
+            alert(`${product.name}이(가) 장바구니에 추가되었습니다.`);
+        }
+    };
+
+    const handleAddWithSize = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!selectedSize) {
+            alert('사이즈를 선택해주세요.');
+            return;
+        }
+        
+        addToCart({ ...product, selectedSize });
+        setShowSizeModal(false);
+        setSelectedSize(null);
+        alert(`${product.name} (${selectedSize})이(가) 장바구니에 추가되었습니다.`);
+    };
+
+    const handleCloseModal = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowSizeModal(false);
+        setSelectedSize(null);
     };
 
     return (
-        <div
-            style={{ position: 'relative', width: '100%', backgroundColor: 'white', cursor: 'pointer' }}
+        <>
+        <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+        <div style={{ position: 'relative', width: '100%', backgroundColor: 'white' }}
             className="product-card"
             onClick={handleCardClick}
         >
@@ -58,7 +88,7 @@ const ProductCard = ({ product }) => {
                 {/* Hover Action (Cart) */}
                 <div style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
                     <button
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); addToCart(product); }}
+                        onClick={handleCartClick}
                         style={{
                             width: '36px', height: '36px',
                             borderRadius: '50%',
@@ -96,6 +126,110 @@ const ProductCard = ({ product }) => {
                 </div>
             </div>
         </div>
+        </Link>
+
+        {/* Size Selection Modal */}
+        {showSizeModal && (
+            <div 
+                onClick={handleCloseModal}
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}
+            >
+                <div 
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                        backgroundColor: 'white',
+                        borderRadius: '12px',
+                        padding: '24px',
+                        width: '320px',
+                        maxWidth: '90vw',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+                    }}
+                >
+                    {/* Modal Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>사이즈 선택</h3>
+                        <button 
+                            onClick={handleCloseModal}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+                        >
+                            <X size={20} color="#666" />
+                        </button>
+                    </div>
+
+                    {/* Product Info */}
+                    <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #eee' }}>
+                        <img 
+                            src={product.image} 
+                            alt={product.name}
+                            style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
+                        />
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px', lineHeight: '1.3' }}>{product.name}</div>
+                            <div style={{ fontSize: '15px', fontWeight: 'bold' }}>{product.price.toLocaleString()}원</div>
+                        </div>
+                    </div>
+
+                    {/* Size Options */}
+                    <div style={{ marginBottom: '20px' }}>
+                        <div style={{ fontSize: '13px', color: '#666', marginBottom: '10px' }}>사이즈를 선택해주세요</div>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            {sizes.map((size) => (
+                                <button
+                                    key={size}
+                                    onClick={(e) => { e.stopPropagation(); setSelectedSize(size); }}
+                                    style={{
+                                        minWidth: '44px',
+                                        height: '36px',
+                                        padding: '0 12px',
+                                        border: selectedSize === size ? '2px solid #111' : '1px solid #ddd',
+                                        backgroundColor: selectedSize === size ? '#111' : '#fff',
+                                        color: selectedSize === size ? '#fff' : '#333',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '13px',
+                                        fontWeight: selectedSize === size ? 'bold' : 'normal',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    {size}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Add to Cart Button */}
+                    <button
+                        onClick={handleAddWithSize}
+                        style={{
+                            width: '100%',
+                            padding: '14px',
+                            backgroundColor: selectedSize ? '#f01a21' : '#ccc',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            cursor: selectedSize ? 'pointer' : 'not-allowed',
+                            transition: 'background-color 0.2s'
+                        }}
+                    >
+                        장바구니 담기
+                    </button>
+                </div>
+            </div>
+        )}
+        </>
     );
 };
 
