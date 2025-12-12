@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PRODUCTS } from '../../api/mockData';
 import ProductCard from '../shared/ProductCard';
 
-const BestSwiper = () => {
+const BestSwiper = ({ onLoadComplete }) => {
     const initialBestItems = PRODUCTS.filter(p => p.isBest).sort((a, b) => a.rank - b.rank);
     const [bestItems, setBestItems] = useState(initialBestItems.slice(0, 4));
     const [loading, setLoading] = useState(false);
@@ -28,26 +28,27 @@ const BestSwiper = () => {
         setLoading(false);
     };
 
+    // 로딩 완료 감지
+    useEffect(() => {
+        if (loadCount >= MAX_LOADS && onLoadComplete) {
+            onLoadComplete();
+        }
+    }, [loadCount, onLoadComplete]);
+
     // 타임딜 섹션 감지 - 타임딜이 화면에서 벗어나면 11번가 베스트 표시
     useEffect(() => {
         const timedealSection = document.getElementById('timedeal-section');
         if (!timedealSection) {
-            console.log('타임딜 섹션을 찾을 수 없습니다');
+            // console.log('타임딜 섹션을 찾을 수 없습니다');
             return;
         }
 
         const observer = new IntersectionObserver((entries) => {
             const entry = entries[0];
-            console.log('타임딜 IntersectionObserver:', {
-                isIntersecting: entry.isIntersecting,
-                intersectionRatio: entry.intersectionRatio,
-                boundingClientRect: entry.boundingClientRect.top,
-                isVisible: isVisible
-            });
 
             // 타임딜의 하단이 화면 상단을 지나갔을 때
             if (entry.boundingClientRect.top < 0 && !isVisible) {
-                console.log('11번가 베스트 표시!');
+                // console.log('11번가 베스트 표시!');
                 setIsVisible(true);
             }
         }, {
@@ -90,7 +91,9 @@ const BestSwiper = () => {
                     </div>
 
                     {/* 로딩 트리거 - 섹션 하단에 위치 */}
-                    <div id="best-loading-trigger" style={{ height: '1px', marginTop: '20px' }} />
+                    {loadCount < MAX_LOADS && (
+                        <div id="best-loading-trigger" style={{ height: '1px', marginTop: '20px' }} />
+                    )}
 
                     {loading && (
                         <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '20px' }}>
