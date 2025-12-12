@@ -36,18 +36,12 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
-}
-
-tasks.named('bootRun') {
+def loadEnv = { task ->
     def envFile = file('.env')
     println "Configuring env from: ${envFile.absolutePath}"
     if (envFile.exists()) {
@@ -56,18 +50,27 @@ tasks.named('bootRun') {
             if (!line.startsWith('#') && line.contains('=')) {
                 def key = line.substring(0, line.indexOf('=')).trim()
                 def value = line.substring(line.indexOf('=') + 1).trim()
-                println "Loading env var: ${key} = ${value}"
-                environment key, value
-                systemProperty key, value
+                // println "Loading env var: ${key} = ${value}" // Commented out to reduce noise
+                task.environment key, value
+                task.systemProperty key, value
                 
                 // Map to Spring Boot properties directly
-                if (key == 'DATASOURCE_URL') systemProperty 'spring.datasource.url', value
-                if (key == 'DATASOURCE_USERNAME') systemProperty 'spring.datasource.username', value
-                if (key == 'DATASOURCE_PASSWORD') systemProperty 'spring.datasource.password', value
-                if (key == 'JWT_SECRET') systemProperty 'jwt.secret', value
-                if (key == 'TOSS_CLIENT_KEY') systemProperty 'toss.client-key', value
-                if (key == 'TOSS_SECRET_KEY') systemProperty 'toss.secret-key', value
+                if (key == 'DATASOURCE_URL') task.systemProperty 'spring.datasource.url', value
+                if (key == 'DATASOURCE_USERNAME') task.systemProperty 'spring.datasource.username', value
+                if (key == 'DATASOURCE_PASSWORD') task.systemProperty 'spring.datasource.password', value
+                if (key == 'JWT_SECRET') task.systemProperty 'jwt.secret', value
+                if (key == 'TOSS_CLIENT_KEY') task.systemProperty 'toss.client-key', value
+                if (key == 'TOSS_SECRET_KEY') task.systemProperty 'toss.secret-key', value
             }
         }
     }
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+    loadEnv(it)
+}
+
+tasks.named('bootRun') {
+    loadEnv(it)
 }
