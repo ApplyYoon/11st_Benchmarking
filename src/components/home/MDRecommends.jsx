@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { PRODUCTS } from '../../api/mockData';
 import ProductCard from '../shared/ProductCard';
+import ProductSkeleton from '../shared/ProductSkeleton';
 
 const MDRecommends = () => {
-    // Start with non-Timedeal/Best items
-    const initialItems = PRODUCTS.filter(p => !p.isTimeDeal && !p.isBest);
-    const [items, setItems] = useState(initialItems);
+    const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false); // 섹션 표시 여부
 

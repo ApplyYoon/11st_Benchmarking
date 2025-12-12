@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PRODUCTS } from '../../api/mockData';
 import ProductCard from '../shared/ProductCard';
+import ProductSkeleton from '../shared/ProductSkeleton';
 
 const BestSwiper = ({ onLoadComplete }) => {
     const initialBestItems = PRODUCTS.filter(p => p.isBest).sort((a, b) => a.rank - b.rank);

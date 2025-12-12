@@ -3,8 +3,25 @@ import { Link } from 'react-router-dom';
 import { PRODUCTS } from '../../api/mockData';
 
 const TimeDeal = () => {
-    const deals = PRODUCTS.filter(p => p.isTimeDeal).slice(0, 3);
+    const [deals, setDeals] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
+
+    useEffect(() => {
+        const fetchDeals = async () => {
+            try {
+                const response = await client.get('/products', {
+                    params: { type: 'timedeal' }
+                });
+                setDeals(response.data.slice(0, 3));
+            } catch (error) {
+                console.error("Failed to fetch time deals", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDeals();
+    }, []);
 
     useEffect(() => {
         const calculateTimeLeft = () => {
@@ -25,6 +42,9 @@ const TimeDeal = () => {
     }, []);
 
     const formatTime = (num) => String(num).padStart(2, '0');
+
+    if (loading) return null; // Or a skeleton loader
+    if (deals.length === 0) return null;
 
     return (
         <div id="timedeal-section" style={{ marginBottom: '60px' }}>
