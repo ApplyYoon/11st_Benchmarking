@@ -30,18 +30,18 @@ const ProductDetail = () => {
     };
 
     const product = PRODUCTS.find(p => p.id === Number(id));
-    
+
     // 해당 상품의 리뷰와 Q&A 필터링
     const productReviews = REVIEWS.filter(r => r.productId === Number(id));
     const productQna = QNA.filter(q => q.productId === Number(id));
-    
+
     // 리뷰 평점 계산
-    const averageRating = productReviews.length > 0 
+    const averageRating = productReviews.length > 0
         ? (productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(1)
         : 0;
-    
+
     // 별점별 개수 계산
-    const ratingCounts = [5, 4, 3, 2, 1].map(rating => 
+    const ratingCounts = [5, 4, 3, 2, 1].map(rating =>
         productReviews.filter(r => r.rating === rating).length
     );
 
@@ -83,10 +83,18 @@ const ProductDetail = () => {
             alert('사이즈를 선택해주세요.');
             return;
         }
-        for (let i = 0; i < quantity; i++) {
-            addToCart({ ...product, selectedSize });
-        }
-        navigate('/cart');
+
+        // 바로구매 클릭 시 결제 페이지로 이동
+        const totalAmount = product.price * quantity;
+        const orderName = product.name + (quantity > 1 ? ` (${quantity}개)` : '');
+
+        navigate('/payment', {
+            state: {
+                amount: totalAmount,
+                orderName,
+                category: product.category
+            }
+        });
     };
 
     return (
@@ -114,7 +122,7 @@ const ProductDetail = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px' }}>
                 {/* Product Image */}
                 <div style={{ position: 'relative' }}>
-                    <div 
+                    <div
                         style={{
                             position: 'relative',
                             paddingTop: '100%',
@@ -139,7 +147,7 @@ const ProductDetail = () => {
                                 objectFit: 'cover'
                             }}
                         />
-                        
+
                         {/* Hover Indicator Box */}
                         {isHovering && (
                             <div
@@ -156,7 +164,7 @@ const ProductDetail = () => {
                                 }}
                             />
                         )}
-                        
+
                         {product.isTimeDeal && (
                             <div style={{
                                 position: 'absolute',
@@ -194,7 +202,7 @@ const ProductDetail = () => {
                             </div>
                         )}
                     </div>
-                    
+
                     {/* Zoom Preview - Shows on the right side */}
                     {isHovering && (
                         <div
@@ -480,7 +488,7 @@ const ProductDetail = () => {
                                     11번가에서만 만나볼 수 있는 특별한 가격!
                                 </p>
                             </div>
-                            
+
                             {/* 상품 스펙 */}
                             <div style={{ marginTop: '40px' }}>
                                 <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px' }}>상품 정보</h3>
@@ -518,21 +526,21 @@ const ProductDetail = () => {
                                         <div style={{ textAlign: 'center' }}>
                                             <div style={{ fontSize: '48px', fontWeight: '900', color: '#f01a21' }}>{averageRating}</div>
                                             <div style={{ display: 'flex', gap: '2px', justifyContent: 'center', marginTop: '8px' }}>
-                                                {[1,2,3,4,5].map(star => (
+                                                {[1, 2, 3, 4, 5].map(star => (
                                                     <span key={star} style={{ color: star <= Math.round(averageRating) ? '#ffc107' : '#ddd', fontSize: '20px' }}>★</span>
                                                 ))}
                                             </div>
                                             <div style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>{productReviews.length}개 리뷰</div>
                                         </div>
                                         <div style={{ flex: 1 }}>
-                                            {[5,4,3,2,1].map((rating, index) => (
+                                            {[5, 4, 3, 2, 1].map((rating, index) => (
                                                 <div key={rating} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                                     <span style={{ fontSize: '13px', color: '#666', width: '20px' }}>{rating}점</span>
                                                     <div style={{ flex: 1, height: '8px', backgroundColor: '#eee', borderRadius: '4px', overflow: 'hidden' }}>
-                                                        <div style={{ 
-                                                            width: productReviews.length > 0 ? `${(ratingCounts[index] / productReviews.length) * 100}%` : '0%', 
-                                                            height: '100%', 
-                                                            backgroundColor: '#ffc107' 
+                                                        <div style={{
+                                                            width: productReviews.length > 0 ? `${(ratingCounts[index] / productReviews.length) * 100}%` : '0%',
+                                                            height: '100%',
+                                                            backgroundColor: '#ffc107'
                                                         }} />
                                                     </div>
                                                     <span style={{ fontSize: '13px', color: '#999', width: '30px' }}>
@@ -549,7 +557,7 @@ const ProductDetail = () => {
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                     <div style={{ display: 'flex', gap: '2px' }}>
-                                                        {[1,2,3,4,5].map(star => (
+                                                        {[1, 2, 3, 4, 5].map(star => (
                                                             <span key={star} style={{ color: star <= review.rating ? '#ffc107' : '#ddd', fontSize: '14px' }}>★</span>
                                                         ))}
                                                     </div>
@@ -558,12 +566,12 @@ const ProductDetail = () => {
                                                 <span style={{ fontSize: '13px', color: '#999' }}>{review.date}</span>
                                             </div>
                                             <p style={{ fontSize: '14px', color: '#333', lineHeight: '1.6', margin: '0 0 12px' }}>{review.content}</p>
-                                            <button style={{ 
-                                                fontSize: '13px', 
-                                                color: '#666', 
-                                                backgroundColor: '#f5f5f5', 
-                                                border: 'none', 
-                                                padding: '6px 12px', 
+                                            <button style={{
+                                                fontSize: '13px',
+                                                color: '#666',
+                                                backgroundColor: '#f5f5f5',
+                                                border: 'none',
+                                                padding: '6px 12px',
                                                 borderRadius: '4px',
                                                 cursor: 'pointer'
                                             }}>
@@ -626,7 +634,7 @@ const ProductDetail = () => {
                                             {/* 질문 */}
                                             <div style={{ padding: '20px 0' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                                                    <span style={{ 
+                                                    <span style={{
                                                         display: 'inline-block',
                                                         padding: '4px 8px',
                                                         fontSize: '12px',
@@ -645,7 +653,7 @@ const ProductDetail = () => {
                                                     {qna.question}
                                                 </p>
                                             </div>
-                                            
+
                                             {/* 답변 */}
                                             {qna.answer && (
                                                 <div style={{ padding: '20px', backgroundColor: '#f9f9f9', marginBottom: '20px', borderRadius: '8px' }}>
