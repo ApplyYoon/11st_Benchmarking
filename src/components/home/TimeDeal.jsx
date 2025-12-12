@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { PRODUCTS } from '../../api/mockData';
-import ProductCard from '../shared/ProductCard';
 
 const TimeDeal = () => {
     const deals = PRODUCTS.filter(p => p.isTimeDeal).slice(0, 3);
@@ -27,7 +27,7 @@ const TimeDeal = () => {
     const formatTime = (num) => String(num).padStart(2, '0');
 
     return (
-        <div style={{ marginBottom: '60px' }}>
+        <div id="timedeal-section" style={{ marginBottom: '60px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <h2 style={{ fontSize: '26px', fontWeight: '900', margin: 0, color: '#111' }}>타임딜</h2>
@@ -44,22 +44,24 @@ const TimeDeal = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                 {deals.map(product => (
-                    <div key={product.id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0', overflow: 'hidden' }}>
-                        <div style={{ position: 'relative', paddingTop: '100%' }}>
-                            <img src={product.image} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-                        </div>
-                        <div style={{ padding: '20px' }}>
-                            <div style={{ fontSize: '16px', color: '#111', fontWeight: 'bold', height: '44px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', marginBottom: '10px' }}>
-                                {product.name}
+                    <Link to={`/product/${product.id}`} key={product.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <div style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0', overflow: 'hidden', cursor: 'pointer', transition: 'box-shadow 0.2s' }}>
+                            <div style={{ position: 'relative', paddingTop: '100%' }}>
+                                <img src={product.image} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                                <span style={{ color: '#f01a21', fontSize: '24px', fontWeight: '900' }}>{product.discount}%</span>
-                                <span style={{ color: '#111', fontSize: '24px', fontWeight: '900' }}>{product.price.toLocaleString()}</span>
-                                <span style={{ fontSize: '14px' }}>원</span>
+                            <div style={{ padding: '20px' }}>
+                                <div style={{ fontSize: '16px', color: '#111', fontWeight: 'bold', height: '44px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', marginBottom: '10px' }}>
+                                    {product.name}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                    <span style={{ color: '#f01a21', fontSize: '24px', fontWeight: '900' }}>{product.discount}%</span>
+                                    <span style={{ color: '#111', fontSize: '24px', fontWeight: '900' }}>{product.price.toLocaleString()}</span>
+                                    <span style={{ fontSize: '14px' }}>원</span>
+                                </div>
+                                <div style={{ textDecoration: 'line-through', color: '#999', fontSize: '14px' }}>{product.originalPrice.toLocaleString()}원</div>
                             </div>
-                            <div style={{ textDecoration: 'line-through', color: '#999', fontSize: '14px' }}>{product.originalPrice.toLocaleString()}원</div>
                         </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </div>

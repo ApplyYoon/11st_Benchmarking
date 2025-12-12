@@ -1,23 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { COUPONS } from '../api/mockData';
 import { useNavigate } from 'react-router-dom';
-import { loadTossPayments } from '@tosspayments/payment-sdk';
 
 const Cart = () => {
-    const { cart, removeFromCart, updateQuantity, totalAmount, clearCart } = useCart();
-    const { user, login } = useAuth();
-    const [selectedCoupon, setSelectedCoupon] = useState(null);
+    const { cart, removeFromCart, updateQuantity, totalAmount } = useCart();
+    const { user } = useAuth();
     const navigate = useNavigate();
-
-    const discountAmount = selectedCoupon
-        ? (selectedCoupon.type === 'amount'
-            ? selectedCoupon.discountAmount
-            : Math.floor((totalAmount * selectedCoupon.discountRate) / 100))
-        : 0;
-
-    const finalAmount = totalAmount - discountAmount + (totalAmount > 0 ? 0 : 0); // Add shipping if needed
 
     const handlePayment = async () => {
         if (!user) {
@@ -26,9 +15,20 @@ const Cart = () => {
             return;
         }
 
-        // Pass payment data via state or query params, but better to use a dedicated Payment page wrapper
+        // Pass payment data via state
         // Here we just navigate to /payment with state
-        navigate('/payment', { state: { amount: finalAmount, orderName: cart[0].name + (cart.length > 1 ? ` 외 ${cart.length - 1}건` : '') } });
+        // 장바구니 결제 시엔 category 정보가 모호하므로(여러 상품 섞임), 
+        // 대표 상품의 카테고리나, 혹은 'mix' 등으로 처리해야 할 수 있음.
+        // 현재는 첫 번째 상품의 카테고리를 넘기거나, 생략하여 Payment에서 '전체 대상' 쿠폰만 뜨게 유도.
+        const firstItemCategory = cart.length > 0 ? cart[0].category : undefined;
+
+        navigate('/payment', {
+            state: {
+                amount: totalAmount,
+                orderName: cart[0].name + (cart.length > 1 ? ` 외 ${cart.length - 1}건` : ''),
+                category: firstItemCategory
+            }
+        });
     };
 
     if (cart.length === 0) {
@@ -51,22 +51,30 @@ const Cart = () => {
             <div style={{ flex: 1 }}>
                 <h2 style={{ fontSize: '22px', fontWeight: 'bold', borderBottom: '2px solid #333', paddingBottom: '15px', marginBottom: '0' }}>장바구니</h2>
 
-                {cart.map(item => (
-                    <div key={item.id} style={{ display: 'flex', gap: '20px', padding: '20px 0', borderBottom: '1px solid #ddd' }}>
-                        <img src={item.image} alt={item.name} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '15px', color: '#333', marginBottom: '8px' }}>{item.name}</div>
-                            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{item.price.toLocaleString()}원</div>
+                {cart.map(item => {
+                    const itemKey = item.cartItemId || item.id;
+                    return (
+                        <div key={itemKey} style={{ display: 'flex', gap: '20px', padding: '20px 0', borderBottom: '1px solid #ddd' }}>
+                            <img src={item.image} alt={item.name} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '15px', color: '#333', marginBottom: '8px' }}>{item.name}</div>
+                                {item.selectedSize && (
+                                    <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>
+                                        사이즈: <span style={{ fontWeight: 'bold' }}>{item.selectedSize}</span>
+                                    </div>
+                                )}
+                                <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{item.price.toLocaleString()}원</div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <button onClick={() => updateQuantity(itemKey, item.quantity - 1)} style={{ width: '28px', height: '28px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' }}>-</button>
+                                <span style={{ width: '30px', textAlign: 'center', fontSize: '14px' }}>{item.quantity}</span>
+                                <button onClick={() => updateQuantity(itemKey, item.quantity + 1)} style={{ width: '28px', height: '28px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' }}>+</button>
+                            </div>
+                            <div style={{ width: '100px', textAlign: 'right', fontWeight: 'bold' }}>{(item.price * item.quantity).toLocaleString()}원</div>
+                            <button onClick={() => removeFromCart(itemKey)} style={{ alignSelf: 'flex-start', border: '1px solid #ddd', background: 'white', padding: '4px 8px', fontSize: '12px', color: '#666', cursor: 'pointer' }}>삭제</button>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <button onClick={() => updateQuantity(item.id, item.quantity - 1)} style={{ width: '28px', height: '28px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' }}>-</button>
-                            <span style={{ width: '30px', textAlign: 'center', fontSize: '14px' }}>{item.quantity}</span>
-                            <button onClick={() => updateQuantity(item.id, item.quantity + 1)} style={{ width: '28px', height: '28px', border: '1px solid #ddd', background: 'white', cursor: 'pointer' }}>+</button>
-                        </div>
-                        <div style={{ width: '100px', textAlign: 'right', fontWeight: 'bold' }}>{(item.price * item.quantity).toLocaleString()}원</div>
-                        <button onClick={() => removeFromCart(item.id)} style={{ alignSelf: 'flex-start', border: '1px solid #ddd', background: 'white', padding: '4px 8px', fontSize: '12px', color: '#666', cursor: 'pointer' }}>삭제</button>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Payment Summary */}
@@ -79,38 +87,11 @@ const Cart = () => {
                         <span>{totalAmount.toLocaleString()}원</span>
                     </div>
 
-                    {user && (
-                        <div style={{ marginBottom: '20px' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px' }}>할인 쿠폰 적용</div>
-                            <select
-                                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                                onChange={(e) => {
-                                    const cId = parseInt(e.target.value);
-                                    setSelectedCoupon(COUPONS.find(c => c.id === cId) || null);
-                                }}
-                            >
-                                <option value="">쿠폰 선택 안함</option>
-                                {COUPONS.map(c => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name} ({c.type === 'amount' ? `${c.discountAmount}원` : `${c.discountRate}%`} 할인)
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-
-                    {discountAmount > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '14px', color: '#f01a21' }}>
-                            <span>할인금액</span>
-                            <span>-{discountAmount.toLocaleString()}원</span>
-                        </div>
-                    )}
-
                     <div style={{ borderTop: '1px solid #eee', margin: '20px 0' }}></div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px', alignItems: 'center' }}>
                         <span style={{ fontSize: '16px', fontWeight: 'bold' }}>총 결제금액</span>
-                        <span style={{ fontSize: '24px', fontWeight: '900', color: '#f01a21' }}>{finalAmount.toLocaleString()}원</span>
+                        <span style={{ fontSize: '24px', fontWeight: '900', color: '#f01a21' }}>{totalAmount.toLocaleString()}원</span>
                     </div>
 
                     <button
@@ -120,7 +101,7 @@ const Cart = () => {
                         주문하기
                     </button>
 
-                    {!user && <div style={{ marginTop: '10px', fontSize: '12px', color: '#888', textAlign: 'center' }}>로그인 후 쿠폰 적용 및 결제가 가능합니다.</div>}
+                    {!user && <div style={{ marginTop: '10px', fontSize: '12px', color: '#888', textAlign: 'center' }}>로그인 후 결제가 가능합니다.</div>}
                 </div>
             </div>
         </div>

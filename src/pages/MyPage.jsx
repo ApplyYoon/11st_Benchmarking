@@ -67,23 +67,7 @@ const MyPage = () => {
                     )}
                 </div>
 
-                <div>
-                    <h2 style={{ fontSize: '20px', fontWeight: 'bold', paddingBottom: '15px', borderBottom: '2px solid #333' }}>나의 쿠폰</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px', marginTop: '15px' }}>
-                        {user.coupons && user.coupons.map(couponId => {
-                            const coupon = COUPONS.find(c => c.id === couponId);
-                            return coupon ? (
-                                <div key={coupon.id} style={{ border: '1px solid #f01a21', backgroundColor: '#fff5f5', borderRadius: '8px', padding: '20px', position: 'relative', overflow: 'hidden' }}>
-                                    <div style={{ color: '#f01a21', fontWeight: 'bold', fontSize: '20px', marginBottom: '5px' }}>
-                                        {coupon.type === 'amount' ? `${coupon.discountAmount}원 할인` : `${coupon.discountRate}% 할인`}
-                                    </div>
-                                    <div style={{ fontSize: '15px', fontWeight: 'bold' }}>{coupon.name}</div>
-                                    <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>2024.12.31 까지</div>
-                                </div>
-                            ) : null;
-                        })}
-                    </div>
-                </div>
+
             </div>
         </div>
     );
