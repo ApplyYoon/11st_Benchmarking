@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { loadTossPayments } from '@tosspayments/payment-sdk';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
+import client from '../api/client';
 
 const clientKey = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
 
@@ -10,8 +10,8 @@ const Payment = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { clearCart } = useCart();
-    const { addOrder } = useAuth();
     const [status, setStatus] = useState('ready'); // ready, processing, success, fail
+    const [errorMsg, setErrorMsg] = useState('');
 
     const { amount, orderName } = location.state || {};
 
@@ -22,34 +22,59 @@ const Payment = () => {
         const amountVal = urlParams.get('amount');
 
         if (paymentKey && orderId && amountVal) {
-            // Confirm payment logic here (usually backend)
-            // For now, assume success
-            setStatus('success');
-            clearCart();
-            // Simulate adding order
-            addOrder({
-                id: orderId,
-                name: '상품 결제', // Should pass real name via state or fetch
-                amount: parseInt(amountVal),
-                date: new Date().toISOString().split('T')[0],
-                status: '주문완료'
-            });
+            confirmPayment(paymentKey, orderId, parseInt(amountVal));
         }
     }, []);
 
-    const handleTossPayment = async () => {
-        const tossPayments = await loadTossPayments(clientKey);
-        const orderId = `ORDER_${Date.now()}`;
-
-        await tossPayments.requestPayment('카드', {
-            amount: amount,
-            orderId: orderId,
-            orderName: orderName,
-            customerName: '유지원',
-            successUrl: window.location.origin + '/payment',
-            failUrl: window.location.origin + '/payment',
-        });
+    const confirmPayment = async (paymentKey, orderId, amount) => {
+        try {
+            setStatus('processing');
+            await client.post('/orders/confirm-payment', {
+                paymentKey,
+                orderId,
+                amount
+            });
+            setStatus('success');
+            clearCart();
+        } catch (error) {
+            console.error(error);
+            setStatus('fail');
+            setErrorMsg('결제 승인에 실패했습니다.');
+        }
     };
+
+    const handleTossPayment = async () => {
+        try {
+            const tossPayments = await loadTossPayments(clientKey);
+            // Use UUID or timestamp for orderId
+            const orderId = `ORDER_${Date.now()}`;
+
+            await tossPayments.requestPayment('카드', {
+                amount: amount,
+                orderId: orderId,
+                orderName: orderName,
+                customerName: '고객', // Should replace with real user name from context if available
+                successUrl: window.location.origin + '/payment',
+                failUrl: window.location.origin + '/payment',
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    if (status === 'processing') {
+        return <div style={{ textAlign: 'center', padding: '100px' }}>결제 승인 중입니다...</div>;
+    }
+
+    if (status === 'fail') {
+        return (
+            <div style={{ textAlign: 'center', padding: '100px' }}>
+                <h2>결제 실패</h2>
+                <p>{errorMsg}</p>
+                <button onClick={() => navigate('/cart')}>장바구니로 돌아가기</button>
+            </div>
+        );
+    }
 
     if (status === 'success') {
         return (
@@ -66,7 +91,6 @@ const Payment = () => {
     }
 
     if (!amount) {
-        // Direct access fallback
         return <div>잘못된 접근입니다.</div>;
     }
 
