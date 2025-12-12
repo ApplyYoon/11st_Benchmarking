@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PRODUCTS } from '../../api/mockData';
 import ProductCard from '../shared/ProductCard';
-import ProductSkeleton from '../shared/ProductSkeleton';
 
 const BestSwiper = ({ onLoadComplete }) => {
     const initialBestItems = PRODUCTS.filter(p => p.isBest).sort((a, b) => a.rank - b.rank);
@@ -47,9 +46,9 @@ const BestSwiper = ({ onLoadComplete }) => {
         const observer = new IntersectionObserver((entries) => {
             const entry = entries[0];
 
-            // 타임딜의 하단이 화면 상단을 지나갔을 때
-            if (entry.boundingClientRect.top < 0 && !isVisible) {
-                // console.log('11번가 베스트 표시!');
+            // 타임딜 섹션이 화면에 보이면 11번가 베스트 표시
+            if (entry.isIntersecting && !isVisible) {
+                console.log('11번가 베스트 표시!');
                 setIsVisible(true);
             }
         }, {

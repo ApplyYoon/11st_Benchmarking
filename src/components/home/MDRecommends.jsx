@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { PRODUCTS } from '../../api/mockData';
 import ProductCard from '../shared/ProductCard';
-import ProductSkeleton from '../shared/ProductSkeleton';
 
 const MDRecommends = () => {
-    const [items, setItems] = useState([]);
+    // Start with non-Timedeal/Best items
+    const initialItems = PRODUCTS.filter(p => !p.isTimeDeal && !p.isBest);
+    const [items, setItems] = useState(initialItems);
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false); // 섹션 표시 여부
 
@@ -50,8 +51,8 @@ const MDRecommends = () => {
                     isVisible: isVisible
                 });
 
-                // 11번가 베스트의 하단이 화면 상단을 지나갔을 때
-                if (entry.boundingClientRect.top < 0 && !isVisible) {
+                // 11번가 베스트 섹션이 화면에 보이면 MD 추천 표시
+                if (entry.isIntersecting && !isVisible) {
                     console.log('MD 추천 표시!');
                     setIsVisible(true);
                 }
