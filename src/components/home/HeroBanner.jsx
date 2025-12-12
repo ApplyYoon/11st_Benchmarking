@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
 
+
+
 import { useAuth } from '../../context/AuthContext';
+import PopupModal from '../shared/PopupModal'; // 모달 import
 
 const HeroBanner = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const { addCoupon } = useAuth();
+
+    // 모달 관련 state
+    const [showModal, setShowModal] = useState(false);
+    const [modalConfig, setModalConfig] = useState({
+        type: 'confirm',
+        title: '',
+        message: '',
+        onConfirm: () => { }
+    });
 
     const banners = [
         '/images/login-banner-1.png',
@@ -37,13 +49,29 @@ const HeroBanner = () => {
     };
 
     const handleBannerClick = (index) => {
-        // 3번째 배너 (인덱스 2) 클릭 시 쿠폰 지급
+        // 3번째 배너 (인덱스 2) 클릭 시에만 모달 띄움
         if (index === 2) {
-            if (window.confirm('의류 대상 5,000원 할인 쿠폰을 발급받으시겠습니까?')) {
-                const result = addCoupon(5); // 쿠폰 ID 5
-                alert(result.message);
-            }
+            setModalConfig({
+                type: 'confirm',
+                title: '쿠폰 발급',
+                message: '신규 회원 전용 혜택!\n의류 대상 5,000원 할인 쿠폰을 받으시겠습니까?',
+                onConfirm: handleCouponIssue
+            });
+            setShowModal(true);
         }
+    };
+
+    const handleCouponIssue = () => {
+        const result = addCoupon(5); // 쿠폰 ID 5
+
+        // 결과 모달로 변경
+        setModalConfig({
+            type: result.success ? 'success' : 'alert',
+            title: result.success ? '발급 완료' : '알림',
+            message: result.message,
+            onConfirm: () => setShowModal(false) // 확인 누르면 닫기
+        });
+        // setShowModal(true); // 이미 열려있음, 내용만 바뀜
     };
 
     return (
@@ -56,6 +84,16 @@ const HeroBanner = () => {
             marginBottom: '60px',
             margin: '0 auto 60px auto'
         }}>
+            {/* 팝업 모달 */}
+            <PopupModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                onConfirm={modalConfig.onConfirm}
+            />
+
             {banners.map((banner, index) => (
                 <div
                     key={index}
@@ -71,6 +109,7 @@ const HeroBanner = () => {
                         backgroundImage: `url(${banner})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
+                        zIndex: currentSlide === index ? 1 : 0, // 현재 슬라이드만 클릭 가능하도록 위로 올림
                         cursor: index === 2 ? 'pointer' : 'default' // 3번째 배너만 포인터 커서
                     }}
                 />

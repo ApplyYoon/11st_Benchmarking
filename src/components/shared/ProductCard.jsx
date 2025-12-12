@@ -1,14 +1,28 @@
 import React, { useState } from 'react';
 import { useCart } from '../../context/CartContext';
 import { ShoppingCart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
     const { addToCart } = useCart();
     const [imageLoaded, setImageLoaded] = useState(false);
+    const navigate = useNavigate();
+
+    const handleCardClick = () => {
+        navigate('/payment', {
+            state: {
+                amount: product.price,
+                orderName: product.name,
+                category: product.category // 카테고리 정보 전달
+            }
+        });
+    };
 
     return (
-        <div style={{ position: 'relative', width: '100%', backgroundColor: 'white' }}
+        <div
+            style={{ position: 'relative', width: '100%', backgroundColor: 'white', cursor: 'pointer' }}
             className="product-card"
+            onClick={handleCardClick}
         >
             {/* Image Area */}
             <div style={{ position: 'relative', paddingTop: '100%', overflow: 'hidden', borderRadius: '8px', backgroundColor: '#f4f4f4', marginBottom: '12px' }}>
