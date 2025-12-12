@@ -12,6 +12,31 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: 11st-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # Override DB Host to use the service name 'db'
+      - DATASOURCE_URL=jdbc:postgresql://db:5432/clone11st
+      - DATASOURCE_USERNAME=postgres
+      - DATASOURCE_PASSWORD=password
+      - JWT_SECRET=${JWT_SECRET}
+      - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY}
+      - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:
