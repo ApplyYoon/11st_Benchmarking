@@ -22,7 +22,7 @@ import com.clone.backend.security.JwtAuthenticationFilter;
 public class SecurityConfig {
 
     @Autowired
-    private com.clone.backend.security.JwtAuthenticationFilter jwtAuthenticationFilter;
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
