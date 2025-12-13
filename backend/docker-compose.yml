@@ -11,23 +11,3 @@ services:
     env_file:
       - .env
     command: tail -f /dev/null
-
-  mongo-shard-a:
-    image: mongo:latest
-    container_name: mongo_shard_a
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_shard_a_data:/data/db
-
-  mongo-shard-b:
-    image: mongo:latest
-    container_name: mongo_shard_b
-    ports:
-      - "27018:27017"
-    volumes:
-      - mongo_shard_b_data:/data/db
-
-volumes:
-  mongo_shard_a_data:
-  mongo_shard_b_data:

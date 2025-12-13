@@ -20,7 +20,7 @@ public class AuthService {
     @Transactional
     public User signup(AuthDto.SignupRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("이미 가입된 이메일입니다.");
+            throw new RuntimeException("Email already exists");
         }
 
         User user = User.builder()

@@ -1,7 +1,10 @@
 package com.clone.backend.model;
 
+import jakarta.persistence.*;
 import lombok.*;
 
+@Entity
+@Table(name = "order_items")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -9,12 +12,18 @@ import lombok.*;
 @Builder
 public class OrderItem {
 
-    private Long productId;
-    private String productName;
-    private String productImage;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    // We don't need Order reference since it's embedded in Order document
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private Order order;
 
-    private int quantity;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
+
     private int priceAtPurchase;
+    private int quantity;
 }
