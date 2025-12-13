@@ -24,9 +24,13 @@ const Signup = () => {
         if (formData.password !== formData.passwordConfirm) return alert('비밀번호가 일치하지 않습니다.');
         if (!formData.zipCode) return alert('주소를 입력해주세요.');
 
-        await signup(formData);
-        alert('회원가입이 완료되었습니다.');
-        navigate('/');
+        try {
+            await signup(formData);
+            alert('회원가입이 완료되었습니다.');
+            navigate('/');
+        } catch (error) {
+            alert(error.message);
+        }
     };
 
     const handleComplete = (data) => {

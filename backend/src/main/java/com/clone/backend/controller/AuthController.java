@@ -9,7 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +24,12 @@ public class AuthController {
     private JwtTokenProvider tokenProvider;
 
     @PostMapping("/signup")
-    public ResponseEntity<User> signup(@RequestBody AuthDto.SignupRequest request) {
-        return ResponseEntity.ok(authService.signup(request));
+    public ResponseEntity<?> signup(@RequestBody AuthDto.SignupRequest request) {
+        try {
+            return ResponseEntity.ok(authService.signup(request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
     }
 
     @PostMapping("/login")

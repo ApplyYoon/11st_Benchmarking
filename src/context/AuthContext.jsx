@@ -71,8 +71,8 @@ export const AuthProvider = ({ children }) => {
             await client.post('/auth/signup', signupData);
             return true;
         } catch (error) {
-            console.error(error);
-            throw new Error('회원가입 실패');
+            const errorMessage = error.response?.data?.message || error.response?.data || '회원가입 실패';
+            throw new Error(errorMessage);
         }
     };
 
