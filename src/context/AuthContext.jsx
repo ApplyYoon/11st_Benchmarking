@@ -4,8 +4,11 @@ import client from '../api/client';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    // 테스트용 Mock User - 항상 로그인 상태
+
+
+    const [user, setUser] = useState(null); // 항상 로그인 상태
+    const [loading, setLoading] = useState(true); // 로딩 없이 바로 시작
 
     const loadUser = async () => {
         // First, load from localStorage for immediate display
@@ -59,6 +62,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
+        // 테스트 모드: loadUser 호출 안 함 (항상 mockUser 사용)
+        // 실제 API 연동 시 아래 주석 해제
         loadUser();
     }, []);
 
@@ -202,7 +207,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, loading, addOrder, cancelOrder, confirmPurchase, addCoupon, updateAddress, setUserDirectly }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, loading, loadUser, addOrder, cancelOrder, confirmPurchase, addCoupon, updateAddress, setUserDirectly }}>
             {children}
         </AuthContext.Provider>
     );

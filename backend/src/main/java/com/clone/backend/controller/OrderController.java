@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -119,5 +117,45 @@ public class OrderController {
         // Mock user for now
         User user = userRepository.findAll().stream().findFirst().orElseThrow();
         return orderRepository.findByUserOrderByCreatedAtDesc(user);
+    }
+
+    /**
+     * 데모용 주문 생성 엔드포인트 (토스 인증 없이 바로 주문 생성)
+     * 포트폴리오/시연 목적으로 사용
+     */
+    @PostMapping("/demo")
+    @Transactional
+    public ResponseEntity<?> createDemoOrder(@RequestBody Map<String, Object> payload) {
+        try {
+            String orderName = (String) payload.get("orderName");
+            Integer amount = (Integer) payload.get("amount");
+            String orderId = "DEMO_" + System.currentTimeMillis();
+
+            // Get current user (simplified - in production, use security context)
+            User user = userRepository.findAll().stream().findFirst().orElseThrow();
+
+            // Create order directly without Toss verification
+            Order order = Order.builder()
+                    .id(orderId)
+                    .userId(user.getId())
+                    .orderName(orderName)
+                    .totalAmount(amount)
+                    .status(Order.OrderStatus.PAID.name())
+                    .paymentKey("DEMO_KEY_" + System.currentTimeMillis())
+                    .createdAt(java.time.LocalDateTime.now())
+                    .build();
+
+            // For demo, we don't have cart items - just create empty order items list
+            order.setItems(java.util.Collections.emptyList());
+
+            // Save to MongoDB
+            orderRepository.save(order);
+
+            return ResponseEntity.ok(order);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 }
