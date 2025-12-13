@@ -6,7 +6,7 @@ import { useCart } from '../../context/CartContext';
 
 import { findClosestMatch } from '../../api/searchUtils';
 
-const Header = () => {
+const Header = ({ onMenuClick }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -36,7 +36,9 @@ const Header = () => {
 
                 {/* Burger Menu & Logo */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <button style={{ border: '1px solid #ddd', borderRadius: '50%', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white', cursor: 'pointer' }}>
+                    <button
+                        onClick={onMenuClick}
+                        style={{ border: '1px solid #ddd', borderRadius: '50%', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white', cursor: 'pointer' }}>
                         <Menu size={24} color="#333" strokeWidth={1.5} />
                     </button>
                     <Link to="/" style={{ fontSize: '34px', fontWeight: '900', textDecoration: 'none', color: '#f01a21', letterSpacing: '-1.5px', fontFamily: 'sans-serif' }}>
@@ -124,7 +126,6 @@ const Header = () => {
                         style={{
                             position: 'absolute',
                             right: '6px',
-                            top: '50%', // It will be centered relative to the input height, which is fixed
                             top: '24px', // Hardcode for alignment since input height changes visually with border
                             transform: 'translateY(-50%)',
                             background: '#f01a21',
