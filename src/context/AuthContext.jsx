@@ -72,10 +72,27 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await client.get('/auth/me');
             const userData = response.data;
+
+            // Fetch orders explicitly from MongoDB endpoint
+            // Since User entity (Postgres) no longer has orders
+            let orders = [];
+            try {
+                const orderResponse = await client.get('/orders');
+                orders = orderResponse.data.map(o => ({
+                    ...o,
+                    // Normalize backend fields (camelCase/date) to frontend expectations
+                    date: o.createdAt ? o.createdAt.split('T')[0] : '', // "2024-12-14"
+                    name: o.orderName,
+                    amount: o.totalAmount
+                }));
+            } catch (err) {
+                console.log("Failed to fetch orders:", err);
+            }
+
             const finalUser = {
                 ...userData,
                 coupons: userData.coupons || [],
-                orders: userData.orders || []
+                orders: orders
             };
             setUser(finalUser);
             localStorage.setItem('user_profile', JSON.stringify(finalUser));
@@ -123,8 +140,8 @@ export const AuthProvider = ({ children }) => {
             await client.post('/auth/signup', signupData);
             return true;
         } catch (error) {
-            console.error(error);
-            throw new Error('회원가입 실패');
+            const errorMessage = error.response?.data?.message || error.response?.data || '회원가입 실패';
+            throw new Error(errorMessage);
         }
     };
 
