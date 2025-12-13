@@ -3,10 +3,14 @@ import { useSearchParams } from 'react-router-dom';
 import { PRODUCTS } from '../api/mockData';
 import ProductCard from '../components/shared/ProductCard';
 
+import { getRelatedKeywords } from '../api/searchUtils';
+
 const Search = () => {
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
+    const originalQuery = searchParams.get('original');
     const [results, setResults] = useState([]);
+    const [relatedKeywords, setRelatedKeywords] = useState([]);
 
     // Filters
     const [category, setCategory] = useState('all');
@@ -28,6 +32,7 @@ const Search = () => {
         }
 
         setResults(filtered);
+        setRelatedKeywords(getRelatedKeywords(query));
     }, [query, category, price]);
 
     const categories = ['all', ...new Set(PRODUCTS.map(p => p.category).filter(Boolean))];
@@ -85,7 +90,47 @@ const Search = () => {
             {/* Main Result */}
             <div style={{ flex: 1 }}>
                 <div style={{ marginBottom: '20px', fontSize: '14px' }}>
-                    <span style={{ fontWeight: 'bold', color: '#f01a21' }}>'{query}'</span> 검색결과 <span style={{ color: '#888' }}>({results.length}건)</span>
+                    <div style={{ marginBottom: '20px', fontSize: '14px' }}>
+                        {originalQuery ? (
+                            <div style={{ padding: '10px 15px', backgroundColor: '#f0faff', border: '1px solid #cce5ff', borderRadius: '4px', marginBottom: '15px', color: '#0056b3' }}>
+                                <span style={{ textDecoration: 'line-through', color: '#999', marginRight: '8px' }}>'{originalQuery}'</span>
+                                일치하는 항목이 존재하지 않아 <span style={{ fontWeight: 'bold', color: '#f01a21' }}>'{query}'</span>(으)로 수정한 검색 결과입니다.
+                            </div>
+                        ) : (
+                            <div style={{ marginBottom: '10px' }}>
+                                <span style={{ fontWeight: 'bold', color: '#f01a21' }}>'{query}'</span> 검색결과 <span style={{ color: '#888' }}>({results.length}건)</span>
+                            </div>
+                        )}
+
+                        {/* Related Keywords Bar */}
+                        {relatedKeywords.length > 0 && (
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                gap: '15px',
+                                padding: '12px 15px',
+                                backgroundColor: '#fff',
+                                border: '1px solid #eee',
+                                borderLeft: '4px solid #333',
+                                marginBottom: '20px'
+                            }}>
+                                <span style={{ fontWeight: 'bold', fontSize: '13px' }}>연관검색어</span>
+                                {relatedKeywords.map((keyword, index) => (
+                                    <a
+                                        key={index}
+                                        href={`/search?q=${encodeURIComponent(keyword)}`}
+                                        style={{ fontSize: '13px', color: '#666', textDecoration: 'none' }}
+                                        onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                        onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                    >
+                                        {keyword}
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                 </div>
 
                 {results.length > 0 ? (

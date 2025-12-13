@@ -4,9 +4,12 @@ import { Search, ShoppingCart, User, Menu, Truck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 
+import { findClosestMatch } from '../../api/searchUtils';
+
 const Header = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
     const { user, logout } = useAuth();
     const { cart } = useCart();
     const navigate = useNavigate();
@@ -14,7 +17,15 @@ const Header = () => {
     const handleSearch = (e) => {
         e.preventDefault();
         if (searchTerm.trim()) {
-            navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+            const corrected = findClosestMatch(searchTerm);
+            if (corrected) {
+                // Navigate with corrected query, but maybe keep original for UI?
+                // For now, let's just search for the corrected one directly
+                navigate(`/search?q=${encodeURIComponent(corrected)}&original=${encodeURIComponent(searchTerm)}`);
+            } else {
+                navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+            }
+            setIsFocused(false);
         }
     };
 
@@ -35,28 +46,86 @@ const Header = () => {
 
                 {/* 11st Style Rounded Search Bar */}
                 <form onSubmit={handleSearch} style={{ flex: 1, position: 'relative', maxWidth: '580px', marginLeft: '20px' }}>
-                    <input
-                        type="text"
-                        placeholder="통합검색"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '13px 60px 13px 25px',
-                            border: '2px solid #f01a21',
-                            borderRadius: '28px',
-                            fontSize: '16px',
-                            outline: 'none',
-                            backgroundColor: '#fff',
-                            color: '#333'
-                        }}
-                    />
+                    <div style={{ position: 'relative', width: '100%' }}>
+                        <input
+                            type="text"
+                            placeholder="통합검색"
+                            value={searchTerm}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                            }}
+                            onFocus={() => {
+                                setIsFocused(true);
+                                if (searchTerm) setIsUserMenuOpen(false); // Close other menus
+                            }}
+                            onBlur={() => {
+                                setTimeout(() => setIsFocused(false), 200);
+                            }}
+                            style={{
+                                width: '100%',
+                                padding: '13px 60px 13px 25px',
+                                border: '2px solid #f01a21',
+                                borderRadius: (searchTerm && isFocused) ? '20px 20px 0 0' : '28px', // Change border radius when open
+                                borderBottom: (searchTerm && isFocused) ? 'none' : '2px solid #f01a21',
+                                fontSize: '16px',
+                                outline: 'none',
+                                backgroundColor: '#fff',
+                                color: '#333',
+                                boxSizing: 'border-box',
+                                zIndex: 1002,
+                                position: 'relative'
+                            }}
+                        />
+
+                        {/* Search Suggestions Dropdown */}
+                        {searchTerm && isFocused && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                width: '100%',
+                                backgroundColor: 'white',
+                                border: '2px solid #f01a21',
+                                borderTop: 'none',
+                                borderRadius: '0 0 20px 20px',
+                                zIndex: 1001,
+                                overflow: 'hidden',
+                                boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                            }}>
+                                {['노트북', '삼성전자', 'LG전자', '아이폰', '갤럭시', '나이키', '아디다스', '생수', '라면', '커피', '마스크', '영양제', '게이밍 노트북', '기계식 키보드']
+                                    .filter(keyword => keyword.includes(searchTerm))
+                                    .slice(0, 8)
+                                    .map(keyword => (
+                                        <div
+                                            key={keyword}
+                                            onClick={() => {
+                                                setSearchTerm(keyword);
+                                                navigate(`/search?q=${encodeURIComponent(keyword)}`);
+                                            }}
+                                            style={{
+                                                padding: '12px 25px',
+                                                cursor: 'pointer',
+                                                fontSize: '14px',
+                                                color: '#333'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                                        >
+                                            <span style={{ color: '#f01a21', fontWeight: 'bold' }}>{searchTerm}</span>
+                                            {keyword.replace(searchTerm, '')}
+                                        </div>
+                                    ))}
+                            </div>
+                        )}
+                    </div>
+
                     <button
                         type="submit"
                         style={{
                             position: 'absolute',
                             right: '6px',
-                            top: '50%',
+                            top: '50%', // It will be centered relative to the input height, which is fixed
+                            top: '24px', // Hardcode for alignment since input height changes visually with border
                             transform: 'translateY(-50%)',
                             background: '#f01a21',
                             border: 'none',
@@ -66,7 +135,8 @@ const Header = () => {
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            zIndex: 1003
                         }}
                     >
                         <Search color="white" size={20} strokeWidth={2.5} />
@@ -183,7 +253,7 @@ const Header = () => {
             <div style={{ borderTop: '1px solid #f0f0f0' }}>
                 <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', height: '48px', gap: '25px', fontSize: '14px' }}>
                     <Link to="/best" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>베스트</Link>
-                    <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>타임딜</Link>
+                    <Link to="/shocking-deal" style={{ textDecoration: 'none', color: '#f01a21', fontWeight: 'bold' }}>쇼킹딜</Link>
                     <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>백화점/홈쇼핑</Link>
                     <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>이벤트/혜택</Link>
 
