@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, Truck } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, Truck, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 
@@ -144,6 +144,11 @@ const Header = () => {
                             <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>로그인</span>
                         </Link>
                     )}
+
+                    <Link to="/mypage" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <LayoutGrid size={26} strokeWidth={1.5} />
+                        <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>마이페이지</span>
+                    </Link>
 
                     <Link to="/mypage" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Truck size={26} strokeWidth={1.5} />

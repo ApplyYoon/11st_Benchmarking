@@ -4,8 +4,58 @@ import client from '../api/client';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    // 테스트용 Mock User - 항상 로그인 상태
+    const mockUser = {
+        id: 1,
+        name: '테스트유저',
+        email: 'test@test.com',
+        phone: '010-1234-5678',
+        address: '서울시 강남구 테헤란로 123',
+        grade: 'VIP',
+        points: 5000,
+        coupons: [1, 2],
+        orders: [
+            {
+                id: 'ORD-20241213-001',
+                date: '2024.12.13',
+                name: '[나이키] 에어맥스 90 화이트/블랙',
+                amount: 159000,
+                status: '주문완료',
+                earnedPoints: 795,
+                productId: 101
+            },
+            {
+                id: 'ORD-20241210-002',
+                date: '2024.12.10',
+                name: '[삼성] 갤럭시 버즈3 프로',
+                amount: 289000,
+                status: '배송완료',
+                earnedPoints: 1445,
+                productId: 103
+            },
+            {
+                id: 'ORD-20241205-003',
+                date: '2024.12.05',
+                name: '[애플] 아이폰 15 Pro 케이스',
+                amount: 49000,
+                status: '구매확정',
+                earnedPoints: 245,
+                productId: 105
+            },
+            {
+                id: 'ORD-20241201-004',
+                date: '2024.12.01',
+                name: '[LG] 스탠바이미 GO',
+                amount: 1290000,
+                status: '취소완료',
+                earnedPoints: 0,
+                productId: 107
+            }
+        ]
+    };
+
+    const [user, setUser] = useState(mockUser); // 항상 로그인 상태
+    const [loading, setLoading] = useState(false); // 로딩 없이 바로 시작
 
     const loadUser = async () => {
         // First, load from localStorage for immediate display
@@ -42,7 +92,9 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        loadUser();
+        // 테스트 모드: loadUser 호출 안 함 (항상 mockUser 사용)
+        // 실제 API 연동 시 아래 주석 해제
+        // loadUser();
     }, []);
 
     const login = async (email, password) => {

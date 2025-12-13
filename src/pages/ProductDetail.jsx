@@ -15,6 +15,16 @@ const ProductDetail = () => {
     const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
     const [activeTab, setActiveTab] = useState('detail');
 
+    // 리뷰 작성 관련 상태
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewContent, setReviewContent] = useState('');
+    const [hoverRating, setHoverRating] = useState(0);
+
+    // TODO: 구매 확정 API 연동 시 이 값을 실제 API 응답으로 대체
+    // 현재는 테스트를 위해 true로 설정 (실제로는 구매 확정 여부를 체크해야 함)
+    const [canWriteReview, setCanWriteReview] = useState(true); // 임시: 테스트용
+
     const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
     const tabs = [
         { id: 'detail', label: '상품상세정보' },
@@ -45,6 +55,41 @@ const ProductDetail = () => {
     const ratingCounts = [5, 4, 3, 2, 1].map(rating =>
         productReviews.filter(r => r.rating === rating).length
     );
+
+    // 리뷰 작성 핸들러
+    const handleReviewSubmit = () => {
+        if (!reviewContent.trim()) {
+            alert('리뷰 내용을 입력해주세요.');
+            return;
+        }
+        if (reviewContent.trim().length < 10) {
+            alert('리뷰는 최소 10자 이상 작성해주세요.');
+            return;
+        }
+
+        // TODO: 실제 API 연동 시 여기서 리뷰 등록 API 호출
+        // 현재는 콘솔에 로그만 출력
+        console.log('리뷰 등록:', {
+            productId: Number(id),
+            rating: reviewRating,
+            content: reviewContent,
+            date: new Date().toISOString()
+        });
+
+        alert('리뷰가 등록되었습니다. (실제 등록은 API 연동 후 가능합니다)');
+        setShowReviewForm(false);
+        setReviewRating(5);
+        setReviewContent('');
+    };
+
+    // 리뷰 작성 폼 열기
+    const handleOpenReviewForm = () => {
+        if (!canWriteReview) {
+            alert('구매 확정 후 리뷰를 작성할 수 있습니다.');
+            return;
+        }
+        setShowReviewForm(true);
+    };
 
     if (!product) {
         return (
@@ -325,7 +370,7 @@ const ProductDetail = () => {
                         <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>수량</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
                             <button
-                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                onClick={() => setQuantity(Math.max(0, quantity - 1))}
                                 style={{
                                     width: '40px',
                                     height: '40px',
@@ -341,7 +386,17 @@ const ProductDetail = () => {
                             <input
                                 type="number"
                                 value={quantity}
-                                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === '') {
+                                        setQuantity('');
+                                    } else {
+                                        setQuantity(Math.max(0, parseInt(value) || 0));
+                                    }
+                                }}
+                                onBlur={() => {
+                                    if (quantity === '') setQuantity(1);
+                                }}
                                 style={{
                                     width: '60px',
                                     height: '40px',
