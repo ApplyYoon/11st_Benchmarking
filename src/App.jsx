@@ -16,6 +16,7 @@ const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const Best = lazy(() => import('./pages/Best'));
 const MyCoupons = lazy(() => import('./pages/MyCoupons'));
 const UserInfo = lazy(() => import('./pages/UserInfo'));
+const KakaoCallback = lazy(() => import('./pages/KakaoCallback'));
 
 function App() {
     return (

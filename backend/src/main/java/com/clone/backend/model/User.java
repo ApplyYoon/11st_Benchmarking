@@ -43,6 +43,10 @@ public class User {
 
     private int points;
 
+    private String address;
+    private String detailAddress;
+    private String zipCode;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

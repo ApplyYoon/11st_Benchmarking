@@ -32,6 +32,7 @@ const ProductDetail = () => {
     const product = PRODUCTS.find(p => p.id === Number(id));
 
     // 해당 상품의 리뷰와 Q&A 필터링
+    // 해당 상품의 리뷰와 Q&A 필터링
     const productReviews = REVIEWS.filter(r => r.productId === Number(id));
     const productQna = QNA.filter(q => q.productId === Number(id));
 
@@ -135,6 +136,7 @@ const ProductDetail = () => {
                         onMouseLeave={() => setIsHovering(false)}
                         onMouseMove={handleMouseMove}
                     >
+
                         <img
                             src={product.image}
                             alt={product.name}
