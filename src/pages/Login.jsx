@@ -68,7 +68,7 @@ const Login = () => {
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <input
                         type="text"
-                        placeholder="아이디 입력"
+                        placeholder="이메일을 입력해 주세요"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         style={{

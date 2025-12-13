@@ -77,18 +77,22 @@ public class OrderController {
 
                 Order order = Order.builder()
                         .id(orderId)
-                        .user(user)
+                        .userId(user.getId())
                         .orderName(orderName)
                         .totalAmount(amount)
-                        .status(Order.OrderStatus.PAID)
+                        .status(Order.OrderStatus.PAID.name())
                         .paymentKey(paymentKey)
+                        // .createdAt will be null if not set manually or by DB (Mongo won't auto-gen
+                        // @CreationTimestamp from Hibernate)
+                        .createdAt(java.time.LocalDateTime.now())
                         .build();
 
                 // Move cart items to order items
                 List<CartItem> cartItems = cartRepository.findByUser(user);
                 List<OrderItem> orderItems = cartItems.stream().map(ci -> OrderItem.builder()
-                        .order(order)
-                        .product(ci.getProduct())
+                        .productId(ci.getProduct().getId())
+                        .productName(ci.getProduct().getName())
+                        .productImage(ci.getProduct().getImageUrl())
                         .priceAtPurchase(ci.getProduct().getPrice())
                         .quantity(ci.getQuantity())
                         .build()).collect(Collectors.toList());
