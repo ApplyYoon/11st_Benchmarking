@@ -1,9 +1,9 @@
 export const PRODUCTS = [
     // Time Deal Items
-    { id: 101, name: '[타임딜] 제주 서귀포 조생 감귤 5kg (소과/로얄과)', price: 12900, originalPrice: 25000, discount: 48, image: 'https://cdn.pixabay.com/photo/2017/02/26/12/27/oranges-2100108_1280.jpg', category: 'food', isTimeDeal: true, endTime: new Date(Date.now() + 86400000).toISOString() },
-    { id: 102, name: '[타임딜] 삼성 오디세이 게이밍 모니터 32인치 165Hz', price: 349000, originalPrice: 450000, discount: 22, image: 'https://cdn.pixabay.com/photo/2021/08/28/02/43/gaming-pc-6579893_1280.jpg', category: 'electronics', isTimeDeal: true, endTime: new Date(Date.now() + 86400000).toISOString() },
-    { id: 103, name: '[타임딜] 나이키 에어 줌 페가수스 40 러닝화', price: 89000, originalPrice: 139000, discount: 36, image: 'https://cdn.pixabay.com/photo/2016/11/19/18/06/feet-1840619_1280.jpg', category: 'fashion', isTimeDeal: true, endTime: new Date(Date.now() + 86400000).toISOString() },
-    { id: 104, name: '[타임딜] 다이슨 V12 디텍트 슬림 컴플리트', price: 799000, originalPrice: 1090000, discount: 26, image: 'https://cdn.pixabay.com/photo/2023/10/05/18/48/vacuum-cleaner-8296766_1280.jpg', category: 'electronics', isTimeDeal: true, endTime: new Date(Date.now() + 86400000).toISOString() },
+    { id: 101, name: '[타임딜] 제주 서귀포 조생 감귤 5kg (소과/로얄과)', price: 12900, originalPrice: 25000, discount: 48, image: 'https://cdn.pixabay.com/photo/2017/02/26/12/27/oranges-2100108_1280.jpg', category: 'food', isTimeDeal: true, endTime: new Date(Date.now() + 86400000).toISOString(), remainingStock: 15 },
+    { id: 102, name: '[타임딜] 삼성 오디세이 게이밍 모니터 32인치 165Hz', price: 349000, originalPrice: 450000, discount: 22, image: 'https://cdn.pixabay.com/photo/2021/08/28/02/43/gaming-pc-6579893_1280.jpg', category: 'electronics', isTimeDeal: true, endTime: new Date(Date.now() + 86400000).toISOString(), remainingStock: 3 },
+    { id: 103, name: '[타임딜] 나이키 에어 줌 페가수스 40 러닝화', price: 89000, originalPrice: 139000, discount: 36, image: 'https://cdn.pixabay.com/photo/2016/11/19/18/06/feet-1840619_1280.jpg', category: 'fashion', isTimeDeal: true, endTime: new Date(Date.now() + 86400000).toISOString(), remainingStock: 82 },
+    { id: 104, name: '[타임딜] 다이슨 V12 디텍트 슬림 컴플리트', price: 799000, originalPrice: 1090000, discount: 26, image: 'https://cdn.pixabay.com/photo/2023/10/05/18/48/vacuum-cleaner-8296766_1280.jpg', category: 'electronics', isTimeDeal: true, endTime: new Date(Date.now() + 86400000).toISOString(), remainingStock: 7 },
 
     // Best Items (Ranked)
     { id: 201, name: '맥심 모카골드 마일드 믹스 180T + 20T 증정', price: 23500, originalPrice: 28000, discount: 16, image: 'https://cdn.pixabay.com/photo/2014/12/11/02/56/coffee-563797_1280.jpg', category: 'food', isBest: true, rank: 1 },
@@ -49,7 +49,7 @@ export const REVIEWS = [
     { id: 8, productId: 103, user: '한**', rating: 5, date: '2024.12.03', content: '가격 대비 훌륭합니다!', helpful: 14 },
     { id: 9, productId: 104, user: '조**', rating: 5, date: '2024.12.12', content: '다이슨 역시 다이슨! 흡입력 대박이에요.', helpful: 67 },
     { id: 10, productId: 104, user: '서**', rating: 5, date: '2024.12.10', content: '가벼워서 청소하기 편해요.', helpful: 41 },
-    
+
     // 베스트 상품 리뷰
     { id: 11, productId: 201, user: '김**', rating: 5, date: '2024.12.11', content: '커피 맛있어요! 항상 이거 마셔요.', helpful: 12 },
     { id: 12, productId: 201, user: '이**', rating: 4, date: '2024.12.08', content: '양이 많아서 오래 마실 수 있어요.', helpful: 8 },
@@ -58,7 +58,7 @@ export const REVIEWS = [
     { id: 15, productId: 204, user: '정**', rating: 5, date: '2024.12.11', content: '아이폰 15 Pro 카메라 성능 미쳤어요!', helpful: 89 },
     { id: 16, productId: 204, user: '강**', rating: 5, date: '2024.12.08', content: '배터리도 오래가고 만족합니다.', helpful: 56 },
     { id: 17, productId: 204, user: '윤**', rating: 4, date: '2024.12.05', content: '좋긴 한데 가격이 좀 비싸네요.', helpful: 33 },
-    
+
     // MD 추천 상품 리뷰
     { id: 18, productId: 301, user: '한**', rating: 5, date: '2024.12.10', content: '마스크 품질 좋아요!', helpful: 11 },
     { id: 19, productId: 302, user: '조**', rating: 5, date: '2024.12.09', content: '햇반 없으면 못 살아요 ㅋㅋ', helpful: 25 },
@@ -84,14 +84,14 @@ export const QNA = [
     { id: 5, productId: 103, user: '정**', date: '2024.12.10', question: '발볼이 넓은 편인가요?', answer: '일반적인 발볼 사이즈입니다. 넓으시면 반 사이즈 업 추천드립니다.', isAnswered: true },
     { id: 6, productId: 103, user: '강**', date: '2024.12.08', question: '색상 추가 예정 있나요?', answer: null, isAnswered: false },
     { id: 7, productId: 104, user: '윤**', date: '2024.12.12', question: '충전 시간이 어떻게 되나요?', answer: '완충까지 약 4시간 소요됩니다.', isAnswered: true },
-    
+
     // 베스트 상품 Q&A
     { id: 8, productId: 201, user: '한**', date: '2024.12.10', question: '유통기한이 얼마나 남았나요?', answer: '최소 6개월 이상 남은 제품으로 발송됩니다.', isAnswered: true },
     { id: 9, productId: 202, user: '조**', date: '2024.12.09', question: '캡형인가요 리필형인가요?', answer: '캡형 제품입니다.', isAnswered: true },
     { id: 10, productId: 204, user: '서**', date: '2024.12.11', question: '개통은 어떻게 하나요?', answer: '자급제 상품으로 가까운 대리점에서 유심 개통 가능합니다.', isAnswered: true },
     { id: 11, productId: 204, user: '임**', date: '2024.12.10', question: 'eSIM 지원되나요?', answer: '네, eSIM 지원됩니다.', isAnswered: true },
     { id: 12, productId: 204, user: '권**', date: '2024.12.08', question: '색상 변경 가능한가요?', answer: null, isAnswered: false },
-    
+
     // MD 추천 상품 Q&A
     { id: 13, productId: 303, user: '송**', date: '2024.12.11', question: 'RAM 업그레이드 가능한가요?', answer: '해당 모델은 온보드 메모리로 업그레이드가 불가합니다.', isAnswered: true },
     { id: 14, productId: 303, user: '신**', date: '2024.12.09', question: 'Windows 11 Pro인가요?', answer: 'Windows 11 Home이 기본 탑재되어 있습니다.', isAnswered: true },
