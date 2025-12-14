@@ -26,6 +26,7 @@ public class OrderRepository {
         this.orderRouter = orderRouter;
     }
 
+    @SuppressWarnings("null")
     public Order save(Order order) {
         if (order.getUserId() == null) {
             throw new IllegalArgumentException("User ID is required for saving order");
@@ -41,6 +42,7 @@ public class OrderRepository {
         return template.save(order, collectionName);
     }
 
+    @SuppressWarnings("null")
     public List<Order> findByUserOrderByCreatedAtDesc(User user) {
         if (user == null || user.getId() == null) {
             return new ArrayList<>();

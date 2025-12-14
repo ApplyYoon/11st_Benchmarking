@@ -48,6 +48,10 @@ public class CartController {
         User user = userRepository.findAll().stream().findFirst().orElseThrow();
         Long productId = payload.get("productId");
 
+        if (productId == null) {
+            throw new IllegalArgumentException("Product ID must not be null");
+        }
+
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
@@ -63,6 +67,7 @@ public class CartController {
     }
 
     @DeleteMapping("/{id}")
+    @SuppressWarnings("null")
     public void removeFromCart(@PathVariable Long id) {
         cartRepository.deleteById(id);
     }

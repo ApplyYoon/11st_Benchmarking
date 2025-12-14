@@ -52,7 +52,7 @@ public class UserController {
 
         // Fallback: If cookie auth fails, try using userId from request body
         if (userOpt.isEmpty() && addressData.containsKey("userId")) {
-            Long userId = Long.valueOf(addressData.get("userId").toString());
+            long userId = Long.parseLong(addressData.get("userId").toString());
             userOpt = userRepository.findById(userId);
         }
 
@@ -69,13 +69,14 @@ public class UserController {
         return ResponseEntity.ok(savedUser);
     }
 
+    @SuppressWarnings("null")
     @PutMapping("/me/profile")
     public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> profileData, HttpServletRequest request) {
         Optional<User> userOpt = getCurrentUser(request);
 
         // Fallback: If cookie auth fails, try using userId from request body
         if (userOpt.isEmpty() && profileData.containsKey("userId")) {
-            Long userId = Long.valueOf(profileData.get("userId").toString());
+            long userId = Long.parseLong(profileData.get("userId").toString());
             userOpt = userRepository.findById(userId);
         }
 
