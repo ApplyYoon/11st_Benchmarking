@@ -1,8 +1,11 @@
 import React from 'react';
 import { X, User, ChevronRight, Home, Zap, Star, Gift } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
+    const { user } = useAuth();
+
     return (
         <>
             <div
@@ -21,15 +24,27 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className="user-status">
-                    <a href="/login" className="login-link">
-                        <div className="user-icon-circle">
-                            <User size={24} color="#ccc" />
-                        </div>
-                        <div className="login-text">
-                            <strong>로그인</strong>을 해주세요
-                        </div>
-                        <ChevronRight size={16} color="#999" />
-                    </a>
+                    {user ? (
+                        <a href="/mypage" className="login-link">
+                            <div className="user-icon-circle" style={{ background: '#f01a21' }}>
+                                <User size={24} color="#fff" />
+                            </div>
+                            <div className="login-text">
+                                <strong>{user.name || user.email}</strong>님 반갑습니다
+                            </div>
+                            <ChevronRight size={16} color="#999" />
+                        </a>
+                    ) : (
+                        <a href="/login" className="login-link">
+                            <div className="user-icon-circle">
+                                <User size={24} color="#ccc" />
+                            </div>
+                            <div className="login-text">
+                                <strong>로그인</strong>을 해주세요
+                            </div>
+                            <ChevronRight size={16} color="#999" />
+                        </a>
+                    )}
                     <div className="user-action-buttons">
                         <a href="/mypage" className="action-btn">주문배송</a>
                         <a href="/cart" className="action-btn">장바구니</a>

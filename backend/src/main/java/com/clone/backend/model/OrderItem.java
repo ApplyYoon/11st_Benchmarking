@@ -1,3 +1,8 @@
+/**
+ * 주문 상품 항목 POJO (MongoDB 내장 문서)
+ * - Order 문서 안에 배열로 포함됨
+ * - 상품 ID, 이름, 이미지, 구매 시점 가격, 수량 저장
+ */
 package com.clone.backend.model;
 
 import lombok.*;

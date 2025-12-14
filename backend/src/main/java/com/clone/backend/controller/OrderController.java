@@ -1,10 +1,16 @@
+/**
+ * 주문 컨트롤러 (/api/orders)
+ * - GET: 주문 내역 조회 (MongoDB에서 조회)
+ * - POST /confirm-payment: Toss 결제 승인 처리
+ * - POST /demo: 데모 주문 생성 (테스트/포트폴리오용)
+ * - 주문 데이터는 MongoDB에 샤딩하여 저장
+ */
 package com.clone.backend.controller;
 
 import com.clone.backend.model.*;
 import com.clone.backend.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,14 +27,16 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/orders")
 public class OrderController {
 
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
+    private final CartRepository cartRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    public OrderController(OrderRepository orderRepository, CartRepository cartRepository,
+            UserRepository userRepository) {
+        this.orderRepository = orderRepository;
+        this.cartRepository = cartRepository;
+        this.userRepository = userRepository;
+    }
 
     @Value("${toss.secret-key}")
     private String tossSecretKey;

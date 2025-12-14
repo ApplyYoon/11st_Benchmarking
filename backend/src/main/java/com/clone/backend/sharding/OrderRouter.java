@@ -1,3 +1,9 @@
+/**
+ * MongoDB 주문 샤딩 라우터
+ * - getShard(): userId 기반 샤드 선택 (홀수→A, 짝수→B)
+ * - getCurrentCollectionName(): 연도별 컬렉션명 (orders_2025)
+ * - 수평 확장을 위한 데이터 분산 처리
+ */
 package com.clone.backend.sharding;
 
 import org.springframework.beans.factory.annotation.Qualifier;

@@ -1,3 +1,9 @@
+/**
+ * 주문 레포지토리 (MongoDB - 커스텀 구현)
+ * - OrderRouter를 사용하여 userId 기반 샤딩
+ * - 연도별 파티셔닝 (orders_2024, orders_2025)
+ * - save(): 주문 저장, findByUser(): 사용자별 주문 조회
+ */
 package com.clone.backend.repository;
 
 import com.clone.backend.model.Order;

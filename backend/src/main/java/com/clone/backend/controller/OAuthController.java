@@ -1,3 +1,8 @@
+/**
+ * OAuth 소셜 로그인 컨트롤러 (/api/auth/oauth)
+ * - POST /kakao/callback: 카카오 OAuth 콜백 처리
+ * - 카카오에서 인가 코드 받아 토큰 교환 후 JWT 발급
+ */
 package com.clone.backend.controller;
 
 import com.clone.backend.dto.AuthDto;

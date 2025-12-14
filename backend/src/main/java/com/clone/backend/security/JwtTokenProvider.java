@@ -1,3 +1,9 @@
+/**
+ * JWT 토큰 생성/검증 유틸리티
+ * - generateToken(): JWT 토큰 생성 (HS512 서명)
+ * - validateToken(): 토큰 유효성 검사
+ * - getUserEmailFromToken(): 토큰에서 이메일 추출
+ */
 package com.clone.backend.security;
 
 import io.jsonwebtoken.*;

@@ -1,3 +1,9 @@
+/**
+ * 주문 POJO (MongoDB 저장용)
+ * - 주문 ID, 사용자 ID (샤딩 키), 주문명, 총액, 상태
+ * - OrderItem 목록을 내장 문서로 포함
+ * - userId 기준으로 Shard A/B에 분산 저장
+ */
 package com.clone.backend.model;
 
 import lombok.*;

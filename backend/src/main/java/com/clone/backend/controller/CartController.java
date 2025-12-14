@@ -1,3 +1,10 @@
+/**
+ * 장바구니 컨트롤러 (/api/cart)
+ * - GET: 장바구니 조회
+ * - POST: 장바구니에 상품 추가
+ * - DELETE /{id}: 특정 상품 삭제
+ * - DELETE: 장바구니 전체 비우기
+ */
 package com.clone.backend.controller;
 
 import com.clone.backend.model.CartItem;
@@ -6,7 +13,6 @@ import com.clone.backend.model.User;
 import com.clone.backend.repository.CartRepository;
 import com.clone.backend.repository.ProductRepository;
 import com.clone.backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,14 +23,16 @@ import java.util.Map;
 @RequestMapping("/api/cart")
 public class CartController {
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
+    private final UserRepository userRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
+    public CartController(CartRepository cartRepository, UserRepository userRepository,
+            ProductRepository productRepository) {
+        this.cartRepository = cartRepository;
+        this.userRepository = userRepository;
+        this.productRepository = productRepository;
+    }
 
     @GetMapping
     public List<CartItem> getCart() {
