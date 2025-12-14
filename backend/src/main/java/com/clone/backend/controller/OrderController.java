@@ -52,9 +52,18 @@ public class OrderController {
         String orderId = (String) payload.get("orderId");
         Integer amount = (Integer) payload.get("amount");
 
-        // In a real app, identify user from security context
-        // For now, let's assume a default user or pass user info
-        User user = userRepository.findAll().stream().findFirst().orElseThrow();
+        // Get current user from SecurityContext
+        String email = null;
+        Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+            email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         // 1. Verify payment with Toss
         try {
@@ -123,23 +132,61 @@ public class OrderController {
 
     @GetMapping
     public List<Order> getOrders() {
-        // Mock user for now
-        User user = userRepository.findAll().stream().findFirst().orElseThrow();
+        // Get current user from SecurityContext
+        String email = null;
+        Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+            email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         return orderRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
+    private void logToDebugFile(String message) {
+        try (java.io.FileWriter fw = new java.io.FileWriter("debug.log", true);
+                java.io.PrintWriter pw = new java.io.PrintWriter(fw)) {
+            pw.println(java.time.LocalDateTime.now() + " - " + message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @DeleteMapping("/{orderId}")
-    @Transactional
     public ResponseEntity<?> deleteOrder(@PathVariable String orderId) {
         try {
-            // Get current user (mock/context)
-            User user = userRepository.findAll().stream().findFirst().orElseThrow();
+            logToDebugFile("DELETE REQUEST: " + orderId);
+
+            // Get current user from SecurityContext
+            String email = null;
+            Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                    .getAuthentication().getPrincipal();
+            if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+                email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+            } else {
+                email = principal.toString();
+            }
+
+            logToDebugFile("User identified: " + email);
+
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            logToDebugFile("User Resolved ID: " + user.getId());
 
             orderRepository.delete(user, orderId);
+
+            logToDebugFile("Delete Success");
             return ResponseEntity.ok().build();
 
         } catch (Exception e) {
             e.printStackTrace();
+            logToDebugFile("DELETE FAILED: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
@@ -156,8 +203,18 @@ public class OrderController {
             Integer amount = (Integer) payload.get("amount");
             String orderId = "DEMO_" + System.currentTimeMillis();
 
-            // Get current user (simplified - in production, use security context)
-            User user = userRepository.findAll().stream().findFirst().orElseThrow();
+            // Get current user from SecurityContext
+            String email = null;
+            Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                    .getAuthentication().getPrincipal();
+            if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+                email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+            } else {
+                email = principal.toString();
+            }
+
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
             // Create order directly without Toss verification
             Order order = Order.builder()

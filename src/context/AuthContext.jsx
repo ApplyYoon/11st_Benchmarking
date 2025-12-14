@@ -165,7 +165,7 @@ export const AuthProvider = ({ children }) => {
 
         if (window.confirm('주문을 취소하시겠습니까? 복구할 수 없습니다.')) {
             try {
-                await client.delete(`/api/orders/${orderId}`);
+                await client.delete(`/orders/${orderId}`);
 
                 // Remove order from local state (Hard Delete)
                 const updatedOrders = user.orders.filter(order => order.id !== orderId);

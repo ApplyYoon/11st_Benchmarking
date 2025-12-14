@@ -20,6 +20,53 @@ const MyPage = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('orders');
 
+    // 리뷰 관련 State (충돌 해결 시 누락된 부분 복구)
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [hoverRating, setHoverRating] = useState(0);
+    const [reviewContent, setReviewContent] = useState('');
+    const [reviewImages, setReviewImages] = useState([]);
+
+    // 이미지 파일 선택 핸들러
+    const handleImageSelect = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length + reviewImages.length > 5) {
+            alert('이미지는 최대 5장까지 첨부할 수 있습니다.');
+            return;
+        }
+
+        const newImages = files.map(file => ({
+            file,
+            url: URL.createObjectURL(file)
+        }));
+        setReviewImages([...reviewImages, ...newImages]);
+    };
+
+    // 이미지 삭제 핸들러
+    const removeImage = (index) => {
+        const newImages = reviewImages.filter((_, i) => i !== index);
+        setReviewImages(newImages);
+    };
+
+    // 리뷰 제출 핸들러
+    const handleReviewSubmit = () => {
+        if (reviewContent.length < 10) {
+            alert('리뷰 내용은 최소 10자 이상 작성해주세요.');
+            return;
+        }
+
+        // TODO: 실제 리뷰 제출 API 연동 필요
+        alert('리뷰가 등록되었습니다! (포인트 적립 예정)');
+
+        // 초기화 및 모달 닫기
+        setShowReviewModal(false);
+        setSelectedOrder(null);
+        setReviewRating(5);
+        setReviewContent('');
+        setReviewImages([]);
+    };
+
     if (!user) {
         navigate('/login');
         return null;

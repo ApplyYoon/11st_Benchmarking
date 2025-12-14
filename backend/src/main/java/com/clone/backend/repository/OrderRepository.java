@@ -95,15 +95,14 @@ public class OrderRepository {
 
         for (int year = currentYear; year >= 2024; year--) {
             String collectionName = orderRouter.getCollectionNameForYear(year);
-            try {
-                if (template.collectionExists(collectionName)) {
-                    var result = template.remove(query, Order.class, collectionName);
-                    if (result.getDeletedCount() > 0) {
-                        return; // Deleted successfully
-                    }
+            System.out.println("DEBUG: Scanning collection " + collectionName + " for order " + orderId);
+
+            if (template.collectionExists(collectionName)) {
+                var result = template.remove(query, Order.class, collectionName);
+                if (result.getDeletedCount() > 0) {
+                    System.out.println("DEBUG: Deleted order " + orderId + " from " + collectionName);
+                    return; // Deleted successfully
                 }
-            } catch (Exception e) {
-                // Ignore
             }
         }
     }
