@@ -50,7 +50,7 @@ const MyPage = () => {
                                                 <div style={{ fontSize: '14px' }}>{order.amount.toLocaleString()}원</div>
                                             </div>
                                             <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                                <div style={{ fontSize: '16px', fontWeight: 'bold', color: order.status === '취소완료' ? '#ccc' : '#333', marginBottom: '8px' }}>{order.status}</div>
+                                                {/* <div style={{ fontSize: '16px', fontWeight: 'bold', color: order.status === '취소완료' ? '#ccc' : '#333', marginBottom: '8px' }}>{order.status}</div> */}
 
                                                 {/* 주문완료 상태일 때 취소 가능 */}
                                                 {order.status === 'PAID' && (
