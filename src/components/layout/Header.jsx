@@ -127,7 +127,6 @@ const Header = ({ onMenuClick }) => {
                         style={{
                             position: 'absolute',
                             right: '6px',
-                            top: '50%', // It will be centered relative to the input height, which is fixed
                             top: '24px', // Hardcode for alignment since input height changes visually with border
                             transform: 'translateY(-50%)',
                             background: '#f01a21',

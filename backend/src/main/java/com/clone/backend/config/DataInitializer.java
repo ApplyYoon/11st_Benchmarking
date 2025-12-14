@@ -18,6 +18,7 @@ import java.util.List;
 public class DataInitializer {
 
         @Bean
+        @SuppressWarnings("null")
         public CommandLineRunner initData(ProductRepository productRepository) {
                 return args -> {
                         if (productRepository.count() > 0)
