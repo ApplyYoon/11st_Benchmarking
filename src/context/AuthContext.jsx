@@ -4,11 +4,8 @@ import client from '../api/client';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    // 테스트용 Mock User - 항상 로그인 상태
-
-
-    const [user, setUser] = useState(null); // 항상 로그인 상태
-    const [loading, setLoading] = useState(true); // 로딩 없이 바로 시작
+    const [user, setUser] = useState(null); 
+    const [loading, setLoading] = useState(false);
 
     const loadUser = async () => {
         // First, load from localStorage for immediate display

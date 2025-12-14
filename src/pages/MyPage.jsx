@@ -1,94 +1,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { COUPONS } from '../api/mockData';
 
 const MyPage = () => {
     const { user, cancelOrder, confirmPurchase } = useAuth();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('orders');
 
-    // 리뷰 작성 모달 관련 상태
-    const [showReviewModal, setShowReviewModal] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState(null);
-    const [reviewRating, setReviewRating] = useState(5);
-    const [reviewContent, setReviewContent] = useState('');
-    const [hoverRating, setHoverRating] = useState(0);
-    const [reviewImages, setReviewImages] = useState([]); // 이미지 미리보기 URL 배열
-
-    // 리뷰 작성 모달 열기
-    const openReviewModal = (order) => {
-        setSelectedOrder(order);
-        setReviewRating(5);
-        setReviewContent('');
-        setReviewImages([]);
-        setShowReviewModal(true);
-    };
-
-    // 이미지 선택 핸들러
-    const handleImageSelect = (e) => {
-        const files = Array.from(e.target.files);
-        if (reviewImages.length + files.length > 5) {
-            alert('이미지는 최대 5장까지 업로드할 수 있습니다.');
-            return;
-        }
-
-        files.forEach(file => {
-            if (file.size > 10 * 1024 * 1024) { // 10MB 제한
-                alert('이미지 크기는 10MB 이하여야 합니다.');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setReviewImages(prev => [...prev, {
-                    url: event.target.result,
-                    file: file,
-                    name: file.name
-                }]);
-            };
-            reader.readAsDataURL(file);
-        });
-    };
-
-    // 이미지 삭제 핸들러
-    const removeImage = (index) => {
-        setReviewImages(prev => prev.filter((_, i) => i !== index));
-    };
-
-    // 리뷰 제출 핸들러
-    const handleReviewSubmit = () => {
-        if (!reviewContent.trim()) {
-            alert('리뷰 내용을 입력해주세요.');
-            return;
-        }
-        if (reviewContent.trim().length < 10) {
-            alert('리뷰는 최소 10자 이상 작성해주세요.');
-            return;
-        }
-
-        // TODO: 실제 API 연동 시 여기서 리뷰 등록 API 호출
-        // 이미지는 FormData로 전송하거나 별도 업로드 API 사용
-        console.log('리뷰 등록:', {
-            orderId: selectedOrder.id,
-            productId: selectedOrder.productId,
-            rating: reviewRating,
-            content: reviewContent,
-            images: reviewImages.map(img => img.name), // 실제로는 파일 업로드 필요
-            date: new Date().toISOString()
-        });
-
-        alert(`리뷰가 등록되었습니다`);
-        setShowReviewModal(false);
-        setSelectedOrder(null);
-        setReviewRating(5);
-        setReviewContent('');
-        setReviewImages([]);
-    };
-
     if (!user) {
         navigate('/login');
-        return null; // Or loading
+        return null;
     }
 
     return (
@@ -132,31 +53,15 @@ const MyPage = () => {
                                                 <div style={{ fontSize: '16px', fontWeight: 'bold', color: order.status === '취소완료' ? '#ccc' : '#333', marginBottom: '8px' }}>{order.status}</div>
 
                                                 {/* 주문완료 상태일 때 취소 가능 */}
-                                                {order.status === '주문완료' && (
+                                                {order.status === 'PAID' && (
                                                     <>
                                                         <button
-                                                            onClick={() => confirmPurchase(order.id)}
-                                                            style={{ fontSize: '12px', padding: '5px 10px', border: '1px solid #f01a21', backgroundColor: '#f01a21', color: 'white', cursor: 'pointer', borderRadius: '2px' }}
-                                                        >
-                                                            구매확정
-                                                        </button>
-                                                        <button
                                                             onClick={() => cancelOrder(order.id)}
-                                                            style={{ fontSize: '12px', padding: '5px 10px', border: '1px solid #ddd', backgroundColor: 'white', cursor: 'pointer', borderRadius: '2px' }}
+                                                            style={{ fontSize: '12px', padding: '5px 10px', border: '1px solid #f01a21', backgroundColor: '#f01a21', color: 'white', cursor: 'pointer', borderRadius: '2px' }}
                                                         >
                                                             주문취소
                                                         </button>
                                                     </>
-                                                )}
-
-                                                {/* 구매확정 상태일 때 리뷰 작성 가능 */}
-                                                {order.status === '구매확정' && (
-                                                    <button
-                                                        onClick={() => openReviewModal(order)}
-                                                        style={{ fontSize: '12px', padding: '5px 10px', border: '1px solid #333', backgroundColor: 'white', color: '#333', cursor: 'pointer', borderRadius: '2px' }}
-                                                    >
-                                                        리뷰쓰기
-                                                    </button>
                                                 )}
                                             </div>
                                         </div>
@@ -211,247 +116,7 @@ const MyPage = () => {
                         </>
                     )}
                 </div>
-
-
             </div>
-
-            {/* 리뷰 작성 모달 */}
-            {showReviewModal && selectedOrder && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 2000
-                }}>
-                    <div style={{
-                        backgroundColor: 'white',
-                        borderRadius: '12px',
-                        padding: '24px',
-                        width: '90%',
-                        maxWidth: '500px'
-                    }}>
-                        {/* 모달 헤더 */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>리뷰 작성</h3>
-                            <button
-                                onClick={() => {
-                                    setShowReviewModal(false);
-                                    setSelectedOrder(null);
-                                }}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    fontSize: '24px',
-                                    cursor: 'pointer',
-                                    color: '#999',
-                                    lineHeight: 1
-                                }}
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        {/* 주문 상품 정보 */}
-                        <div style={{
-                            padding: '14px',
-                            backgroundColor: '#f9f9f9',
-                            borderRadius: '8px',
-                            marginBottom: '20px'
-                        }}>
-                            <div style={{ fontSize: '13px', color: '#666' }}>{selectedOrder.date}</div>
-                            <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#333', marginTop: '2px' }}>{selectedOrder.name}</div>
-                            <div style={{ fontSize: '14px', color: '#f01a21', marginTop: '2px' }}>{selectedOrder.amount.toLocaleString()}원</div>
-                        </div>
-
-                        {/* 별점 선택 */}
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '10px' }}>
-                                별점을 선택해주세요 <span style={{ color: '#f01a21' }}>*</span>
-                            </label>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                {[1, 2, 3, 4, 5].map(star => (
-                                    <button
-                                        key={star}
-                                        type="button"
-                                        onClick={() => setReviewRating(star)}
-                                        onMouseEnter={() => setHoverRating(star)}
-                                        onMouseLeave={() => setHoverRating(0)}
-                                        style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            fontSize: '32px',
-                                            color: star <= (hoverRating || reviewRating) ? '#ffc107' : '#ddd',
-                                            padding: '0'
-                                        }}
-                                    >
-                                        ★
-                                    </button>
-                                ))}
-                                <span style={{ marginLeft: '10px', fontSize: '16px', fontWeight: 'bold', color: '#333' }}>
-                                    {reviewRating}점
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* 리뷰 내용 */}
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '10px' }}>
-                                리뷰 내용 <span style={{ color: '#f01a21' }}>*</span>
-                            </label>
-                            <textarea
-                                value={reviewContent}
-                                onChange={(e) => setReviewContent(e.target.value)}
-                                placeholder="상품에 대한 솔직한 리뷰를 작성해주세요. (최소 10자 이상)"
-                                style={{
-                                    width: '100%',
-                                    height: '120px',
-                                    padding: '12px',
-                                    fontSize: '14px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '8px',
-                                    resize: 'none',
-                                    boxSizing: 'border-box',
-                                    lineHeight: '1.5'
-                                }}
-                            />
-                            <div style={{ 
-                                fontSize: '12px', 
-                                color: reviewContent.length >= 10 ? '#28a745' : '#999', 
-                                marginTop: '6px', 
-                                textAlign: 'right' 
-                            }}>
-                                {reviewContent.length}자 {reviewContent.length < 10 && '(최소 10자)'}
-                            </div>
-                        </div>
-
-                        {/* 이미지 업로드 */}
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '10px' }}>
-                                사진 첨부 <span style={{ fontSize: '12px', fontWeight: 'normal', color: '#999' }}>(선택, 최대 5장)</span>
-                            </label>
-                            
-                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                                {/* 이미지 미리보기 */}
-                                {reviewImages.map((img, index) => (
-                                    <div 
-                                        key={index} 
-                                        style={{ 
-                                            position: 'relative', 
-                                            width: '70px', 
-                                            height: '70px',
-                                            borderRadius: '8px',
-                                            overflow: 'hidden'
-                                        }}
-                                    >
-                                        <img 
-                                            src={img.url} 
-                                            alt={`리뷰 이미지 ${index + 1}`}
-                                            style={{ 
-                                                width: '100%', 
-                                                height: '100%', 
-                                                objectFit: 'cover' 
-                                            }}
-                                        />
-                                        <button
-                                            onClick={() => removeImage(index)}
-                                            style={{
-                                                position: 'absolute',
-                                                top: '3px',
-                                                right: '3px',
-                                                width: '18px',
-                                                height: '18px',
-                                                borderRadius: '50%',
-                                                backgroundColor: 'rgba(0,0,0,0.6)',
-                                                color: 'white',
-                                                border: 'none',
-                                                cursor: 'pointer',
-                                                fontSize: '12px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                lineHeight: 1
-                                            }}
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                ))}
-
-                                {/* 이미지 추가 버튼 */}
-                                {reviewImages.length < 5 && (
-                                    <label style={{
-                                        width: '70px',
-                                        height: '70px',
-                                        border: '2px dashed #ddd',
-                                        borderRadius: '8px',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        cursor: 'pointer',
-                                        backgroundColor: '#fafafa'
-                                    }}>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            multiple
-                                            onChange={handleImageSelect}
-                                            style={{ display: 'none' }}
-                                        />
-                                        <span style={{ fontSize: '22px', color: '#999' }}>+</span>
-                                        <span style={{ fontSize: '10px', color: '#999' }}>사진</span>
-                                    </label>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* 버튼 */}
-                        <div style={{ display: 'flex', gap: '12px' }}>
-                            <button
-                                onClick={() => {
-                                    setShowReviewModal(false);
-                                    setSelectedOrder(null);
-                                }}
-                                style={{
-                                    flex: 1,
-                                    padding: '14px',
-                                    fontSize: '15px',
-                                    backgroundColor: '#fff',
-                                    color: '#666',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleReviewSubmit}
-                                style={{
-                                    flex: 1,
-                                    padding: '14px',
-                                    fontSize: '15px',
-                                    backgroundColor: '#f01a21',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontWeight: 'bold'
-                                }}
-                            >
-                                리뷰 등록
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

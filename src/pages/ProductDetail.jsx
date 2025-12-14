@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PRODUCTS, REVIEWS, QNA } from '../api/mockData';
+import { PRODUCTS } from '../api/mockData';
 import { useCart } from '../context/CartContext';
-import { ShoppingCart, Heart, Share2, ChevronLeft, Truck, Shield, RotateCcw } from 'lucide-react';
+import { ShoppingCart, Heart, ChevronLeft, Truck, Shield, RotateCcw } from 'lucide-react';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -13,24 +13,8 @@ const ProductDetail = () => {
     const [selectedSize, setSelectedSize] = useState(null);
     const [isHovering, setIsHovering] = useState(false);
     const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
-    const [activeTab, setActiveTab] = useState('detail');
-
-    // 리뷰 작성 관련 상태
-    const [showReviewForm, setShowReviewForm] = useState(false);
-    const [reviewRating, setReviewRating] = useState(5);
-    const [reviewContent, setReviewContent] = useState('');
-    const [hoverRating, setHoverRating] = useState(0);
-
-    // TODO: 구매 확정 API 연동 시 이 값을 실제 API 응답으로 대체
-    // 현재는 테스트를 위해 true로 설정 (실제로는 구매 확정 여부를 체크해야 함)
-    const [canWriteReview, setCanWriteReview] = useState(true); // 임시: 테스트용
 
     const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-    const tabs = [
-        { id: 'detail', label: '상품상세정보' },
-        { id: 'review', label: '리뷰' },
-        { id: 'qna', label: 'Q&A' }
-    ];
 
     const handleMouseMove = (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -40,56 +24,6 @@ const ProductDetail = () => {
     };
 
     const product = PRODUCTS.find(p => p.id === Number(id));
-
-    // 해당 상품의 리뷰와 Q&A 필터링
-    // 해당 상품의 리뷰와 Q&A 필터링
-    const productReviews = REVIEWS.filter(r => r.productId === Number(id));
-    const productQna = QNA.filter(q => q.productId === Number(id));
-
-    // 리뷰 평점 계산
-    const averageRating = productReviews.length > 0
-        ? (productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(1)
-        : 0;
-
-    // 별점별 개수 계산
-    const ratingCounts = [5, 4, 3, 2, 1].map(rating =>
-        productReviews.filter(r => r.rating === rating).length
-    );
-
-    // 리뷰 작성 핸들러
-    const handleReviewSubmit = () => {
-        if (!reviewContent.trim()) {
-            alert('리뷰 내용을 입력해주세요.');
-            return;
-        }
-        if (reviewContent.trim().length < 10) {
-            alert('리뷰는 최소 10자 이상 작성해주세요.');
-            return;
-        }
-
-        // TODO: 실제 API 연동 시 여기서 리뷰 등록 API 호출
-        // 현재는 콘솔에 로그만 출력
-        console.log('리뷰 등록:', {
-            productId: Number(id),
-            rating: reviewRating,
-            content: reviewContent,
-            date: new Date().toISOString()
-        });
-
-        alert('리뷰가 등록되었습니다. (실제 등록은 API 연동 후 가능합니다)');
-        setShowReviewForm(false);
-        setReviewRating(5);
-        setReviewContent('');
-    };
-
-    // 리뷰 작성 폼 열기
-    const handleOpenReviewForm = () => {
-        if (!canWriteReview) {
-            alert('구매 확정 후 리뷰를 작성할 수 있습니다.');
-            return;
-        }
-        setShowReviewForm(true);
-    };
 
     if (!product) {
         return (
@@ -130,7 +64,6 @@ const ProductDetail = () => {
             return;
         }
 
-        // 바로구매 클릭 시 결제 페이지로 이동
         const totalAmount = product.price * quantity;
         const orderName = product.name + (quantity > 1 ? ` (${quantity}개)` : '');
 
@@ -501,251 +434,44 @@ const ProductDetail = () => {
                 </div>
             </div>
 
-            {/* Tab Navigation */}
-            <div style={{ marginTop: '60px', borderTop: '1px solid #eee' }}>
-                <div style={{ display: 'flex', borderBottom: '1px solid #eee' }}>
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            style={{
-                                flex: 1,
-                                padding: '20px',
-                                fontSize: '16px',
-                                fontWeight: activeTab === tab.id ? 'bold' : 'normal',
-                                color: activeTab === tab.id ? '#f01a21' : '#666',
-                                backgroundColor: 'transparent',
-                                border: 'none',
-                                borderBottom: activeTab === tab.id ? '3px solid #f01a21' : '3px solid transparent',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            {tab.label}
-                            {tab.id === 'review' && <span style={{ marginLeft: '4px', color: '#999' }}>({productReviews.length})</span>}
-                            {tab.id === 'qna' && <span style={{ marginLeft: '4px', color: '#999' }}>({productQna.length})</span>}
-                        </button>
-                    ))}
+            {/* 상품상세정보 */}
+            <div style={{ marginTop: '60px', borderTop: '1px solid #eee', paddingTop: '40px' }}>
+                <div style={{ padding: '40px', backgroundColor: '#f9f9f9', borderRadius: '12px', textAlign: 'center' }}>
+                    <img
+                        src={product.image}
+                        alt={product.name}
+                        style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: '20px' }}
+                    />
+                    <p style={{ fontSize: '16px', color: '#666', lineHeight: '1.8' }}>
+                        {product.name}의 상세 설명입니다.<br />
+                        고품질의 상품으로 고객님의 만족을 보장합니다.<br />
+                        11번가에서만 만나볼 수 있는 특별한 가격!
+                    </p>
                 </div>
 
-                {/* Tab Content */}
-                <div style={{ paddingTop: '40px' }}>
-                    {/* 상품상세정보 탭 */}
-                    {activeTab === 'detail' && (
-                        <div>
-                            <div style={{ padding: '40px', backgroundColor: '#f9f9f9', borderRadius: '12px', textAlign: 'center' }}>
-                                <img
-                                    src={product.image}
-                                    alt={product.name}
-                                    style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: '20px' }}
-                                />
-                                <p style={{ fontSize: '16px', color: '#666', lineHeight: '1.8' }}>
-                                    {product.name}의 상세 설명입니다.<br />
-                                    고품질의 상품으로 고객님의 만족을 보장합니다.<br />
-                                    11번가에서만 만나볼 수 있는 특별한 가격!
-                                </p>
-                            </div>
-
-                            {/* 상품 스펙 */}
-                            <div style={{ marginTop: '40px' }}>
-                                <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px' }}>상품 정보</h3>
-                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                    <tbody>
-                                        <tr style={{ borderTop: '1px solid #eee' }}>
-                                            <td style={{ padding: '16px', backgroundColor: '#f9f9f9', width: '150px', fontSize: '14px', color: '#666' }}>상품명</td>
-                                            <td style={{ padding: '16px', fontSize: '14px' }}>{product.name}</td>
-                                        </tr>
-                                        <tr style={{ borderTop: '1px solid #eee' }}>
-                                            <td style={{ padding: '16px', backgroundColor: '#f9f9f9', fontSize: '14px', color: '#666' }}>카테고리</td>
-                                            <td style={{ padding: '16px', fontSize: '14px', textTransform: 'capitalize' }}>{product.category}</td>
-                                        </tr>
-                                        <tr style={{ borderTop: '1px solid #eee' }}>
-                                            <td style={{ padding: '16px', backgroundColor: '#f9f9f9', fontSize: '14px', color: '#666' }}>판매가</td>
-                                            <td style={{ padding: '16px', fontSize: '14px' }}>{product.price.toLocaleString()}원</td>
-                                        </tr>
-                                        <tr style={{ borderTop: '1px solid #eee', borderBottom: '1px solid #eee' }}>
-                                            <td style={{ padding: '16px', backgroundColor: '#f9f9f9', fontSize: '14px', color: '#666' }}>배송비</td>
-                                            <td style={{ padding: '16px', fontSize: '14px' }}>무료배송</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 리뷰 탭 */}
-                    {activeTab === 'review' && (
-                        <div>
-                            {productReviews.length > 0 ? (
-                                <>
-                                    {/* 리뷰 요약 */}
-                                    <div style={{ display: 'flex', gap: '40px', padding: '30px', backgroundColor: '#f9f9f9', borderRadius: '12px', marginBottom: '30px' }}>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '48px', fontWeight: '900', color: '#f01a21' }}>{averageRating}</div>
-                                            <div style={{ display: 'flex', gap: '2px', justifyContent: 'center', marginTop: '8px' }}>
-                                                {[1, 2, 3, 4, 5].map(star => (
-                                                    <span key={star} style={{ color: star <= Math.round(averageRating) ? '#ffc107' : '#ddd', fontSize: '20px' }}>★</span>
-                                                ))}
-                                            </div>
-                                            <div style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>{productReviews.length}개 리뷰</div>
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            {[5, 4, 3, 2, 1].map((rating, index) => (
-                                                <div key={rating} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                                    <span style={{ fontSize: '13px', color: '#666', width: '20px' }}>{rating}점</span>
-                                                    <div style={{ flex: 1, height: '8px', backgroundColor: '#eee', borderRadius: '4px', overflow: 'hidden' }}>
-                                                        <div style={{
-                                                            width: productReviews.length > 0 ? `${(ratingCounts[index] / productReviews.length) * 100}%` : '0%',
-                                                            height: '100%',
-                                                            backgroundColor: '#ffc107'
-                                                        }} />
-                                                    </div>
-                                                    <span style={{ fontSize: '13px', color: '#999', width: '30px' }}>
-                                                        {ratingCounts[index]}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* 리뷰 목록 */}
-                                    {productReviews.map(review => (
-                                        <div key={review.id} style={{ padding: '24px 0', borderBottom: '1px solid #eee' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                    <div style={{ display: 'flex', gap: '2px' }}>
-                                                        {[1, 2, 3, 4, 5].map(star => (
-                                                            <span key={star} style={{ color: star <= review.rating ? '#ffc107' : '#ddd', fontSize: '14px' }}>★</span>
-                                                        ))}
-                                                    </div>
-                                                    <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{review.user}</span>
-                                                </div>
-                                                <span style={{ fontSize: '13px', color: '#999' }}>{review.date}</span>
-                                            </div>
-                                            <p style={{ fontSize: '14px', color: '#333', lineHeight: '1.6', margin: '0 0 12px' }}>{review.content}</p>
-                                            <button style={{
-                                                fontSize: '13px',
-                                                color: '#666',
-                                                backgroundColor: '#f5f5f5',
-                                                border: 'none',
-                                                padding: '6px 12px',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer'
-                                            }}>
-                                                👍 도움돼요 ({review.helpful})
-                                            </button>
-                                        </div>
-                                    ))}
-                                </>
-                            ) : (
-                                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#999' }}>
-                                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
-                                    <p style={{ fontSize: '16px' }}>아직 작성된 리뷰가 없습니다.</p>
-                                    <p style={{ fontSize: '14px' }}>첫 번째 리뷰를 작성해 주세요!</p>
-                                </div>
-                            )}
-
-                            {/* 더보기 버튼 */}
-                            {productReviews.length > 0 && (
-                                <div style={{ textAlign: 'center', marginTop: '30px' }}>
-                                    <button style={{
-                                        padding: '14px 60px',
-                                        fontSize: '14px',
-                                        border: '1px solid #ddd',
-                                        backgroundColor: '#fff',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer'
-                                    }}>
-                                        리뷰 더보기
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Q&A 탭 */}
-                    {activeTab === 'qna' && (
-                        <div>
-                            {/* Q&A 작성 버튼 */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <div style={{ fontSize: '14px', color: '#666' }}>총 <strong>{productQna.length}</strong>개의 문의가 있습니다.</div>
-                                <button style={{
-                                    padding: '12px 24px',
-                                    fontSize: '14px',
-                                    backgroundColor: '#333',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontWeight: 'bold'
-                                }}>
-                                    문의하기
-                                </button>
-                            </div>
-
-                            {productQna.length > 0 ? (
-                                <>
-                                    {/* Q&A 목록 */}
-                                    {productQna.map(qna => (
-                                        <div key={qna.id} style={{ borderBottom: '1px solid #eee' }}>
-                                            {/* 질문 */}
-                                            <div style={{ padding: '20px 0' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                                                    <span style={{
-                                                        display: 'inline-block',
-                                                        padding: '4px 8px',
-                                                        fontSize: '12px',
-                                                        fontWeight: 'bold',
-                                                        backgroundColor: qna.isAnswered ? '#e8f5e9' : '#fff3e0',
-                                                        color: qna.isAnswered ? '#2e7d32' : '#ef6c00',
-                                                        borderRadius: '4px'
-                                                    }}>
-                                                        {qna.isAnswered ? '답변완료' : '답변대기'}
-                                                    </span>
-                                                    <span style={{ fontSize: '13px', color: '#666' }}>{qna.user}</span>
-                                                    <span style={{ fontSize: '13px', color: '#999' }}>{qna.date}</span>
-                                                </div>
-                                                <p style={{ fontSize: '14px', color: '#333', margin: 0 }}>
-                                                    <strong style={{ color: '#f01a21', marginRight: '8px' }}>Q.</strong>
-                                                    {qna.question}
-                                                </p>
-                                            </div>
-
-                                            {/* 답변 */}
-                                            {qna.answer && (
-                                                <div style={{ padding: '20px', backgroundColor: '#f9f9f9', marginBottom: '20px', borderRadius: '8px' }}>
-                                                    <p style={{ fontSize: '14px', color: '#333', margin: 0 }}>
-                                                        <strong style={{ color: '#333', marginRight: '8px' }}>A.</strong>
-                                                        {qna.answer}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-
-                                    {/* 더보기 버튼 */}
-                                    <div style={{ textAlign: 'center', marginTop: '30px' }}>
-                                        <button style={{
-                                            padding: '14px 60px',
-                                            fontSize: '14px',
-                                            border: '1px solid #ddd',
-                                            backgroundColor: '#fff',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer'
-                                        }}>
-                                            문의 더보기
-                                        </button>
-                                    </div>
-                                </>
-                            ) : (
-                                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#999' }}>
-                                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>💬</div>
-                                    <p style={{ fontSize: '16px' }}>아직 등록된 문의가 없습니다.</p>
-                                    <p style={{ fontSize: '14px' }}>궁금한 점이 있으시면 문의해 주세요!</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                {/* 상품 스펙 */}
+                <div style={{ marginTop: '40px' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px' }}>상품 정보</h3>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <tbody>
+                            <tr style={{ borderTop: '1px solid #eee' }}>
+                                <td style={{ padding: '16px', backgroundColor: '#f9f9f9', width: '150px', fontSize: '14px', color: '#666' }}>상품명</td>
+                                <td style={{ padding: '16px', fontSize: '14px' }}>{product.name}</td>
+                            </tr>
+                            <tr style={{ borderTop: '1px solid #eee' }}>
+                                <td style={{ padding: '16px', backgroundColor: '#f9f9f9', fontSize: '14px', color: '#666' }}>카테고리</td>
+                                <td style={{ padding: '16px', fontSize: '14px', textTransform: 'capitalize' }}>{product.category}</td>
+                            </tr>
+                            <tr style={{ borderTop: '1px solid #eee' }}>
+                                <td style={{ padding: '16px', backgroundColor: '#f9f9f9', fontSize: '14px', color: '#666' }}>판매가</td>
+                                <td style={{ padding: '16px', fontSize: '14px' }}>{product.price.toLocaleString()}원</td>
+                            </tr>
+                            <tr style={{ borderTop: '1px solid #eee', borderBottom: '1px solid #eee' }}>
+                                <td style={{ padding: '16px', backgroundColor: '#f9f9f9', fontSize: '14px', color: '#666' }}>배송비</td>
+                                <td style={{ padding: '16px', fontSize: '14px' }}>무료배송</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -753,4 +479,3 @@ const ProductDetail = () => {
 };
 
 export default ProductDetail;
-
