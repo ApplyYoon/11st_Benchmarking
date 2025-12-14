@@ -1,3 +1,9 @@
+/**
+ * 사용자 정보 컨트롤러 (/api/users)
+ * - PUT /me/address: 배송지 주소 업데이트
+ * - PUT /me/profile: 프로필 정보 (이름) 업데이트
+ * - JWT 쿠키로 현재 사용자 인증
+ */
 package com.clone.backend.controller;
 
 import com.clone.backend.model.User;

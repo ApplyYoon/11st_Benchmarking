@@ -1,3 +1,9 @@
+/**
+ * 사용자 엔티티 (PostgreSQL)
+ * - 이메일, 비밀번호, 이름, 등급(FAMILY/VIP)
+ * - 주소 정보 (우편번호, 주소, 상세주소)
+ * - 포인트, 가입일시
+ */
 package com.clone.backend.model;
 
 import jakarta.persistence.Entity;

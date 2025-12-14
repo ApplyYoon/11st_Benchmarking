@@ -1,3 +1,9 @@
+/**
+ * 인증 관련 DTO 모음
+ * - SignupRequest: 회원가입 요청 데이터
+ * - LoginRequest: 로그인 요청 데이터
+ * - AuthResponse: 로그인 응답 (JWT + 사용자 정보)
+ */
 package com.clone.backend.dto;
 
 import lombok.Getter;

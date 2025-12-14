@@ -1,3 +1,8 @@
+/**
+ * 사용자 레포지토리 (PostgreSQL - JPA)
+ * - 이메일로 사용자 조회, 이메일 중복 확인
+ * - Spring Data JPA 자동 구현
+ */
 package com.clone.backend.repository;
 
 import com.clone.backend.model.User;

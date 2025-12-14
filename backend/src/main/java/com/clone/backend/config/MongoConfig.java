@@ -1,3 +1,9 @@
+/**
+ * MongoDB 샤딩 설정 클래스
+ * - Shard A (홀수 userId): mongo-shard-a:27017
+ * - Shard B (짝수 userId): mongo-shard-b:27017
+ * - 주문 데이터를 2개의 샤드에 분산 저장
+ */
 package com.clone.backend.config;
 
 import com.mongodb.client.MongoClient;

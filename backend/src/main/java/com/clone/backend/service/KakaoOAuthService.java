@@ -1,3 +1,9 @@
+/**
+ * 카카오 OAuth 서비스
+ * - 카카오 인가 코드로 액세스 토큰 교환
+ * - 카카오 사용자 정보 조회
+ * - 기존 사용자 찾기 또는 신규 사용자 생성
+ */
 package com.clone.backend.service;
 
 import com.clone.backend.model.User;
@@ -35,6 +41,7 @@ public class KakaoOAuthService {
     /**
      * Exchange authorization code for access token
      */
+    @SuppressWarnings("unchecked")
     public String getAccessToken(String code) {
         String tokenUrl = "https://kauth.kakao.com/oauth/token";
 
@@ -65,6 +72,7 @@ public class KakaoOAuthService {
     /**
      * Get user info from Kakao using access token
      */
+    @SuppressWarnings("unchecked")
     public Map<String, Object> getUserInfo(String accessToken) {
         String userInfoUrl = "https://kapi.kakao.com/v2/user/me";
 
@@ -89,6 +97,7 @@ public class KakaoOAuthService {
     /**
      * Find or create user based on Kakao user info
      */
+    @SuppressWarnings("unchecked")
     public User findOrCreateUser(Map<String, Object> kakaoUserInfo) {
         Long kakaoId = ((Number) kakaoUserInfo.get("id")).longValue();
 

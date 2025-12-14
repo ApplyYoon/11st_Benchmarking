@@ -1,3 +1,8 @@
+/**
+ * 사용자 서비스
+ * - 주소 업데이트 비즈니스 로직
+ * - 이메일로 사용자 조회 후 주소 필드 갱신
+ */
 package com.clone.backend.service;
 
 import com.clone.backend.dto.AddressUpdateRequest;

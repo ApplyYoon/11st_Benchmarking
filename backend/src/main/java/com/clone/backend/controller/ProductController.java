@@ -1,8 +1,13 @@
+/**
+ * 상품 컨트롤러 (/api/products)
+ * - GET: 상품 목록 조회 (카테고리, 타임딜, 베스트 필터링)
+ * - GET /{id}: 상품 상세 조회
+ * - PostgreSQL에서 상품 데이터 조회
+ */
 package com.clone.backend.controller;
 
 import com.clone.backend.model.Product;
 import com.clone.backend.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,8 +17,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/products")
 public class ProductController {
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+
+    public ProductController(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
 
     @GetMapping
     public List<Product> getProducts(

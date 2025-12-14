@@ -1,10 +1,16 @@
+/**
+ * 인증 컨트롤러 (/api/auth)
+ * - POST /login: 로그인 (JWT 쿠키 발급)
+ * - POST /signup: 회원가입
+ * - POST /logout: 로그아웃 (쿠키 삭제)
+ * - GET /me: 현재 로그인 사용자 정보 조회
+ */
 package com.clone.backend.controller;
 
 import com.clone.backend.dto.AuthDto;
 import com.clone.backend.model.User;
 import com.clone.backend.security.JwtTokenProvider;
 import com.clone.backend.service.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +23,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
+    private final JwtTokenProvider tokenProvider;
 
-    @Autowired
-    private JwtTokenProvider tokenProvider;
+    public AuthController(AuthService authService, JwtTokenProvider tokenProvider) {
+        this.authService = authService;
+        this.tokenProvider = tokenProvider;
+    }
 
     @PostMapping("/signup")
     public ResponseEntity<User> signup(@RequestBody AuthDto.SignupRequest request) {
