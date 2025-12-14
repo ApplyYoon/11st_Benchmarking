@@ -1,10 +1,15 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { X, User, ChevronRight, Home, Zap, Star, Gift } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
-    const { user } = useAuth();
+
+    // 링크 클릭 시 사이드바 닫기
+    const handleLinkClick = () => {
+        onClose();
+    };
 
     return (
         <>
@@ -24,31 +29,19 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className="user-status">
-                    {user ? (
-                        <a href="/mypage" className="login-link">
-                            <div className="user-icon-circle" style={{ background: '#f01a21' }}>
-                                <User size={24} color="#fff" />
-                            </div>
-                            <div className="login-text">
-                                <strong>{user.name || user.email}</strong>님 반갑습니다
-                            </div>
-                            <ChevronRight size={16} color="#999" />
-                        </a>
-                    ) : (
-                        <a href="/login" className="login-link">
-                            <div className="user-icon-circle">
-                                <User size={24} color="#ccc" />
-                            </div>
-                            <div className="login-text">
-                                <strong>로그인</strong>을 해주세요
-                            </div>
-                            <ChevronRight size={16} color="#999" />
-                        </a>
-                    )}
+                    <Link to="/login" className="login-link" onClick={handleLinkClick}>
+                        <div className="user-icon-circle">
+                            <User size={24} color="#ccc" />
+                        </div>
+                        <div className="login-text">
+                            <strong>로그인</strong>을 해주세요
+                        </div>
+                        <ChevronRight size={16} color="#999" />
+                    </Link>
                     <div className="user-action-buttons">
-                        <a href="/mypage" className="action-btn">주문배송</a>
-                        <a href="/cart" className="action-btn">장바구니</a>
-                        <a href="/my-coupons" className="action-btn">쿠폰</a>
+                        <Link to="/mypage" className="action-btn" onClick={handleLinkClick}>주문배송</Link>
+                        <Link to="/cart" className="action-btn" onClick={handleLinkClick}>장바구니</Link>
+                        <Link to="/my-coupons" className="action-btn" onClick={handleLinkClick}>쿠폰</Link>
                     </div>
                 </div>
 
@@ -56,29 +49,29 @@ const Sidebar = ({ isOpen, onClose }) => {
 
                 <nav className="sidebar-nav">
                     <div className="nav-title">쇼핑 서비스</div>
-                    <a href="/" className="nav-item">
+                    <Link to="/" className="nav-item" onClick={handleLinkClick}>
                         <Home size={20} />
                         <span>홈</span>
-                    </a>
-                    <a href="/best" className="nav-item">
+                    </Link>
+                    <Link to="/best" className="nav-item" onClick={handleLinkClick}>
                         <Star size={20} />
                         <span>베스트</span>
-                    </a>
-                    <a href="/shocking-deal" className="nav-item">
+                    </Link>
+                    <Link to="/shocking-deal" className="nav-item" onClick={handleLinkClick}>
                         <Zap size={20} />
                         <span>쇼킹딜</span>
-                    </a>
-                    <a href="#" className="nav-item">
+                    </Link>
+                    <Link to="/" className="nav-item" onClick={handleLinkClick}>
                         <Gift size={20} />
                         <span>이벤트</span>
-                    </a>
+                    </Link>
                 </nav>
 
                 <div className="sidebar-footer">
                     <div className="footer-links">
-                        <a href="#">고객센터</a>
+                        <Link to="/" onClick={handleLinkClick}>고객센터</Link>
                         <span className="divider">|</span>
-                        <a href="#">설정</a>
+                        <Link to="/" onClick={handleLinkClick}>설정</Link>
                     </div>
                 </div>
             </aside>
