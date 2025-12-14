@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
+    const { user, logout } = useAuth();
 
     // 링크 클릭 시 사이드바 닫기
     const handleLinkClick = () => {
@@ -29,15 +30,35 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className="user-status">
-                    <Link to="/login" className="login-link" onClick={handleLinkClick}>
-                        <div className="user-icon-circle">
-                            <User size={24} color="#ccc" />
+                    {user ? (
+                        <div className="logged-in-profile">
+                            <div className="user-info-row" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                                <div className="user-icon-circle" style={{ backgroundColor: '#f01a2120' }}>
+                                    <User size={24} color="#f01a21" />
+                                </div>
+                                <div className="user-text">
+                                    <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{user.name}님</div>
+                                    <div style={{ fontSize: '12px', color: '#666' }}>{user.email}</div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => { logout(); handleLinkClick(); }}
+                                style={{ background: 'none', border: '1px solid #ddd', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer', width: '100%' }}
+                            >
+                                로그아웃
+                            </button>
                         </div>
-                        <div className="login-text">
-                            <strong>로그인</strong>을 해주세요
-                        </div>
-                        <ChevronRight size={16} color="#999" />
-                    </Link>
+                    ) : (
+                        <Link to="/login" className="login-link" onClick={handleLinkClick}>
+                            <div className="user-icon-circle">
+                                <User size={24} color="#ccc" />
+                            </div>
+                            <div className="login-text">
+                                <strong>로그인</strong>을 해주세요
+                            </div>
+                            <ChevronRight size={16} color="#999" />
+                        </Link>
+                    )}
                     <div className="user-action-buttons">
                         <Link to="/mypage" className="action-btn" onClick={handleLinkClick}>주문배송</Link>
                         <Link to="/cart" className="action-btn" onClick={handleLinkClick}>장바구니</Link>
