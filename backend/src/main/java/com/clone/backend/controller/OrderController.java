@@ -127,6 +127,22 @@ public class OrderController {
         return orderRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
+    @DeleteMapping("/{orderId}")
+    @Transactional
+    public ResponseEntity<?> deleteOrder(@PathVariable String orderId) {
+        try {
+            // Get current user (mock/context)
+            User user = userRepository.findAll().stream().findFirst().orElseThrow();
+
+            orderRepository.delete(user, orderId);
+            return ResponseEntity.ok().build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
     /**
      * 데모용 주문 생성 엔드포인트 (토스 인증 없이 바로 주문 생성)
      * 포트폴리오/시연 목적으로 사용

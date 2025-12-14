@@ -79,4 +79,31 @@ public class OrderRepository {
 
         return allOrders;
     }
+
+    public void delete(User user, String orderId) {
+        if (user == null || user.getId() == null) {
+            throw new IllegalArgumentException("User is required for deleting order");
+        }
+
+        Long userId = user.getId();
+        MongoTemplate template = orderRouter.getShard(userId);
+
+        // Scan collections to find and delete
+        int currentYear = java.time.LocalDate.now().getYear();
+        Query query = new Query(Criteria.where("_id").is(orderId).and("userId").is(userId));
+
+        for (int year = currentYear; year >= 2024; year--) {
+            String collectionName = orderRouter.getCollectionNameForYear(year);
+            try {
+                if (template.collectionExists(collectionName)) {
+                    var result = template.remove(query, Order.class, collectionName);
+                    if (result.getDeletedCount() > 0) {
+                        return; // Deleted successfully
+                    }
+                }
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
+    }
 }
