@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, Truck, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -13,6 +13,7 @@ const Header = ({ onMenuClick }) => {
     const { user, logout } = useAuth();
     const { cart } = useCart();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -222,11 +223,6 @@ const Header = ({ onMenuClick }) => {
                         <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>마이페이지</span>
                     </Link>
 
-                    <Link to="/mypage" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <Truck size={26} strokeWidth={1.5} />
-                        <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>주문/배송</span>
-                    </Link>
-
                     <Link to="/cart" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
                         <div style={{ position: 'relative' }}>
                             <ShoppingCart size={26} strokeWidth={1.5} />
@@ -259,8 +255,42 @@ const Header = ({ onMenuClick }) => {
             {/* Secondary Navigation Row - Replicating top section of 11st */}
             <div style={{ borderTop: '1px solid #f0f0f0' }}>
                 <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', height: '48px', gap: '25px', fontSize: '14px' }}>
-                    <Link to="/best" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>베스트</Link>
-                    <Link to="/shocking-deal" style={{ textDecoration: 'none', color: '#f01a21', fontWeight: 'bold' }}>쇼킹딜</Link>
+                    <Link 
+                        to="/" 
+                        style={{ 
+                            textDecoration: 'none', 
+                            color: location.pathname === '/' ? '#f01a21' : '#333', 
+                            fontWeight: 'bold',
+                            borderBottom: location.pathname === '/' ? '2px solid #f01a21' : 'none',
+                            paddingBottom: '2px'
+                        }}
+                    >
+                        홈
+                    </Link>
+                    <Link 
+                        to="/best" 
+                        style={{ 
+                            textDecoration: 'none', 
+                            color: location.pathname === '/best' ? '#f01a21' : '#333', 
+                            fontWeight: 'bold',
+                            borderBottom: location.pathname === '/best' ? '2px solid #f01a21' : 'none',
+                            paddingBottom: '2px'
+                        }}
+                    >
+                        베스트
+                    </Link>
+                    <Link 
+                        to="/shocking-deal" 
+                        style={{ 
+                            textDecoration: 'none', 
+                            color: '#f01a21', 
+                            fontWeight: 'bold',
+                            borderBottom: location.pathname === '/shocking-deal' ? '2px solid #f01a21' : 'none',
+                            paddingBottom: '2px'
+                        }}
+                    >
+                        쇼킹딜
+                    </Link>
                     <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>백화점/홈쇼핑</Link>
                     <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>이벤트/혜택</Link>
 
