@@ -117,8 +117,6 @@ const MyPage = () => {
                     )}
                 </div>
             </div>
-<<<<<<< Updated upstream
-=======
 
             {/* 리뷰 작성 모달 */}
             {showReviewModal && selectedOrder && (
@@ -357,7 +355,6 @@ const MyPage = () => {
                     </div>
                 </div>
             )}
->>>>>>> Stashed changes
         </div>
     );
 };

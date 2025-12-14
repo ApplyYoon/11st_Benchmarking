@@ -4,7 +4,7 @@ import client from '../api/client';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null); 
+    const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const loadUser = async () => {
@@ -146,14 +146,23 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const cancelOrder = (orderId) => {
-        if (user) {
-            const updatedOrders = user.orders.map(order =>
-                order.id === orderId ? { ...order, status: '취소완료' } : order
-            );
-            const updatedUser = { ...user, orders: updatedOrders };
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
+    const cancelOrder = async (orderId) => {
+        if (!user) return;
+
+        if (window.confirm('주문을 취소하시겠습니까? 복구할 수 없습니다.')) {
+            try {
+                await client.delete(`/api/orders/${orderId}`);
+
+                // Remove order from local state (Hard Delete)
+                const updatedOrders = user.orders.filter(order => order.id !== orderId);
+                const updatedUser = { ...user, orders: updatedOrders };
+                setUser(updatedUser);
+                localStorage.setItem('user_profile', JSON.stringify(updatedUser));
+                alert('주문이 취소되었습니다.');
+            } catch (error) {
+                console.error("Order cancellation failed:", error);
+                alert('주문 취소에 실패했습니다.');
+            }
         }
     };
 
