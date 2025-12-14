@@ -349,7 +349,45 @@ sequenceDiagram
 | Frontend | [MyPage.jsx](file:///c:/Users/yoons/OneDrive/문서/GitHub/11st_Benchmarking/src/pages/MyPage.jsx) | 주문 내역 UI |
 | Frontend | [AuthContext.jsx](file:///c:/Users/yoons/OneDrive/문서/GitHub/11st_Benchmarking/src/context/AuthContext.jsx#L29-43) | `loadUser()` - 주문 fetch 및 필드 매핑 |
 | Backend | [OrderController.java](file:///c:/Users/yoons/OneDrive/문서/GitHub/11st_Benchmarking/backend/src/main/java/com/clone/backend/controller/OrderController.java#L115-120) | `getOrders()` |
-| Backend | [OrderRepository.java](file:///c:/Users/yoons/OneDrive/문서/GitHub/11st_Benchmarking/backend/src/main/java/com/clone/backend/repository/OrderRepository.java) | MongoDB 조회 |
+| Backend | [OrderRepository.java](file:///c:/Users/yoons/OneDrive/문서/GitHub/11st_Benchmarking/backend/src/main/java/com/clone/backend/repository/OrderRepository.java) | MongoDB 조회 (전체 샤드 탐색) |
+ 
+ ---
+ 
+ ### 4.6 주문 취소 (삭제) 흐름 - [NEW]
+ 
+ 주문 기록을 영구 삭제하는 기능입니다.
+ 
+ ```mermaid
+ sequenceDiagram
+     participant User as 사용자
+     participant MyPage as MyPage.jsx
+     participant Auth as AuthContext
+     participant Backend as OrderController
+     participant Repo as OrderRepository
+     participant Mongo as MongoDB (Shards)
+ 
+     User->>MyPage: "주문취소" 버튼 클릭
+     MyPage->>Auth: cancelOrder(orderId)
+     Auth->>User: confirm("취소하시겠습니까?")
+     User-->>Auth: 확인
+     Auth->>Backend: DELETE /api/orders/{orderId}
+     Backend->>Repo: delete(user, orderId)
+     Repo->>Repo: 유저ID로 샤드 결정
+     Note over Repo: 최근 2년치 컬렉션 스캔 (orders_2024, 2025...)
+     Repo->>Mongo: remove(query)
+     Mongo-->>Repo: 삭제 완료 (DeletedCount > 0)
+     Backend-->>Auth: 200 OK
+     Auth->>Auth: 로컬 state 업데이트 (UI 즉시 반영)
+     Auth->>User: alert("취소되었습니다")
+ ```
+ 
+ **관련 파일:**
+ | 위치 | 파일 | 역할 |
+ |------|------|------|
+ | Frontend | [MyPage.jsx](file:///c:/Users/yoons/OneDrive/문서/GitHub/11st_Benchmarking/src/pages/MyPage.jsx) | 취소 버튼 및 리뷰 모달 포함 |
+ | Frontend | [AuthContext.jsx](file:///c:/Users/yoons/OneDrive/문서/GitHub/11st_Benchmarking/src/context/AuthContext.jsx) | `cancelOrder()`: API 호출 및 상태 갱신 |
+ | Backend | [OrderController.java](file:///c:/Users/yoons/OneDrive/문서/GitHub/11st_Benchmarking/backend/src/main/java/com/clone/backend/controller/OrderController.java) | `DELETE /api/orders/{id}` |
+ | Backend | [OrderRepository.java](file:///c:/Users/yoons/OneDrive/문서/GitHub/11st_Benchmarking/backend/src/main/java/com/clone/backend/repository/OrderRepository.java) | `delete()`: 샤딩된 DB에서 Hard Delete 수행 |
 
 ---
 
@@ -450,7 +488,12 @@ public String getCurrentCollectionName() {
 |--------|----------|------|
 | GET | `/api/orders` | 주문 내역 조회 |
 | POST | `/api/orders/confirm-payment` | 결제 승인 (Toss API) |
+| POST | `/api/orders/confirm-payment` | 결제 승인 (Toss API) |
+| POST | `/api/orders/confirm-payment` | 결제 승인 (Toss API) |
 | POST | `/api/orders/demo` | 데모 주문 생성 |
+| DELETE | `/api/orders/{orderId}` | 주문 내역 영구 삭제 |
+| DELETE | `/api/orders/{orderId}` | 주문 내역 영구 삭제 |
+| DELETE | `/api/orders/{orderId}` | 주문 내역 영구 삭제 |
 
 ---
 

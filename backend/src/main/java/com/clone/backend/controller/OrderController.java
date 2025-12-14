@@ -3,6 +3,7 @@
  * - GET: 주문 내역 조회 (MongoDB에서 조회)
  * - POST /confirm-payment: Toss 결제 승인 처리
  * - POST /demo: 데모 주문 생성 (테스트/포트폴리오용)
+ * - DELETE /:orderId : 주문 내역 영구 삭제
  * - 주문 데이터는 MongoDB에 샤딩하여 저장
  */
 package com.clone.backend.controller;

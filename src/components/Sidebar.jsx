@@ -1,3 +1,15 @@
+/**
+ * Sidebar.jsx
+ * 
+ * [역할]
+ * - 모바일/버거 메뉴 형태의 사이드바 네비게이션
+ * - 사용자 로그인 상태에 따라 다른 UI 표시 (로그인 정보 / 로그인 유도)
+ * - 주요 페이지(장바구니, 마이페이지 등)로의 링크 제공
+ * 
+ * [주요 기능]
+ * - useAuth()를 통한 로그인 상태 감지
+ * - 조건부 렌더링: 로그인 시 프로필/로그아웃 버튼, 비로그인 시 로그인 링크 노출
+ */
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { X, User, ChevronRight, Home, Zap, Star, Gift } from 'lucide-react';

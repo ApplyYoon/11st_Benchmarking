@@ -1,3 +1,17 @@
+/**
+ * AuthContext.jsx
+ * 
+ * [역할]
+ * - 애플리케이션 전역의 인증 상태(User) 관리
+ * - 주문 취소, 구매 확정 등 사용자와 직접 관련된 주요 액션 처리
+ * - 백엔드 API와 프론트엔드 UI 사이의 브리지 역할
+ * 
+ * [주요 기능]
+ * - login/signup/logout: 인증 API 호출
+ * - loadUser: 앱 시작/새로고침 시 사용자 정보 및 주문 내역 로드
+ * - cancelOrder: 주문 취소 (DELETE API 호출 및 로컬 상태 동기화) - [NEW]
+ * - confirmPurchase: 구매 확정 (Demo)
+ */
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import client from '../api/client';
 

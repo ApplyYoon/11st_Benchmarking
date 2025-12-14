@@ -1,3 +1,16 @@
+/**
+ * MyPage.jsx
+ * 
+ * [역할]
+ * - 사용자의 개인 페이지 대시보드
+ * - 주문 내역 조회, 주문 취소, 리뷰 작성 등의 사용자 활동 중심지
+ * 
+ * [주요 기능]
+ * - 탭 기반 UI: 주문/배송, 취소/반품, 찜한 상품, 최근 본 상품
+ * - 주문 목록 렌더링: MongoDB에서 가져온 주문 데이터를 리스트로 표시
+ * - 주문 취소 버튼: 'PAID' 상태인 주문에 대해 취소 버튼 노출 및 핸들러 연결
+ * - 리뷰 작성 모달: 구매 확정된 주문에 대한 리뷰 작성 UI (현재 기능 구현 중)
+ */
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';

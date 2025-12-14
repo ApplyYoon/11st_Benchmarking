@@ -3,6 +3,7 @@
  * - OrderRouter를 사용하여 userId 기반 샤딩
  * - 연도별 파티셔닝 (orders_2024, orders_2025)
  * - save(): 주문 저장, findByUser(): 사용자별 주문 조회
+ * - delete(): 주문 삭제 (Hard Delete, 샤드 전체 탐색)
  */
 package com.clone.backend.repository;
 
