@@ -1,26 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { PRODUCTS } from '../../api/mockData';
+import { productApi } from '../../api/productApi';
 import ProductCard from '../shared/ProductCard';
 
 const BestSwiper = ({ onLoadComplete }) => {
-    const allBestItems = PRODUCTS.filter(p => p.isBest).sort((a, b) => a.rank - b.rank);
-    const [bestItems, setBestItems] = useState(allBestItems.slice(0, 4));
+    const [initialBestItems, setInitialBestItems] = useState([]);
+    const [bestItems, setBestItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [loadCount, setLoadCount] = useState(0);
     const [isVisible, setIsVisible] = useState(false);
     const ITEMS_PER_LOAD = 4;
     const MAX_ITEMS = Math.min(allBestItems.length, 16); // 최대 16개까지만 표시
 
+    useEffect(() => {
+        const fetchBestProducts = async () => {
+            try {
+                const products = await productApi.getBestProducts();
+                const sorted = products.sort((a, b) => (a.rank || 0) - (b.rank || 0));
+                setInitialBestItems(sorted);
+                setBestItems(sorted.slice(0, 4));
+            } catch (error) {
+                console.error('베스트 상품 로딩 실패:', error);
+            }
+        };
+        fetchBestProducts();
+    }, []);
+
     const loadMore = async () => {
-        if (loading || bestItems.length >= MAX_ITEMS) return;
+        if (loading || loadCount >= MAX_LOADS || initialBestItems.length === 0) return;
         setLoading(true);
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        const nextStart = bestItems.length;
-        const nextEnd = Math.min(nextStart + ITEMS_PER_LOAD, MAX_ITEMS);
-        const newItems = allBestItems.slice(nextStart, nextEnd);
-
-        setBestItems(prev => [...prev, ...newItems]);
+        // 현재 표시된 상품 수를 기준으로 다음 상품들 가져오기
+        setBestItems(prev => {
+            const currentCount = prev.length;
+            const nextItems = initialBestItems.slice(currentCount, currentCount + 4);
+            return [...prev, ...nextItems];
+        });
         setLoadCount(prev => prev + 1);
         setLoading(false);
 

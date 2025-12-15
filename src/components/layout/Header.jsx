@@ -3,8 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, Truck, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-
-import { findClosestMatch } from '../../api/searchUtils';
+import { productApi } from '../../api/productApi';
 
 const Header = ({ onMenuClick }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -15,15 +14,18 @@ const Header = ({ onMenuClick }) => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const handleSearch = (e) => {
+    const handleSearch = async (e) => {
         e.preventDefault();
         if (searchTerm.trim()) {
-            const corrected = findClosestMatch(searchTerm);
-            if (corrected) {
-                // Navigate with corrected query, but maybe keep original for UI?
-                // For now, let's just search for the corrected one directly
-                navigate(`/search?q=${encodeURIComponent(corrected)}&original=${encodeURIComponent(searchTerm)}`);
-            } else {
+            try {
+                const correctionResult = await productApi.correctSearchQuery(searchTerm);
+                if (correctionResult.corrected) {
+                    navigate(`/search?q=${encodeURIComponent(correctionResult.corrected)}&original=${encodeURIComponent(searchTerm)}`);
+                } else {
+                    navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+                }
+            } catch (error) {
+                console.error('검색 오타수정 실패:', error);
                 navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
             }
             setIsFocused(false);
@@ -289,18 +291,6 @@ const Header = ({ onMenuClick }) => {
                         }}
                     >
                         쇼킹딜
-                    </Link>
-                    <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>백화점/홈쇼핑</Link>
-                    <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>이벤트/혜택</Link>
-
-                    <div style={{ width: '1px', height: '14px', backgroundColor: '#e5e5e5', margin: '0 5px' }}></div>
-
-                    <Link to="/" style={{ textDecoration: 'none', color: '#333' }}>9900원샵</Link>
-                    <Link to="/" style={{ textDecoration: 'none', color: '#333' }}>리퍼블리</Link>
-                    <Link to="/" style={{ textDecoration: 'none', color: '#333' }}>기획전</Link>
-                    <Link to="/" style={{ textDecoration: 'none', color: '#333', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <div style={{ backgroundColor: '#232f3e', color: 'white', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>a</div>
-                        아마존
                     </Link>
                 </div>
             </div>

@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PRODUCTS } from '../api/mockData';
+import { productApi } from '../api/productApi';
 import { useCart } from '../context/CartContext';
 import { ShoppingCart, Heart, ChevronLeft, Truck, Shield, RotateCcw } from 'lucide-react';
+import { getCategoryName } from '../utils/categoryUtils';
 
 const ProductDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { addToCart } = useCart();
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [isWished, setIsWished] = useState(false);
     const [selectedSize, setSelectedSize] = useState(null);
@@ -16,6 +19,22 @@ const ProductDetail = () => {
 
     const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                setLoading(true);
+                const data = await productApi.getProduct(id);
+                setProduct(data);
+            } catch (error) {
+                console.error('상품 로딩 실패:', error);
+                setProduct(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProduct();
+    }, [id]);
+
     const handleMouseMove = (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -23,7 +42,14 @@ const ProductDetail = () => {
         setMousePosition({ x, y });
     };
 
-    const product = PRODUCTS.find(p => p.id === Number(id));
+    if (loading) {
+        return (
+            <div style={{ padding: '100px 20px', textAlign: 'center' }}>
+                <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
+                <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+            </div>
+        );
+    }
 
     if (!product) {
         return (
@@ -117,7 +143,7 @@ const ProductDetail = () => {
                     >
 
                         <img
-                            src={product.image}
+                            src={product.imageUrl || product.image}
                             alt={product.name}
                             style={{
                                 position: 'absolute',
@@ -146,7 +172,7 @@ const ProductDetail = () => {
                             />
                         )}
 
-                        {product.isTimeDeal && (
+                        {(product.isTimeDeal || product.timeDeal) && (
                             <div style={{
                                 position: 'absolute',
                                 top: '16px',
@@ -159,7 +185,7 @@ const ProductDetail = () => {
                                 borderRadius: '6px',
                                 zIndex: 6
                             }}>
-                                타임딜
+                                [타임딜]
                             </div>
                         )}
                         {product.isBest && (
@@ -199,7 +225,7 @@ const ProductDetail = () => {
                                 backgroundColor: '#fff',
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
                                 zIndex: 100,
-                                backgroundImage: `url(${product.image})`,
+                                backgroundImage: `url(${product.imageUrl || product.image})`,
                                 backgroundRepeat: 'no-repeat',
                                 backgroundSize: '300%',
                                 backgroundPosition: `${mousePosition.x}% ${mousePosition.y}%`
@@ -211,26 +237,26 @@ const ProductDetail = () => {
                 {/* Product Info */}
                 <div>
                     {/* Category */}
-                    <div style={{ fontSize: '14px', color: '#888', marginBottom: '8px', textTransform: 'uppercase' }}>
-                        {product.category}
+                    <div style={{ fontSize: '14px', color: '#888', marginBottom: '8px' }}>
+                        {getCategoryName(product.category)}
                     </div>
 
                     {/* Title */}
                     <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#111', marginBottom: '20px', lineHeight: '1.4' }}>
-                        {product.name}
+                        {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
                     </h1>
 
                     {/* Price */}
                     <div style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #eee' }}>
-                        {product.discount > 0 && (
+                        {(product.discountRate || product.discount) > 0 && (
                             <div style={{ textDecoration: 'line-through', color: '#999', fontSize: '16px', marginBottom: '4px' }}>
                                 {product.originalPrice.toLocaleString()}원
                             </div>
                         )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {product.discount > 0 && (
+                            {(product.discountRate || product.discount) > 0 && (
                                 <span style={{ color: '#f01a21', fontWeight: '900', fontSize: '32px' }}>
-                                    {product.discount}%
+                                    {product.discountRate || product.discount}%
                                 </span>
                             )}
                             <span style={{ fontWeight: '900', fontSize: '32px', color: '#111' }}>
@@ -439,7 +465,7 @@ const ProductDetail = () => {
             <div style={{ marginTop: '60px', borderTop: '1px solid #eee', paddingTop: '40px' }}>
                 <div style={{ padding: '40px', backgroundColor: '#f9f9f9', borderRadius: '12px', textAlign: 'center' }}>
                     <img
-                        src={product.image}
+                        src={product.imageUrl || product.image}
                         alt={product.name}
                         style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: '20px' }}
                     />
@@ -461,7 +487,7 @@ const ProductDetail = () => {
                             </tr>
                             <tr style={{ borderTop: '1px solid #eee' }}>
                                 <td style={{ padding: '16px', backgroundColor: '#f9f9f9', fontSize: '14px', color: '#666' }}>카테고리</td>
-                                <td style={{ padding: '16px', fontSize: '14px', textTransform: 'capitalize' }}>{product.category}</td>
+                                <td style={{ padding: '16px', fontSize: '14px' }}>{getCategoryName(product.category)}</td>
                             </tr>
                             <tr style={{ borderTop: '1px solid #eee' }}>
                                 <td style={{ padding: '16px', backgroundColor: '#f9f9f9', fontSize: '14px', color: '#666' }}>판매가</td>

@@ -1,23 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { PRODUCTS } from '../../api/mockData';
+import { productApi } from '../../api/productApi';
 import ProductCard from '../shared/ProductCard';
 
 const MDRecommends = () => {
-    const allItems = PRODUCTS.filter(p => !p.isTimeDeal && !p.isBest);
-    const [items, setItems] = useState(allItems.slice(0, 8));
+    const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
     const ITEMS_PER_LOAD = 8;
     const MAX_ITEMS = Math.min(allItems.length, 32); // 최대 32개까지만 표시
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const allProducts = await productApi.getAllProducts();
+                // Start with non-Timedeal/Best items
+                const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
+                setItems(initialItems);
+            } catch (error) {
+                console.error('상품 로딩 실패:', error);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     const loadMore = async () => {
         if (loading || items.length >= MAX_ITEMS) return;
         setLoading(true);
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        const nextStart = items.length;
-        const nextEnd = Math.min(nextStart + ITEMS_PER_LOAD, MAX_ITEMS);
-        const newItems = allItems.slice(nextStart, nextEnd);
+        // Generate mock unique items
+        const allProducts = await productApi.getAllProducts();
+        const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
+        const newItems = initialItems.map((item, idx) => ({
+            ...item,
+            id: Date.now() + idx + Math.random(),
+            name: `[추천] ${item.name}`
+        }));
 
         setItems(prev => [...prev, ...newItems]);
         setLoading(false);

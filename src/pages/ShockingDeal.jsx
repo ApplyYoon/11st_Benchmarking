@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PRODUCTS } from '../api/mockData';
+import { productApi } from '../api/productApi';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -8,8 +8,9 @@ const ShockingDeal = () => {
     const { addToCart } = useCart();
 
     // Filter Time Deal items (treated as Shocking Deal)
-    const shockingDeals = PRODUCTS.filter(p => p.isTimeDeal);
-    const bannerItems = shockingDeals.slice(0, 5); // Top 5 for banner
+    const [shockingDeals, setShockingDeals] = useState([]);
+    const [bannerItems, setBannerItems] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     // Countdown Timer Logic
     const [timeLeft, setTimeLeft] = useState('');
@@ -18,29 +19,67 @@ const ShockingDeal = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
 
     useEffect(() => {
-        const calculateTimeLeft = () => {
-            // Assuming deadline is end of today (or 24h from mock start)
-            // For demo, let's fix a target time or just countdown to next midnight
-            const now = new Date();
-            const tomorrow = new Date(now);
-            tomorrow.setHours(24, 0, 0, 0); // Next Midnight
+        const fetchTimeDealData = async () => {
+            try {
+                setLoading(true);
+                const [products, endTimeData] = await Promise.all([
+                    productApi.getTimeDealProducts(),
+                    productApi.getTimeDealEndTime()
+                ]);
+                
+                setShockingDeals(products);
+                setBannerItems(products.slice(0, 5));
 
-            const diff = tomorrow - now;
+                // 타임딜 종료 시간 설정
+                if (endTimeData.endTime) {
+                    const endTime = new Date(endTimeData.endTime);
+                    const calculateTimeLeft = () => {
+                        const now = new Date();
+                        const diff = endTime - now;
 
-            if (diff > 0) {
-                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                const minutes = Math.floor((diff / 1000 / 60) % 60);
-                const seconds = Math.floor((diff / 1000) % 60);
-                setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-            } else {
-                setTimeLeft('00:00:00');
+                        if (diff > 0) {
+                            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                            const minutes = Math.floor((diff / 1000 / 60) % 60);
+                            const seconds = Math.floor((diff / 1000) % 60);
+                            setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+                        } else {
+                            setTimeLeft('00:00:00');
+                        }
+                    };
+                    
+                    calculateTimeLeft();
+                    const timer = setInterval(calculateTimeLeft, 1000);
+                    return () => clearInterval(timer);
+                } else {
+                    // 종료 시간이 없으면 자정으로 설정
+                    const calculateTimeLeft = () => {
+                        const now = new Date();
+                        const tomorrow = new Date(now);
+                        tomorrow.setHours(24, 0, 0, 0);
+
+                        const diff = tomorrow - now;
+
+                        if (diff > 0) {
+                            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                            const minutes = Math.floor((diff / 1000 / 60) % 60);
+                            const seconds = Math.floor((diff / 1000) % 60);
+                            setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+                        } else {
+                            setTimeLeft('00:00:00');
+                        }
+                    };
+                    calculateTimeLeft();
+                    const timer = setInterval(calculateTimeLeft, 1000);
+                    return () => clearInterval(timer);
+                }
+            } catch (error) {
+                console.error('타임딜 데이터 로딩 실패:', error);
+            } finally {
+                setLoading(false);
             }
         };
 
-        const timer = setInterval(calculateTimeLeft, 1000);
-        calculateTimeLeft();
-
-        return () => clearInterval(timer);
+        fetchTimeDealData();
     }, []);
 
     // Auto-slide effect
@@ -111,13 +150,15 @@ const ShockingDeal = () => {
                                     transform: `translateX(-${currentSlide * 100}%)`
                                 }}>
                                     <div style={{ height: '60%', overflow: 'hidden', position: 'relative' }}>
-                                        <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <img src={item.imageUrl || item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         <div style={{ position: 'absolute', top: 0, left: 0, padding: '10px 20px', background: '#f01a21', color: 'white', fontWeight: 'bold', fontSize: '18px', borderRadius: '0 0 10px 0' }}>
-                                            {item.discount}% OFF
+                                            {item.discountRate || item.discount}% OFF
                                         </div>
                                     </div>
                                     <div style={{ padding: '20px', height: '40%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                        <h3 style={{ color: '#333', margin: '0 0 10px 0', fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h3>
+                                        <h3 style={{ color: '#333', margin: '0 0 10px 0', fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {(item.isTimeDeal || item.timeDeal) ? `[타임딜] ${item.name}` : item.name}
+                                        </h3>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                             <div>
                                                 <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '14px', marginRight: '8px' }}>{item.originalPrice.toLocaleString()}원</span>
@@ -153,8 +194,14 @@ const ShockingDeal = () => {
                     지금 가장 핫한 딜
                 </h2>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
-                    {shockingDeals.map(product => (
+                {loading ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}>
+                        <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                    </div>
+                ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+                        {shockingDeals.map(product => (
                         <div key={product.id} style={{
                             backgroundColor: 'white',
                             borderRadius: '12px',
@@ -176,13 +223,13 @@ const ShockingDeal = () => {
                                 borderRadius: '0 4px 4px 0',
                                 zIndex: 1
                             }}>
-                                {product.discount}% OFF
+                                {product.discountRate || product.discount}% OFF
                             </div>
 
                             {/* Image */}
                             <div style={{ height: '220px', overflow: 'hidden', position: 'relative' }}>
                                 <img
-                                    src={product.image}
+                                    src={product.imageUrl || product.image}
                                     alt={product.name}
                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                 />
@@ -190,26 +237,30 @@ const ShockingDeal = () => {
 
                             {/* Content */}
                             <div style={{ padding: '20px' }}>
-                                <div style={{ fontSize: '13px', color: '#888', marginBottom: '5px' }}>
-                                    남은 수량 <span style={{ color: '#f01a21', fontWeight: 'bold' }}>{product.remainingStock}개</span>
-                                </div>
+                                {product.stockQuantity !== undefined && (
+                                    <>
+                                        <div style={{ fontSize: '13px', color: '#888', marginBottom: '5px' }}>
+                                            남은 수량 <span style={{ color: '#f01a21', fontWeight: 'bold' }}>{product.stockQuantity}개</span>
+                                        </div>
 
-                                {/* Stock Bar */}
-                                <div style={{
-                                    width: '100%',
-                                    height: '6px',
-                                    backgroundColor: '#eee',
-                                    borderRadius: '3px',
-                                    marginBottom: '15px',
-                                    overflow: 'hidden'
-                                }}>
-                                    <div style={{
-                                        width: `${Math.min((product.remainingStock / 100) * 100, 100)}%`, // Mock percentage based on 100 max
-                                        height: '100%',
-                                        backgroundColor: '#f01a21',
-                                        borderRadius: '3px'
-                                    }}></div>
-                                </div>
+                                        {/* Stock Bar */}
+                                        <div style={{
+                                            width: '100%',
+                                            height: '6px',
+                                            backgroundColor: '#eee',
+                                            borderRadius: '3px',
+                                            marginBottom: '15px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{
+                                                width: `${Math.min((product.stockQuantity / 100) * 100, 100)}%`,
+                                                height: '100%',
+                                                backgroundColor: '#f01a21',
+                                                borderRadius: '3px'
+                                            }}></div>
+                                        </div>
+                                    </>
+                                )}
 
                                 <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: '#333' }}>
                                     <h3 style={{
@@ -223,7 +274,7 @@ const ShockingDeal = () => {
                                         WebkitLineClamp: 2,
                                         WebkitBoxOrient: 'vertical'
                                     }}>
-                                        {product.name}
+                                        {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
                                     </h3>
                                 </Link>
 
@@ -256,8 +307,9 @@ const ShockingDeal = () => {
                                 </div>
                             </div>
                         </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
