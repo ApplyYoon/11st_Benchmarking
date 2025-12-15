@@ -34,7 +34,7 @@ public class UserController {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("auth_token".equals(cookie.getName())) {
+                if ("accessToken".equals(cookie.getName())) {
                     String token = cookie.getValue();
                     if (jwtTokenProvider.validateToken(token)) {
                         String email = jwtTokenProvider.getUserEmailFromToken(token);

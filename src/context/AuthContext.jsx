@@ -1,10 +1,24 @@
+/**
+ * AuthContext.jsx
+ * 
+ * [역할]
+ * - 애플리케이션 전역의 인증 상태(User) 관리
+ * - 주문 취소, 구매 확정 등 사용자와 직접 관련된 주요 액션 처리
+ * - 백엔드 API와 프론트엔드 UI 사이의 브리지 역할
+ * 
+ * [주요 기능]
+ * - login/signup/logout: 인증 API 호출
+ * - loadUser: 앱 시작/새로고침 시 사용자 정보 및 주문 내역 로드
+ * - cancelOrder: 주문 취소 (DELETE API 호출 및 로컬 상태 동기화) - [NEW]
+ * - confirmPurchase: 구매 확정 (Demo)
+ */
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import client from '../api/client';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null); 
+    const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const loadUser = async () => {
@@ -146,14 +160,23 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const cancelOrder = (orderId) => {
-        if (user) {
-            const updatedOrders = user.orders.map(order =>
-                order.id === orderId ? { ...order, status: '취소완료' } : order
-            );
-            const updatedUser = { ...user, orders: updatedOrders };
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
+    const cancelOrder = async (orderId) => {
+        if (!user) return;
+
+        if (window.confirm('주문을 취소하시겠습니까? 복구할 수 없습니다.')) {
+            try {
+                await client.delete(`/orders/${orderId}`);
+
+                // Remove order from local state (Hard Delete)
+                const updatedOrders = user.orders.filter(order => order.id !== orderId);
+                const updatedUser = { ...user, orders: updatedOrders };
+                setUser(updatedUser);
+                localStorage.setItem('user_profile', JSON.stringify(updatedUser));
+                alert('주문이 취소되었습니다.');
+            } catch (error) {
+                console.error("Order cancellation failed:", error);
+                alert('주문 취소에 실패했습니다.');
+            }
         }
     };
 
