@@ -1,14 +1,19 @@
+/**
+ * 주문 컨트롤러 (/api/orders)
+ * - GET: 주문 내역 조회 (MongoDB에서 조회)
+ * - POST /confirm-payment: Toss 결제 승인 처리
+ * - POST /demo: 데모 주문 생성 (테스트/포트폴리오용)
+ * - DELETE /:orderId : 주문 내역 영구 삭제
+ * - 주문 데이터는 MongoDB에 샤딩하여 저장
+ */
 package com.clone.backend.controller;
 
 import com.clone.backend.model.*;
 import com.clone.backend.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -23,14 +28,16 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/orders")
 public class OrderController {
 
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
+    private final CartRepository cartRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    public OrderController(OrderRepository orderRepository, CartRepository cartRepository,
+            UserRepository userRepository) {
+        this.orderRepository = orderRepository;
+        this.cartRepository = cartRepository;
+        this.userRepository = userRepository;
+    }
 
     @Value("${toss.secret-key}")
     private String tossSecretKey;
@@ -45,9 +52,18 @@ public class OrderController {
         String orderId = (String) payload.get("orderId");
         Integer amount = (Integer) payload.get("amount");
 
-        // In a real app, identify user from security context
-        // For now, let's assume a default user or pass user info
-        User user = userRepository.findAll().stream().findFirst().orElseThrow();
+        // Get current user from SecurityContext
+        String email = null;
+        Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+            email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         // 1. Verify payment with Toss
         try {
@@ -77,18 +93,22 @@ public class OrderController {
 
                 Order order = Order.builder()
                         .id(orderId)
-                        .user(user)
+                        .userId(user.getId())
                         .orderName(orderName)
                         .totalAmount(amount)
-                        .status(Order.OrderStatus.PAID)
+                        .status(Order.OrderStatus.PAID.name())
                         .paymentKey(paymentKey)
+                        // .createdAt will be null if not set manually or by DB (Mongo won't auto-gen
+                        // @CreationTimestamp from Hibernate)
+                        .createdAt(java.time.LocalDateTime.now())
                         .build();
 
                 // Move cart items to order items
                 List<CartItem> cartItems = cartRepository.findByUser(user);
                 List<OrderItem> orderItems = cartItems.stream().map(ci -> OrderItem.builder()
-                        .order(order)
-                        .product(ci.getProduct())
+                        .productId(ci.getProduct().getId())
+                        .productName(ci.getProduct().getName())
+                        .productImage(ci.getProduct().getImageUrl())
                         .priceAtPurchase(ci.getProduct().getPrice())
                         .quantity(ci.getQuantity())
                         .build()).collect(Collectors.toList());
@@ -112,8 +132,112 @@ public class OrderController {
 
     @GetMapping
     public List<Order> getOrders() {
-        // Mock user for now
-        User user = userRepository.findAll().stream().findFirst().orElseThrow();
+        // Get current user from SecurityContext
+        String email = null;
+        Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+            email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         return orderRepository.findByUserOrderByCreatedAtDesc(user);
+    }
+
+    private void logToDebugFile(String message) {
+        try (java.io.FileWriter fw = new java.io.FileWriter("debug.log", true);
+                java.io.PrintWriter pw = new java.io.PrintWriter(fw)) {
+            pw.println(java.time.LocalDateTime.now() + " - " + message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<?> deleteOrder(@PathVariable String orderId) {
+        try {
+            logToDebugFile("DELETE REQUEST: " + orderId);
+
+            // Get current user from SecurityContext
+            String email = null;
+            Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                    .getAuthentication().getPrincipal();
+            if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+                email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+            } else {
+                email = principal.toString();
+            }
+
+            logToDebugFile("User identified: " + email);
+
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            logToDebugFile("User Resolved ID: " + user.getId());
+
+            orderRepository.delete(user, orderId);
+
+            logToDebugFile("Delete Success");
+            return ResponseEntity.ok().build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            logToDebugFile("DELETE FAILED: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    /**
+     * 데모용 주문 생성 엔드포인트 (토스 인증 없이 바로 주문 생성)
+     * 포트폴리오/시연 목적으로 사용
+     */
+    @PostMapping("/demo")
+    @Transactional
+    public ResponseEntity<?> createDemoOrder(@RequestBody Map<String, Object> payload) {
+        try {
+            String orderName = (String) payload.get("orderName");
+            Integer amount = (Integer) payload.get("amount");
+            String orderId = "DEMO_" + System.currentTimeMillis();
+
+            // Get current user from SecurityContext
+            String email = null;
+            Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                    .getAuthentication().getPrincipal();
+            if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+                email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+            } else {
+                email = principal.toString();
+            }
+
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Create order directly without Toss verification
+            Order order = Order.builder()
+                    .id(orderId)
+                    .userId(user.getId())
+                    .orderName(orderName)
+                    .totalAmount(amount)
+                    .status(Order.OrderStatus.PAID.name())
+                    .paymentKey("DEMO_KEY_" + System.currentTimeMillis())
+                    .createdAt(java.time.LocalDateTime.now())
+                    .build();
+
+            // For demo, we don't have cart items - just create empty order items list
+            order.setItems(java.util.Collections.emptyList());
+
+            // Save to MongoDB
+            orderRepository.save(order);
+
+            return ResponseEntity.ok(order);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 }
