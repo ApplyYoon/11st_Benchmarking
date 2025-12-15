@@ -3,52 +3,42 @@ import { PRODUCTS } from '../../api/mockData';
 import ProductCard from '../shared/ProductCard';
 
 const BestSwiper = ({ onLoadComplete }) => {
-    const initialBestItems = PRODUCTS.filter(p => p.isBest).sort((a, b) => a.rank - b.rank);
-    const [bestItems, setBestItems] = useState(initialBestItems.slice(0, 4));
+    const allBestItems = PRODUCTS.filter(p => p.isBest).sort((a, b) => a.rank - b.rank);
+    const [bestItems, setBestItems] = useState(allBestItems.slice(0, 4));
     const [loading, setLoading] = useState(false);
     const [loadCount, setLoadCount] = useState(0);
-    const [isVisible, setIsVisible] = useState(false); // 섹션 표시 여부
-    const MAX_LOADS = 3; // 최대 3번만 로드
+    const [isVisible, setIsVisible] = useState(false);
+    const ITEMS_PER_LOAD = 4;
+    const MAX_ITEMS = Math.min(allBestItems.length, 16); // 최대 16개까지만 표시
 
     const loadMore = async () => {
-        if (loading || loadCount >= MAX_LOADS) return;
+        if (loading || bestItems.length >= MAX_ITEMS) return;
         setLoading(true);
-        // Simulate fetch
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        // Generate mock unique items
-        const newItems = initialBestItems.slice(0, 4).map((item, idx) => ({
-            ...item,
-            id: Date.now() + idx + Math.random(),
-            name: `[베스트] ${item.name}`
-        }));
+        const nextStart = bestItems.length;
+        const nextEnd = Math.min(nextStart + ITEMS_PER_LOAD, MAX_ITEMS);
+        const newItems = allBestItems.slice(nextStart, nextEnd);
 
         setBestItems(prev => [...prev, ...newItems]);
         setLoadCount(prev => prev + 1);
         setLoading(false);
-    };
 
-    // 로딩 완료 감지
-    useEffect(() => {
-        if (loadCount >= MAX_LOADS && onLoadComplete) {
+        if (onLoadComplete && (nextEnd >= MAX_ITEMS || nextEnd >= allBestItems.length)) {
             onLoadComplete();
         }
-    }, [loadCount, onLoadComplete]);
+    };
 
     // 타임딜 섹션 감지 - 타임딜이 화면에서 벗어나면 11번가 베스트 표시
     useEffect(() => {
         const timedealSection = document.getElementById('timedeal-section');
         if (!timedealSection) {
-            // console.log('타임딜 섹션을 찾을 수 없습니다');
             return;
         }
 
         const observer = new IntersectionObserver((entries) => {
             const entry = entries[0];
-
-            // 타임딜 섹션이 화면에 보이면 11번가 베스트 표시
             if (entry.isIntersecting && !isVisible) {
-                console.log('11번가 베스트 표시!');
                 setIsVisible(true);
             }
         }, {
@@ -62,18 +52,18 @@ const BestSwiper = ({ onLoadComplete }) => {
 
     // 레이지 로딩 감지
     useEffect(() => {
-        if (!isVisible || loadCount >= MAX_LOADS) return;
+        if (!isVisible || bestItems.length >= MAX_ITEMS) return;
 
         const observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting) {
                 loadMore();
             }
-        }, { threshold: 0.1 }); // 트리거 영역이 10% 보이면 로드
+        }, { threshold: 0.1 });
 
         const triggerElement = document.getElementById('best-loading-trigger');
         if (triggerElement) observer.observe(triggerElement);
         return () => observer.disconnect();
-    }, [bestItems, loadCount, isVisible]);
+    }, [bestItems.length, isVisible]);
 
     return (
         <>
@@ -91,7 +81,7 @@ const BestSwiper = ({ onLoadComplete }) => {
                     </div>
 
                     {/* 로딩 트리거 - 섹션 하단에 위치 */}
-                    {loadCount < MAX_LOADS && (
+                    {bestItems.length < MAX_ITEMS && (
                         <div id="best-loading-trigger" style={{ height: '1px', marginTop: '20px' }} />
                     )}
 
