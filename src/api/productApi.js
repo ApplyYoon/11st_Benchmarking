@@ -4,9 +4,11 @@ import client from './client';
  * 상품 API 호출 함수
  */
 export const productApi = {
-    // 모든 상품 조회
-    getAllProducts: async () => {
-        const response = await client.get('/products');
+    // 모든 상품 조회 (Pagination)
+    getAllProducts: async (page = 0, size = 20) => {
+        const response = await client.get('/products', {
+            params: { page, size }
+        });
         return response.data;
     },
 
@@ -17,18 +19,16 @@ export const productApi = {
     },
 
     // 타임딜 상품 조회
-    getTimeDealProducts: async () => {
+    getTimeDealProducts: async (page = 0, size = 20) => {
         const response = await client.get('/products', {
-            params: { type: 'timedeal' }
+            params: { type: 'timedeal', page, size }
         });
         return response.data;
     },
 
     // 베스트 상품 조회
     getBestProducts: async () => {
-        const response = await client.get('/products', {
-            params: { type: 'best' }
-        });
+        const response = await client.get('/products/best');
         return response.data;
     },
 

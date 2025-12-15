@@ -9,15 +9,15 @@ const BestSwiper = ({ onLoadComplete }) => {
     const [isVisible, setIsVisible] = useState(false);
 
     // Config constants
-    const MAX_ITEMS_LIMIT = 16;
+    const MAX_ITEMS_LIMIT = 25;
 
     useEffect(() => {
         const fetchBestProducts = async () => {
             try {
                 const products = await productApi.getBestProducts();
-                const sorted = products.sort((a, b) => (a.rank || 0) - (b.rank || 0));
-                setInitialBestItems(sorted);
-                setBestItems(sorted.slice(0, 4));
+                // Backend now returns sorted Top 25
+                setInitialBestItems(products);
+                setBestItems(products);
             } catch (error) {
                 console.error('베스트 상품 로딩 실패:', error);
             }
@@ -49,16 +49,18 @@ const BestSwiper = ({ onLoadComplete }) => {
     useEffect(() => {
         const timedealSection = document.getElementById('timedeal-section');
         if (!timedealSection) {
+            setIsVisible(true); // 타임딜이 없으면 바로 표시
             return;
         }
 
         const observer = new IntersectionObserver((entries) => {
             const entry = entries[0];
-            if (entry.isIntersecting && !isVisible) {
+            // 타임딜이 화면에서 벗어나면 베스트 표시
+            if (!entry.isIntersecting && !isVisible) {
                 setIsVisible(true);
             }
         }, {
-            threshold: [0, 0.1, 0.5, 1],
+            threshold: 0,
             rootMargin: '0px'
         });
 
@@ -84,7 +86,7 @@ const BestSwiper = ({ onLoadComplete }) => {
 
     return (
         <>
-            {isVisible && (
+            {isVisible ? (
                 <div id="best-section" style={{ marginBottom: '60px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                         <h2 style={{ fontSize: '26px', fontWeight: '900', margin: 0, color: '#111' }}>11번가 베스트</h2>
@@ -109,6 +111,8 @@ const BestSwiper = ({ onLoadComplete }) => {
                     )}
                     <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                 </div>
+            ) : (
+                <div id="best-section" style={{ height: '500px' }}></div>
             )}
         </>
     );

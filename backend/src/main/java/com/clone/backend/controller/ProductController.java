@@ -36,12 +36,14 @@ public class ProductController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String type,
-            @RequestParam(required = false) String priceRange) {
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
         if ("timedeal".equals(type)) {
-            return productRepository.findByIsTimeDealTrue();
-        }
-        if ("best".equals(type)) {
-            return productRepository.findByIsBestTrueOrderByRankAsc();
+            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page,
+                    size);
+            return productRepository.findByIsTimeDealTrue(pageable).getContent();
         }
         if (category != null && !category.equals("all")) {
             List<Product> products = productRepository.findByCategory(category);
@@ -57,11 +59,22 @@ public class ProductController {
             }
             return products;
         }
-        List<Product> products = productRepository.findAll();
+
+        // [Pagination Applied Here]
+        // If getting all products (no filters), use pagination to prevent crash
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<Product> productPage = productRepository.findAll(pageable);
+        List<Product> products = productPage.getContent();
+
         if (priceRange != null && !priceRange.equals("all")) {
             return filterByPriceRange(products, priceRange);
         }
         return products;
+    }
+
+    @GetMapping("/best")
+    public List<Product> getBestProducts() {
+        return productRepository.findTop25ByIsBestTrueOrderByRankAsc();
     }
 
     @GetMapping("/{id}")

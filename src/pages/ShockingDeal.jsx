@@ -11,6 +11,9 @@ const ShockingDeal = () => {
     const [shockingDeals, setShockingDeals] = useState([]);
     const [bannerItems, setBannerItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const ITEMS_PER_LOAD = 24;
 
     // Countdown Timer Logic
     const [timeLeft, setTimeLeft] = useState('');
@@ -23,12 +26,14 @@ const ShockingDeal = () => {
             try {
                 setLoading(true);
                 const [products, endTimeData] = await Promise.all([
-                    productApi.getTimeDealProducts(),
+                    productApi.getTimeDealProducts(0, ITEMS_PER_LOAD),
                     productApi.getTimeDealEndTime()
                 ]);
-                
+
                 setShockingDeals(products);
                 setBannerItems(products.slice(0, 5));
+                setPage(1);
+                if (products.length < ITEMS_PER_LOAD) setHasMore(false);
 
                 // 타임딜 종료 시간 설정
                 if (endTimeData.endTime) {
@@ -46,7 +51,7 @@ const ShockingDeal = () => {
                             setTimeLeft('00:00:00');
                         }
                     };
-                    
+
                     calculateTimeLeft();
                     const timer = setInterval(calculateTimeLeft, 1000);
                     return () => clearInterval(timer);
@@ -81,6 +86,25 @@ const ShockingDeal = () => {
 
         fetchTimeDealData();
     }, []);
+
+    const loadMore = async () => {
+        if (loading || !hasMore) return;
+        setLoading(true);
+        try {
+            const newProducts = await productApi.getTimeDealProducts(page, ITEMS_PER_LOAD);
+            if (newProducts.length === 0) {
+                setHasMore(false);
+                return;
+            }
+            setShockingDeals(prev => [...prev, ...newProducts]);
+            setPage(prev => prev + 1);
+            if (newProducts.length < ITEMS_PER_LOAD) setHasMore(false);
+        } catch (error) {
+            console.error('추가 로딩 실패:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Auto-slide effect
     useEffect(() => {
@@ -194,14 +218,8 @@ const ShockingDeal = () => {
                     지금 가장 핫한 딜
                 </h2>
 
-                {loading ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}>
-                        <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-                    </div>
-                ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
-                        {shockingDeals.map(product => (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+                    {shockingDeals.map(product => (
                         <div key={product.id} style={{
                             backgroundColor: 'white',
                             borderRadius: '12px',
@@ -307,7 +325,39 @@ const ShockingDeal = () => {
                                 </div>
                             </div>
                         </div>
-                        ))}
+                    ))}
+                </div>
+
+                {hasMore && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '40px' }}>
+                        <button
+                            onClick={loadMore}
+                            disabled={loading}
+                            style={{
+                                padding: '14px 40px',
+                                fontSize: '15px',
+                                fontWeight: 'bold',
+                                color: '#333',
+                                backgroundColor: '#fff',
+                                border: '2px solid #333',
+                                borderRadius: '4px',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s',
+                                opacity: loading ? 0.6 : 1
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!loading) {
+                                    e.target.style.backgroundColor = '#333';
+                                    e.target.style.color = '#fff';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.backgroundColor = '#fff';
+                                e.target.style.color = '#333';
+                            }}
+                        >
+                            {loading ? '로딩 중...' : '상품 더보기'}
+                        </button>
                     </div>
                 )}
             </div>

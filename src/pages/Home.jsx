@@ -15,7 +15,7 @@ const Home = () => {
 
                 <TimeDeal />
                 <BestSwiper onLoadComplete={() => setIsBestLoaded(true)} />
-                {isBestLoaded && <MDRecommends />}
+                <MDRecommends />
             </div>
         </div>
     );

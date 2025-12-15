@@ -16,5 +16,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByIsTimeDealTrue();
 
+    org.springframework.data.domain.Page<Product> findByIsTimeDealTrue(
+            org.springframework.data.domain.Pageable pageable);
+
     List<Product> findByIsBestTrueOrderByRankAsc();
+
+    List<Product> findTop25ByIsBestTrueOrderByRankAsc();
 }

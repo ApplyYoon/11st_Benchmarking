@@ -15,9 +15,9 @@ const TimeDeal = () => {
                     productApi.getTimeDealProducts(),
                     productApi.getTimeDealEndTime()
                 ]);
-                
+
                 setDeals(products.slice(0, 3));
-                
+
                 // 타임딜 종료 시간 설정
                 if (endTimeData.endTime) {
                     const endTime = new Date(endTimeData.endTime);
@@ -36,7 +36,7 @@ const TimeDeal = () => {
 
                         setTimeLeft({ h, m, s });
                     };
-                    
+
                     calculateTimeLeft();
                     const timer = setInterval(calculateTimeLeft, 1000);
                     return () => clearInterval(timer);
@@ -83,7 +83,7 @@ const TimeDeal = () => {
                         <div style={{ backgroundColor: '#f01a21', color: 'white', borderRadius: '4px', padding: '0 6px', minWidth: '40px', textAlign: 'center' }}>{formatTime(timeLeft.s)}</div>
                     </div>
                 </div>
-                <span style={{ fontSize: '14px', color: '#666', cursor: 'pointer' }}>더보기 &gt;</span>
+
             </div>
 
             {loading ? (
