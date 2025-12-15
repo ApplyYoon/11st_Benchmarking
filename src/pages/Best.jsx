@@ -7,17 +7,38 @@ const Best = () => {
     const [selectedCategory, setSelectedCategory] = useState('전체');
     const [sortBy, setSortBy] = useState('인기순');
 
-    const categories = ['전체', '신선식품', '가공식품', '패션의류', '패션잡화', '생활용품', '그릇', '주방/주방가전', '디지털/가전', '도서/문구/취미', '제과점/커피', '헬스/건강식품'];
+    const categories = ['전체', '식품', '패션', '생활', '디지털/가전', '도서/문구/취미'];
 
     const sortOptions = ['인기순', '낮은가격순', '높은가격순', '평점순', '리뷰많은순'];
+
+    // 카테고리 매핑 (한국어 -> 영어)
+    const categoryMapping = {
+        '전체': null, // 전체는 모든 상품
+        '식품': 'food',
+        '패션': 'fashion',
+        '생활': 'daily',
+        '디지털/가전': 'electronics',
+        '도서/문구/취미': 'ticket',
+    };
 
     // 필터링 및 정렬
     let filteredProducts = selectedCategory === '전체'
         ? PRODUCTS
-        : PRODUCTS.filter(p => p.category === selectedCategory);
+        : PRODUCTS.filter(p => {
+            const mappedCategory = categoryMapping[selectedCategory];
+            return mappedCategory ? p.category === mappedCategory : true;
+        });
 
     // 정렬
-    if (sortBy === '낮은가격순') {
+    if (sortBy === '인기순') {
+        // 베스트 상품을 먼저, 그 다음 ID 순서
+        filteredProducts = [...filteredProducts].sort((a, b) => {
+            if (a.isBest && !b.isBest) return -1;
+            if (!a.isBest && b.isBest) return 1;
+            if (a.isBest && b.isBest) return (a.rank || 0) - (b.rank || 0);
+            return a.id - b.id;
+        });
+    } else if (sortBy === '낮은가격순') {
         filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
     } else if (sortBy === '높은가격순') {
         filteredProducts = [...filteredProducts].sort((a, b) => b.price - a.price);
