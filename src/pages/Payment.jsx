@@ -5,6 +5,7 @@ import DaumPostcodeEmbed from 'react-daum-postcode';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { COUPONS } from '../api/mockData';
+import client from '../api/client';
 
 const clientKey = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
 
@@ -12,7 +13,7 @@ const Payment = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { clearCart } = useCart();
-    const { addOrder, user } = useAuth();
+    const { addOrder, user, loadUser } = useAuth();
 
     // Payment Status State
     const [status, setStatus] = useState('ready');
@@ -47,7 +48,7 @@ const Payment = () => {
     const [discountAmount, setDiscountAmount] = useState(0);
 
     // Destructure location state
-    const { amount, orderName, category } = location.state || {};
+    const { amount, orderName, category, items } = location.state || {};
 
     const finalAmount = amount ? amount - discountAmount : 0;
 
@@ -68,13 +69,17 @@ const Payment = () => {
                 if (!coupon) return null;
 
                 const isAmountSatisfied = !coupon.minOrderAmount || coupon.minOrderAmount <= amount;
-                const isCategorySatisfied = !coupon.category || coupon.category === category;
+
+                // Validate Category: Check if single category matches OR if any item in the list matches the coupon category
+                const isCategorySatisfied = !coupon.category ||
+                    (category === coupon.category) ||
+                    (items && items.some(item => item.category === coupon.category));
 
                 let reason = '';
                 if (!isAmountSatisfied) reason = `최소주문 ${coupon.minOrderAmount.toLocaleString()}원 이상`;
                 else if (!isCategorySatisfied) {
                     const categoryName = coupon.category === 'fashion' ? '의류' : coupon.category;
-                    reason = `${categoryName} 전용`;
+                    reason = `${categoryName} 상품 포함 시 사용 가능`;
                 }
 
                 return {
@@ -84,7 +89,7 @@ const Payment = () => {
                 };
             })
             .filter(Boolean);
-    }, [user, amount, category]);
+    }, [user, amount, category, items]);
 
     const handleCouponChange = (e) => {
         const couponId = Number(e.target.value);
@@ -116,28 +121,37 @@ const Payment = () => {
         }
     };
 
-    // Payment Processing Effect
+    // Payment Processing Effect - KakaoPay 인증 후 돌아왔을 때 처리
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const paymentKey = urlParams.get('paymentKey');
         const orderId = urlParams.get('orderId');
         const amountVal = urlParams.get('amount');
 
+        // KakaoPay 인증 완료 후 redirect로 돌아온 경우
         if (paymentKey && orderId && amountVal) {
-            setStatus('success');
-            clearCart();
-            const orderAmount = parseInt(amountVal);
-            const earnedPoints = calculateEarnedPoints(orderAmount);
+            const saveDemoOrder = async () => {
+                setStatus('processing');
+                try {
+                    // 토스 API 승인 대신 데모 주문 생성 (테스트 키로는 실제 승인 불가)
+                    // 클론코딩/포트폴리오 목적이므로 결제 흐름만 시연
+                    const response = await client.post('/orders/demo', {
+                        orderName: decodeURIComponent(urlParams.get('orderName') || '상품 결제'),
+                        amount: parseInt(amountVal)
+                    });
 
-            // Add order to history
-            addOrder({
-                id: orderId,
-                name: '상품 결제', // In a real app we'd need to persist the actual order name somewhere or pass it
-                amount: orderAmount,
-                date: new Date().toISOString().split('T')[0],
-                status: '주문완료',
-                earnedPoints: earnedPoints
-            });
+                    setStatus('success');
+                    clearCart();
+                    await loadUser(); // 주문 목록 새로고침
+                    console.log("KakaoPay Demo Order Created:", response.data);
+
+                } catch (err) {
+                    console.error("Demo Order Failed", err);
+                    setStatus('fail');
+                    setErrorMsg(err.response?.data?.message || '주문 생성 중 오류가 발생했습니다.');
+                }
+            };
+            saveDemoOrder();
         }
     }, []);
 
@@ -176,7 +190,8 @@ const Payment = () => {
         return true;
     };
 
-    const handleTossPayment = async () => {
+    // 카카오페이 결제 시작 (토스 위젯으로 QR 표시)
+    const handleKakaoPayment = async () => {
         if (!validateShippingInfo()) return;
 
         try {
@@ -188,15 +203,18 @@ const Payment = () => {
                 orderId: orderId,
                 orderName: orderName,
                 customerName: shippingInfo.recipient,
-                successUrl: window.location.origin + '/payment',
+                successUrl: window.location.origin + `/payment?orderName=${encodeURIComponent(orderName)}`,
                 failUrl: window.location.origin + '/payment',
                 flowMode: 'DIRECT',
                 easyPay: 'KAKAOPAY'
             });
         } catch (err) {
             console.error(err);
-            setStatus('fail');
-            setErrorMsg('결제 초기화 중 오류가 발생했습니다.');
+            // 사용자가 결제창을 닫은 경우 등 - 무시
+            if (err.code !== 'USER_CANCEL') {
+                setStatus('fail');
+                setErrorMsg('결제 초기화 중 오류가 발생했습니다.');
+            }
         }
     };
 
@@ -254,10 +272,32 @@ const Payment = () => {
                     <div>
                         {/* Order Product */}
                         <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>주문상품</h2>
-                            <div style={{ padding: '20px', backgroundColor: '#f8f8f8', borderRadius: '6px', fontSize: '15px' }}>
-                                <div style={{ fontWeight: 'bold', color: '#333' }}>{orderName}</div>
-                            </div>
+                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>
+                                주문상품 <span style={{ color: '#f01a21', marginLeft: '5px' }}>{items ? items.length : 1}건</span>
+                            </h2>
+                            {items && items.length > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    {items.map((item, index) => (
+                                        <div key={index} style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#f8f8f8', borderRadius: '6px', alignItems: 'center' }}>
+                                            <img src={item.image} alt={item.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', backgroundColor: 'white' }} />
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '4px' }}>{item.name}</div>
+                                                {item.selectedSize && <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>옵션: {item.selectedSize}</div>}
+                                                <div style={{ fontSize: '13px', color: '#666' }}>
+                                                    {item.quantity}개 / {item.price.toLocaleString()}원
+                                                </div>
+                                            </div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '15px' }}>
+                                                {(item.price * item.quantity).toLocaleString()}원
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ padding: '20px', backgroundColor: '#f8f8f8', borderRadius: '6px', fontSize: '15px' }}>
+                                    <div style={{ fontWeight: 'bold', color: '#333' }}>{orderName}</div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Coupon Discount */}
@@ -341,7 +381,7 @@ const Payment = () => {
                                 <span style={{ fontWeight: 'bold', color: '#111' }}>최종 결제금액</span>
                                 <span style={{ fontWeight: '900', color: '#f01a21' }}>{finalAmount.toLocaleString()}원</span>
                             </div>
-                            <button onClick={handleTossPayment} style={{ width: '100%', padding: '18px', backgroundColor: '#f01a21', color: 'white', border: 'none', borderRadius: '6px', fontSize: '17px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <button onClick={handleKakaoPayment} style={{ width: '100%', padding: '18px', backgroundColor: '#f01a21', color: 'white', border: 'none', borderRadius: '6px', fontSize: '17px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
                                 {finalAmount.toLocaleString()}원 결제하기
                             </button>
                         </div>

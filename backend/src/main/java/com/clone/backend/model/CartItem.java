@@ -1,3 +1,8 @@
+/**
+ * 장바구니 항목 엔티티 (PostgreSQL)
+ * - User와 Product 다대다 관계의 중간 테이블
+ * - 사용자별 담은 상품과 수량 저장
+ */
 package com.clone.backend.model;
 
 import jakarta.persistence.*;

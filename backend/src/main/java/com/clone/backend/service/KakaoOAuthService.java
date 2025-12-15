@@ -1,8 +1,15 @@
+/**
+ * 카카오 OAuth 서비스
+ * - 카카오 인가 코드로 액세스 토큰 교환
+ * - 카카오 사용자 정보 조회
+ * - 기존 사용자 찾기 또는 신규 사용자 생성
+ */
 package com.clone.backend.service;
 
 import com.clone.backend.model.User;
 import com.clone.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -35,6 +42,7 @@ public class KakaoOAuthService {
     /**
      * Exchange authorization code for access token
      */
+    @SuppressWarnings("null")
     public String getAccessToken(String code) {
         String tokenUrl = "https://kauth.kakao.com/oauth/token";
 
@@ -51,7 +59,12 @@ public class KakaoOAuthService {
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(tokenUrl, request, Map.class);
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    tokenUrl,
+                    HttpMethod.POST,
+                    request,
+                    new ParameterizedTypeReference<Map<String, Object>>() {
+                    });
             Map<String, Object> body = response.getBody();
             if (body != null && body.containsKey("access_token")) {
                 return (String) body.get("access_token");
@@ -65,6 +78,7 @@ public class KakaoOAuthService {
     /**
      * Get user info from Kakao using access token
      */
+    @SuppressWarnings("null")
     public Map<String, Object> getUserInfo(String accessToken) {
         String userInfoUrl = "https://kapi.kakao.com/v2/user/me";
 
@@ -75,11 +89,12 @@ public class KakaoOAuthService {
         HttpEntity<String> request = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     userInfoUrl,
                     HttpMethod.GET,
                     request,
-                    Map.class);
+                    new ParameterizedTypeReference<Map<String, Object>>() {
+                    });
             return response.getBody();
         } catch (Exception e) {
             throw new RuntimeException("Failed to get user info from Kakao: " + e.getMessage(), e);
@@ -89,6 +104,7 @@ public class KakaoOAuthService {
     /**
      * Find or create user based on Kakao user info
      */
+    @SuppressWarnings({ "unchecked", "null" })
     public User findOrCreateUser(Map<String, Object> kakaoUserInfo) {
         Long kakaoId = ((Number) kakaoUserInfo.get("id")).longValue();
 

@@ -1,3 +1,9 @@
+/**
+ * 상품 엔티티 (PostgreSQL)
+ * - 상품명, 가격, 할인율, 이미지 URL, 카테고리
+ * - 타임딜/베스트 여부 및 순위 정보
+ * - DataInitializer에서 초기 데이터 삽입
+ */
 package com.clone.backend.model;
 
 import jakarta.persistence.Entity;

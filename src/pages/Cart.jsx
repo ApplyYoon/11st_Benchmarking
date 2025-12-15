@@ -26,7 +26,8 @@ const Cart = () => {
             state: {
                 amount: totalAmount,
                 orderName: cart[0].name + (cart.length > 1 ? ` 외 ${cart.length - 1}건` : ''),
-                category: firstItemCategory
+                category: firstItemCategory,
+                items: cart
             }
         });
     };

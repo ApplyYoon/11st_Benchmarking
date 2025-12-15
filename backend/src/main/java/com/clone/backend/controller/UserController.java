@@ -1,3 +1,9 @@
+/**
+ * 사용자 정보 컨트롤러 (/api/users)
+ * - PUT /me/address: 배송지 주소 업데이트
+ * - PUT /me/profile: 프로필 정보 (이름) 업데이트
+ * - JWT 쿠키로 현재 사용자 인증
+ */
 package com.clone.backend.controller;
 
 import com.clone.backend.model.User;
@@ -28,7 +34,7 @@ public class UserController {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("auth_token".equals(cookie.getName())) {
+                if ("accessToken".equals(cookie.getName())) {
                     String token = cookie.getValue();
                     if (jwtTokenProvider.validateToken(token)) {
                         String email = jwtTokenProvider.getUserEmailFromToken(token);
@@ -46,7 +52,7 @@ public class UserController {
 
         // Fallback: If cookie auth fails, try using userId from request body
         if (userOpt.isEmpty() && addressData.containsKey("userId")) {
-            Long userId = Long.valueOf(addressData.get("userId").toString());
+            long userId = Long.parseLong(addressData.get("userId").toString());
             userOpt = userRepository.findById(userId);
         }
 
@@ -63,13 +69,14 @@ public class UserController {
         return ResponseEntity.ok(savedUser);
     }
 
+    @SuppressWarnings("null")
     @PutMapping("/me/profile")
     public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> profileData, HttpServletRequest request) {
         Optional<User> userOpt = getCurrentUser(request);
 
         // Fallback: If cookie auth fails, try using userId from request body
         if (userOpt.isEmpty() && profileData.containsKey("userId")) {
-            Long userId = Long.valueOf(profileData.get("userId").toString());
+            long userId = Long.parseLong(profileData.get("userId").toString());
             userOpt = userRepository.findById(userId);
         }
 

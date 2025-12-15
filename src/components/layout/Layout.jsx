@@ -1,10 +1,23 @@
 import React from 'react';
 import Header from './Header';
+import Sidebar from '../Sidebar';
+import { useState } from 'react';
 
 const Layout = ({ children }) => {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
+    const closeSidebar = () => {
+        setIsSidebarOpen(false);
+    };
+
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif' }}>
-            <Header />
+            <Header onMenuClick={toggleSidebar} />
+            <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
             {/* Width constraint is handled by pages themselves to allow full-width banners */}
             <main style={{ flex: 1, width: '100%', backgroundColor: 'white' }}>
                 {children}

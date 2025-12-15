@@ -1,3 +1,8 @@
+/**
+ * 장바구니 레포지토리 (PostgreSQL - JPA)
+ * - 사용자별 장바구니 조회, 상품 추가/삭제
+ * - Spring Data JPA 자동 구현
+ */
 package com.clone.backend.repository;
 
 import com.clone.backend.model.CartItem;

@@ -37,6 +37,7 @@ function App() {
                         <Route path="/mypage" element={<MyPage />} />
                         <Route path="/my-coupons" element={<MyCoupons />} />
                         <Route path="/user-info" element={<UserInfo />} />
+                        <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
                     </Routes>
                 </Suspense>
             </Layout>
