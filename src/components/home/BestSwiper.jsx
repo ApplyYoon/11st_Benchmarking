@@ -6,10 +6,10 @@ const BestSwiper = ({ onLoadComplete }) => {
     const [initialBestItems, setInitialBestItems] = useState([]);
     const [bestItems, setBestItems] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [loadCount, setLoadCount] = useState(0);
     const [isVisible, setIsVisible] = useState(false);
-    const ITEMS_PER_LOAD = 4;
-    const MAX_ITEMS = Math.min(allBestItems.length, 16); // 최대 16개까지만 표시
+
+    // Config constants
+    const MAX_ITEMS_LIMIT = 16;
 
     useEffect(() => {
         const fetchBestProducts = async () => {
@@ -26,7 +26,8 @@ const BestSwiper = ({ onLoadComplete }) => {
     }, []);
 
     const loadMore = async () => {
-        if (loading || loadCount >= MAX_LOADS || initialBestItems.length === 0) return;
+        if (loading || bestItems.length >= Math.min(initialBestItems.length, MAX_ITEMS_LIMIT) || initialBestItems.length === 0) return;
+
         setLoading(true);
         await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -36,10 +37,10 @@ const BestSwiper = ({ onLoadComplete }) => {
             const nextItems = initialBestItems.slice(currentCount, currentCount + 4);
             return [...prev, ...nextItems];
         });
-        setLoadCount(prev => prev + 1);
         setLoading(false);
 
-        if (onLoadComplete && (nextEnd >= MAX_ITEMS || nextEnd >= allBestItems.length)) {
+        // 모든 아이템 로드 완료 체크
+        if (onLoadComplete && (bestItems.length + 4 >= Math.min(initialBestItems.length, MAX_ITEMS_LIMIT))) {
             onLoadComplete();
         }
     };
@@ -67,7 +68,8 @@ const BestSwiper = ({ onLoadComplete }) => {
 
     // 레이지 로딩 감지
     useEffect(() => {
-        if (!isVisible || bestItems.length >= MAX_ITEMS) return;
+        const maxDisplay = Math.min(initialBestItems.length, MAX_ITEMS_LIMIT);
+        if (!isVisible || bestItems.length >= maxDisplay) return;
 
         const observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting) {
@@ -78,7 +80,7 @@ const BestSwiper = ({ onLoadComplete }) => {
         const triggerElement = document.getElementById('best-loading-trigger');
         if (triggerElement) observer.observe(triggerElement);
         return () => observer.disconnect();
-    }, [bestItems.length, isVisible]);
+    }, [bestItems.length, isVisible, initialBestItems.length, MAX_ITEMS_LIMIT]);
 
     return (
         <>
@@ -96,7 +98,7 @@ const BestSwiper = ({ onLoadComplete }) => {
                     </div>
 
                     {/* 로딩 트리거 - 섹션 하단에 위치 */}
-                    {bestItems.length < MAX_ITEMS && (
+                    {bestItems.length < Math.min(initialBestItems.length, MAX_ITEMS_LIMIT) && (
                         <div id="best-loading-trigger" style={{ height: '1px', marginTop: '20px' }} />
                     )}
 
