@@ -55,7 +55,8 @@ export const AuthProvider = ({ children }) => {
 
             const finalUser = {
                 ...userData,
-                coupons: userData.coupons || [],
+                // Auto-grant coupon 6 (3000 won off)
+                coupons: Array.from(new Set([...(userData.coupons || []), 1])),
                 orders: orders
             };
             setUser(finalUser);
@@ -86,7 +87,8 @@ export const AuthProvider = ({ children }) => {
 
             const finalUser = {
                 ...userResponse,
-                coupons: userResponse.coupons || [],
+                // Auto-grant coupon 6
+                coupons: Array.from(new Set([...(userResponse.coupons || []), 6])),
                 orders: userResponse.orders || []
             };
 
@@ -219,7 +221,8 @@ export const AuthProvider = ({ children }) => {
     const setUserDirectly = (userData) => {
         const finalUser = {
             ...userData,
-            coupons: userData.coupons || [],
+            // Auto-grant coupon 6
+            coupons: Array.from(new Set([...(userData.coupons || []), 6])),
             orders: userData.orders || []
         };
         setUser(finalUser);

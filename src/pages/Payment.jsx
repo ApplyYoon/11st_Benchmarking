@@ -4,7 +4,7 @@ import { loadTossPayments } from '@tosspayments/payment-sdk';
 import DaumPostcodeEmbed from 'react-daum-postcode';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { COUPONS } from '../api/mockData';
+import { couponApi } from '../api/productApi';
 import client from '../api/client';
 
 const clientKey = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
@@ -47,10 +47,14 @@ const Payment = () => {
     const [selectedCouponId, setSelectedCouponId] = useState('');
     const [discountAmount, setDiscountAmount] = useState(0);
 
-    // Destructure location state
-    const { amount, orderName, category } = location.state || {};
+    // Point State
+    const [usedPoints, setUsedPoints] = useState(0);
+    const availablePoints = user?.points || 0;
 
-    const finalAmount = amount ? amount - discountAmount : 0;
+    // Destructure location state
+    const { amount, orderName, category, items } = location.state || {};
+
+    const finalAmount = amount ? Math.max(0, amount - discountAmount - usedPoints) : 0;
 
     // Point Calculation: 0.5%, max 5000
     const calculateEarnedPoints = (payAmount) => {
@@ -61,30 +65,29 @@ const Payment = () => {
     const earnedPoints = finalAmount ? calculateEarnedPoints(finalAmount) : 0;
 
     // Coupon Logic
-    const userCoupons = useMemo(() => {
-        if (!user || !user.coupons) return [];
-        return user.coupons
-            .map(id => {
-                const coupon = COUPONS.find(c => c.id === id);
-                if (!coupon) return null;
+    const [userCoupons, setUserCoupons] = useState([]);
+    const [couponsLoading, setCouponsLoading] = useState(false);
 
-                const isAmountSatisfied = !coupon.minOrderAmount || coupon.minOrderAmount <= amount;
-                const isCategorySatisfied = !coupon.category || coupon.category === category;
+    useEffect(() => {
+        const fetchCoupons = async () => {
+            if (!user || !amount) {
+                setUserCoupons([]);
+                return;
+            }
 
-                let reason = '';
-                if (!isAmountSatisfied) reason = `최소주문 ${coupon.minOrderAmount.toLocaleString()}원 이상`;
-                else if (!isCategorySatisfied) {
-                    const categoryName = coupon.category === 'fashion' ? '의류' : coupon.category;
-                    reason = `${categoryName} 전용`;
-                }
+            try {
+                setCouponsLoading(true);
+                const coupons = await couponApi.getAvailableCoupons(amount, category);
+                setUserCoupons(coupons);
+            } catch (error) {
+                console.error('쿠폰 로딩 실패:', error);
+                setUserCoupons([]);
+            } finally {
+                setCouponsLoading(false);
+            }
+        };
 
-                return {
-                    ...coupon,
-                    isApplicable: isAmountSatisfied && isCategorySatisfied,
-                    reason: reason
-                };
-            })
-            .filter(Boolean);
+        fetchCoupons();
     }, [user, amount, category]);
 
     const handleCouponChange = (e) => {
@@ -117,12 +120,27 @@ const Payment = () => {
         }
     };
 
+    const handlePointChange = (e) => {
+        const inputValue = parseInt(e.target.value) || 0;
+        const amountAfterCoupon = amount - discountAmount;
+        const maxUsablePoints = Math.min(availablePoints, amountAfterCoupon);
+        const finalUsedPoints = Math.min(Math.max(0, inputValue), maxUsablePoints);
+        setUsedPoints(finalUsedPoints);
+    };
+
+    const handleUseAllPoints = () => {
+        const amountAfterCoupon = amount - discountAmount;
+        const maxUsablePoints = Math.min(availablePoints, amountAfterCoupon);
+        setUsedPoints(maxUsablePoints);
+    };
+
     // Payment Processing Effect - KakaoPay 인증 후 돌아왔을 때 처리
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const paymentKey = urlParams.get('paymentKey');
         const orderId = urlParams.get('orderId');
         const amountVal = urlParams.get('amount');
+        const usedPointsParam = urlParams.get('usedPoints');
 
         // KakaoPay 인증 완료 후 redirect로 돌아온 경우
         if (paymentKey && orderId && amountVal) {
@@ -133,7 +151,8 @@ const Payment = () => {
                     // 클론코딩/포트폴리오 목적이므로 결제 흐름만 시연
                     const response = await client.post('/orders/demo', {
                         orderName: decodeURIComponent(urlParams.get('orderName') || '상품 결제'),
-                        amount: parseInt(amountVal)
+                        amount: parseInt(amountVal),
+                        usedPoints: usedPointsParam ? parseInt(usedPointsParam) : 0
                     });
 
                     setStatus('success');
@@ -199,7 +218,7 @@ const Payment = () => {
                 orderId: orderId,
                 orderName: orderName,
                 customerName: shippingInfo.recipient,
-                successUrl: window.location.origin + `/payment?orderName=${encodeURIComponent(orderName)}`,
+                successUrl: window.location.origin + `/payment?orderName=${encodeURIComponent(orderName)}&usedPoints=${usedPoints}`,
                 failUrl: window.location.origin + '/payment',
                 flowMode: 'DIRECT',
                 easyPay: 'KAKAOPAY'
@@ -268,10 +287,32 @@ const Payment = () => {
                     <div>
                         {/* Order Product */}
                         <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>주문상품</h2>
-                            <div style={{ padding: '20px', backgroundColor: '#f8f8f8', borderRadius: '6px', fontSize: '15px' }}>
-                                <div style={{ fontWeight: 'bold', color: '#333' }}>{orderName}</div>
-                            </div>
+                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>
+                                주문상품 <span style={{ color: '#f01a21', marginLeft: '5px' }}>{items ? items.length : 1}건</span>
+                            </h2>
+                            {items && items.length > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    {items.map((item, index) => (
+                                        <div key={index} style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#f8f8f8', borderRadius: '6px', alignItems: 'center' }}>
+                                            <img src={item.imageUrl || item.image} alt={item.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', backgroundColor: 'white' }} />
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '4px' }}>{item.name}</div>
+                                                {item.selectedSize && <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>옵션: {item.selectedSize}</div>}
+                                                <div style={{ fontSize: '13px', color: '#666' }}>
+                                                    {item.quantity}개 / {item.price.toLocaleString()}원
+                                                </div>
+                                            </div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '15px' }}>
+                                                {(item.price * item.quantity).toLocaleString()}원
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ padding: '20px', backgroundColor: '#f8f8f8', borderRadius: '6px', fontSize: '15px' }}>
+                                    <div style={{ fontWeight: 'bold', color: '#333' }}>{orderName}</div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Coupon Discount */}
@@ -281,17 +322,60 @@ const Payment = () => {
                                 {discountAmount > 0 && <span style={{ color: '#f01a21', fontWeight: 'bold' }}>-{discountAmount.toLocaleString()}원 할인 적용 중</span>}
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <select value={selectedCouponId} onChange={handleCouponChange} style={{ padding: '12px', borderRadius: '4px', border: '1px solid #e5e5e5', fontSize: '14px', outline: 'none', cursor: 'pointer' }}>
-                                    <option value="">쿠폰을 선택해 주세요</option>
-                                    {userCoupons.map(coupon => (
-                                        <option key={coupon.id} value={coupon.id} disabled={!coupon.isApplicable} style={{ color: !coupon.isApplicable ? '#ccc' : '#333' }}>
-                                            {coupon.name}
-                                            {coupon.type === 'amount' ? ` (${coupon.discountAmount.toLocaleString()}원 할인)` : ` (${coupon.discountRate}% 할인)`}
-                                            {!coupon.isApplicable && ` [${coupon.reason}]`}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div style={{ fontSize: '13px', color: '#888' }}>* 조건이 맞지 않는 쿠폰은 선택할 수 없습니다.</div>
+                                {couponsLoading ? (
+                                    <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+                                        <div style={{ width: '20px', height: '20px', border: '2px solid #eee', borderTop: '2px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <select value={selectedCouponId} onChange={handleCouponChange} style={{ padding: '12px', borderRadius: '4px', border: '1px solid #e5e5e5', fontSize: '14px', outline: 'none', cursor: 'pointer' }}>
+                                            <option value="">쿠폰을 선택해 주세요</option>
+                                            {userCoupons.map(coupon => (
+                                                <option key={coupon.id} value={coupon.id} disabled={!coupon.isApplicable} style={{ color: !coupon.isApplicable ? '#ccc' : '#333' }}>
+                                                    {coupon.name}
+                                                    {coupon.type === 'amount' ? ` (${coupon.discountAmount.toLocaleString()}원 할인)` : ` (${coupon.discountRate}% 할인)`}
+                                                    {!coupon.isApplicable && ` [${coupon.reason}]`}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div style={{ fontSize: '13px', color: '#888' }}>* 조건이 맞지 않는 쿠폰은 선택할 수 없습니다.</div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Point Usage */}
+                        <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111', margin: 0 }}>포인트 사용</h2>
+                                {usedPoints > 0 && <span style={{ color: '#f01a21', fontWeight: 'bold' }}>-{usedPoints.toLocaleString()}P 사용</span>}
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <span style={{ fontSize: '14px', color: '#666' }}>보유 포인트</span>
+                                    <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#f01a21' }}>{availablePoints.toLocaleString()}P</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <input
+                                        type="number"
+                                        value={usedPoints || ''}
+                                        onChange={handlePointChange}
+                                        placeholder="사용할 포인트"
+                                        min="0"
+                                        max={Math.min(availablePoints, amount - discountAmount)}
+                                        style={{ flex: 1, padding: '12px', borderRadius: '4px', border: '1px solid #e5e5e5', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                                    />
+                                    <button
+                                        onClick={handleUseAllPoints}
+                                        style={{ padding: '12px 20px', backgroundColor: '#f8f8f8', color: '#333', border: '1px solid #e5e5e5', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                    >
+                                        모두 사용
+                                    </button>
+                                </div>
+                                <div style={{ fontSize: '13px', color: '#888' }}>
+                                    * 최대 {Math.min(availablePoints, amount - discountAmount).toLocaleString()}P까지 사용 가능합니다.
+                                </div>
                             </div>
                         </div>
 
@@ -347,14 +431,23 @@ const Payment = () => {
                                     <span style={{ color: '#333' }}>무료</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                    <span style={{ color: '#666' }}>할인금액</span>
+                                    <span style={{ color: '#666' }}>쿠폰 할인</span>
                                     <span style={{ color: '#f01a21' }}>-{discountAmount.toLocaleString()}원</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                                    <span style={{ color: '#666' }}>포인트 사용</span>
+                                    <span style={{ color: '#f01a21' }}>-{usedPoints.toLocaleString()}원</span>
                                 </div>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '20px' }}>
                                 <span style={{ fontWeight: 'bold', color: '#111' }}>최종 결제금액</span>
                                 <span style={{ fontWeight: '900', color: '#f01a21' }}>{finalAmount.toLocaleString()}원</span>
                             </div>
+                            {earnedPoints > 0 && (
+                                <div style={{ padding: '12px', backgroundColor: '#f0faff', borderRadius: '6px', marginBottom: '15px', fontSize: '13px', color: '#0056b3', textAlign: 'center' }}>
+                                    💰 결제 시 {earnedPoints.toLocaleString()}P 적립 예정
+                                </div>
+                            )}
                             <button onClick={handleKakaoPayment} style={{ width: '100%', padding: '18px', backgroundColor: '#f01a21', color: 'white', border: 'none', borderRadius: '6px', fontSize: '17px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
                                 {finalAmount.toLocaleString()}원 결제하기
                             </button>

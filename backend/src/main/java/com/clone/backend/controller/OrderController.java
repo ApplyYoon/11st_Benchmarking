@@ -201,6 +201,7 @@ public class OrderController {
         try {
             String orderName = (String) payload.get("orderName");
             Integer amount = (Integer) payload.get("amount");
+            Integer usedPoints = payload.get("usedPoints") != null ? ((Number) payload.get("usedPoints")).intValue() : 0;
             String orderId = "DEMO_" + System.currentTimeMillis();
 
             // Get current user from SecurityContext
@@ -215,6 +216,30 @@ public class OrderController {
 
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // 포인트 차감 처리
+            if (usedPoints > 0) {
+                if (user.getPoints() < usedPoints) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("message", "보유 포인트가 부족합니다."));
+                }
+                if (usedPoints > amount) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("message", "사용 포인트는 결제 금액을 초과할 수 없습니다."));
+                }
+                
+                // 포인트 차감 및 적립 (결제 금액의 0.5%, 최대 5000P)
+                int earnedPoints = Math.min((int) Math.floor(amount * 0.005), 5000);
+                int newPoints = user.getPoints() - usedPoints + earnedPoints;
+                user.setPoints(newPoints);
+                userRepository.save(user);
+            } else {
+                // 포인트 미사용 시에도 적립만 처리
+                int earnedPoints = Math.min((int) Math.floor(amount * 0.005), 5000);
+                int newPoints = user.getPoints() + earnedPoints;
+                user.setPoints(newPoints);
+                userRepository.save(user);
+            }
 
             // Create order directly without Toss verification
             Order order = Order.builder()

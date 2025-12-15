@@ -18,7 +18,7 @@ const Login = () => {
             window.location.href = kakaoAuthUrl;
         } else if (provider === 'Naver') {
             // Naver OAuth will be implemented when API key is provided
-            alert('네이버 로그인은 API 키 등록 후 사용 가능합니다.');
+            alert('현재 버전에서는 이 기능을 지원하지 않습니다. \n다른 로그인 방법을 사용해 주세요');
         }
     };
 

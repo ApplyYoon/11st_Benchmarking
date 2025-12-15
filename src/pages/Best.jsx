@@ -1,30 +1,98 @@
-import React, { useState } from 'react';
-import { PRODUCTS } from '../api/mockData';
+import React, { useState, useEffect } from 'react';
+import { productApi } from '../api/productApi';
 import ProductCard from '../components/shared/ProductCard';
+import { getCategoryName, getCategoryKey, categoryMap } from '../utils/categoryUtils';
 
 const Best = () => {
     const [mainTab, setMainTab] = useState('베스트 500');
     const [selectedCategory, setSelectedCategory] = useState('전체');
     const [sortBy, setSortBy] = useState('인기순');
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [categories, setCategories] = useState(['전체']);
 
-    const categories = ['전체', '신선식품', '가공식품', '패션의류', '패션잡화', '생활용품', '그릇', '주방/주방가전', '디지털/가전', '도서/문구/취미', '제과점/커피', '헬스/건강식품'];
+    const sortOptions = ['인기순', '낮은가격순', '높은가격순'];
 
-    const sortOptions = ['인기순', '낮은가격순', '높은가격순', '평점순', '리뷰많은순'];
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                setLoading(true);
+                const data = await productApi.getAllProducts();
+                setProducts(data);
+            } catch (error) {
+                console.error('상품 로딩 실패:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
 
-    // 필터링 및 정렬
+    // 탭에 따라 카테고리 목록 업데이트
+    useEffect(() => {
+        if (products.length === 0) return;
+
+        let baseProductsForCategories = [];
+        if (mainTab === '베스트 500') {
+            baseProductsForCategories = products.filter(p => p.isBest || p.best);
+        } else if (mainTab === '쇼킹딜 베스트') {
+            baseProductsForCategories = products.filter(p => {
+                const discountRate = p.discountRate || p.discount || 0;
+                return discountRate >= 20 || p.isTimeDeal || p.timeDeal;
+            });
+        }
+
+        if (baseProductsForCategories.length > 0) {
+            const uniqueCategories = ['전체', ...new Set(baseProductsForCategories.map(p => p.category).filter(Boolean))];
+            setCategories(uniqueCategories);
+        } else {
+            setCategories(['전체']);
+        }
+    }, [mainTab, products]);
+
+    // 선택된 카테고리가 현재 카테고리 목록에 없으면 '전체'로 리셋
+    useEffect(() => {
+        if (selectedCategory !== '전체' && !categories.includes(selectedCategory)) {
+            setSelectedCategory('전체');
+        }
+    }, [categories, selectedCategory]);
+
+    // 탭에 따라 상품 필터링
+    let baseProducts = [];
+    if (mainTab === '베스트 500') {
+        // 베스트 500: isBest가 true인 상품만
+        baseProducts = products.filter(p => p.isBest || p.best);
+    } else if (mainTab === '쇼킹딜 베스트') {
+        // 쇼킹딜 베스트: 할인율이 높은 상품들 (할인율 20% 이상 또는 타임딜 상품)
+        baseProducts = products.filter(p => {
+            const discountRate = p.discountRate || p.discount || 0;
+            return discountRate >= 20 || p.isTimeDeal || p.timeDeal;
+        }).sort((a, b) => {
+            // 할인율이 높은 순으로 정렬
+            const discountA = a.discountRate || a.discount || 0;
+            const discountB = b.discountRate || b.discount || 0;
+            return discountB - discountA;
+        });
+    }
+
+    // 카테고리 필터링
     let filteredProducts = selectedCategory === '전체'
-        ? PRODUCTS
-        : PRODUCTS.filter(p => p.category === selectedCategory);
+        ? baseProducts
+        : baseProducts.filter(p => p.category === selectedCategory);
 
     // 정렬
-    if (sortBy === '낮은가격순') {
+    if (sortBy === '인기순') {
+        // 베스트 상품을 먼저, 그 다음 ID 순서
+        filteredProducts = [...filteredProducts].sort((a, b) => {
+            if (a.isBest && !b.isBest) return -1;
+            if (!a.isBest && b.isBest) return 1;
+            if (a.isBest && b.isBest) return (a.rank || 0) - (b.rank || 0);
+            return a.id - b.id;
+        });
+    } else if (sortBy === '낮은가격순') {
         filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
     } else if (sortBy === '높은가격순') {
         filteredProducts = [...filteredProducts].sort((a, b) => b.price - a.price);
-    } else if (sortBy === '평점순') {
-        filteredProducts = [...filteredProducts].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    } else if (sortBy === '리뷰많은순') {
-        filteredProducts = [...filteredProducts].sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
     }
 
     return (
@@ -37,7 +105,10 @@ const Best = () => {
                     display: 'flex'
                 }}>
                     <button
-                        onClick={() => setMainTab('베스트 500')}
+                        onClick={() => {
+                            setMainTab('베스트 500');
+                            setSelectedCategory('전체');
+                        }}
                         style={{
                             flex: 1,
                             padding: '20px',
@@ -54,7 +125,10 @@ const Best = () => {
                         베스트 <span style={{ color: '#f01a21' }}>500</span>
                     </button>
                     <button
-                        onClick={() => setMainTab('쇼킹딜 베스트')}
+                        onClick={() => {
+                            setMainTab('쇼킹딜 베스트');
+                            setSelectedCategory('전체');
+                        }}
                         style={{
                             flex: 1,
                             padding: '20px',
@@ -85,40 +159,44 @@ const Best = () => {
                         gap: '0',
                         minWidth: '100%'
                     }}>
-                        {categories.map((category) => (
-                            <button
-                                key={category}
-                                onClick={() => setSelectedCategory(category)}
-                                style={{
-                                    padding: '18px 20px',
-                                    border: 'none',
-                                    backgroundColor: 'white',
-                                    borderBottom: selectedCategory === category ? '3px solid #f01a21' : '3px solid transparent',
-                                    color: selectedCategory === category ? '#f01a21' : '#666',
-                                    fontSize: '14px',
-                                    fontWeight: selectedCategory === category ? 'bold' : 'normal',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    whiteSpace: 'nowrap'
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (selectedCategory !== category) {
-                                        e.target.style.color = '#333';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (selectedCategory !== category) {
-                                        e.target.style.color = '#666';
-                                    }
-                                }}
-                            >
-                                {category}
-                            </button>
-                        ))}
+                        {categories.map((category) => {
+                            // 카테고리를 한글로 표시 (전체는 그대로, 영어 카테고리는 한글로 변환)
+                            const displayName = category === '전체' ? '전체' : getCategoryName(category);
+                            return (
+                                <button
+                                    key={category}
+                                    onClick={() => setSelectedCategory(category)}
+                                    style={{
+                                        padding: '18px 20px',
+                                        border: 'none',
+                                        backgroundColor: 'white',
+                                        borderBottom: selectedCategory === category ? '3px solid #f01a21' : '3px solid transparent',
+                                        color: selectedCategory === category ? '#f01a21' : '#666',
+                                        fontSize: '14px',
+                                        fontWeight: selectedCategory === category ? 'bold' : 'normal',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (selectedCategory !== category) {
+                                            e.target.style.color = '#333';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (selectedCategory !== category) {
+                                            e.target.style.color = '#666';
+                                        }
+                                    }}
+                                >
+                                    {displayName}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
-                {/* 베스트 500 안내 */}
+                {/* 안내 */}
                 <div style={{
                     backgroundColor: 'white',
                     padding: '15px 20px',
@@ -128,7 +206,7 @@ const Best = () => {
                     alignItems: 'center'
                 }}>
                     <span style={{ fontSize: '13px', color: '#999' }}>
-                        베스트 500 ?
+                        {mainTab === '베스트 500' ? '베스트 500 ?' : '쇼킹딜 베스트 ?'}
                     </span>
                 </div>
 
@@ -179,17 +257,24 @@ const Best = () => {
 
                 {/* 상품 그리드 */}
                 <div style={{ padding: '0 20px' }}>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(4, 1fr)',
-                        gap: '20px',
-                        backgroundColor: 'white',
-                        padding: '20px'
-                    }}>
-                        {filteredProducts.map((product) => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
-                    </div>
+                    {loading ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0', backgroundColor: 'white' }}>
+                            <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                        </div>
+                    ) : (
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(4, 1fr)',
+                            gap: '20px',
+                            backgroundColor: 'white',
+                            padding: '20px'
+                        }}>
+                            {filteredProducts.map((product) => (
+                                <ProductCard key={product.id} product={product} />
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* 빈 상태 */}

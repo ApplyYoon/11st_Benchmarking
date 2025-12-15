@@ -1,6 +1,6 @@
 /**
  * 사용자 엔티티 (PostgreSQL)
- * - 이메일, 비밀번호, 이름, 등급(FAMILY/VIP)
+ * - 이메일, 비밀번호, 이름
  * - 주소 정보 (우편번호, 주소, 상세주소)
  * - 포인트, 가입일시
  */
@@ -12,8 +12,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import lombok.Getter;
@@ -22,6 +20,8 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -29,6 +29,7 @@ import lombok.Builder;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class User {
 
     @Id
@@ -44,9 +45,6 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    private Grade grade;
-
     private int points;
 
     private String address;
@@ -55,8 +53,4 @@ public class User {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
-
-    public enum Grade {
-        FAMILY, VIP
-    }
 }
