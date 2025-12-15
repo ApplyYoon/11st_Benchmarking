@@ -88,6 +88,19 @@ public class ProductController {
     }
 
     /**
+     * 연관 검색어 조회 API
+     * 검색어를 포함하는 상품명 키워드들을 반환
+     */
+    @GetMapping("/search/related")
+    public ResponseEntity<List<String>> getRelatedKeywords(@RequestParam String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        List<String> relatedKeywords = productRepository.findRelatedKeywords(query.trim());
+        return ResponseEntity.ok(relatedKeywords);
+    }
+
+    /**
      * 타임딜 종료 시간 조회 API
      * 가장 빠른 타임딜 종료 시간을 반환
      */

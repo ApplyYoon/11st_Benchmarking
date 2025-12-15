@@ -47,4 +47,35 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         LIMIT 1
         """, nativeQuery = true)
     String findMostSimilarKeyword(@Param("query") String query);
+
+    /**
+     * 검색어를 포함하는 연관 검색어 목록 조회
+     * 상품명에서 검색어를 포함하는 키워드들을 반환
+     */
+    @Query(value = """
+        WITH product_keywords AS (
+            SELECT DISTINCT trim(unnest(string_to_array(
+                regexp_replace(
+                    regexp_replace(name, '[\\[\\]()]', ' ', 'g'),
+                    '[^가-힣a-zA-Z0-9\\s]', ' ', 'g'
+                ), ' '
+            ))) AS keyword
+            FROM products
+        )
+        SELECT keyword
+        FROM product_keywords
+        WHERE length(keyword) >= 2
+          AND keyword ILIKE '%' || :query || '%'
+          AND keyword != :query
+        ORDER BY 
+          CASE 
+            WHEN keyword LIKE :query || '%' THEN 1
+            WHEN keyword LIKE '%' || :query THEN 2
+            ELSE 3
+          END,
+          length(keyword),
+          keyword
+        LIMIT 10
+        """, nativeQuery = true)
+    List<String> findRelatedKeywords(@Param("query") String query);
 }

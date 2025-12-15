@@ -61,6 +61,14 @@ export const productApi = {
         return response.data;
     },
 
+    // 연관 검색어 조회
+    getRelatedKeywords: async (query) => {
+        const response = await client.get('/products/search/related', {
+            params: { query }
+        });
+        return response.data;
+    },
+
     // 타임딜 종료 시간 조회
     getTimeDealEndTime: async () => {
         const response = await client.get('/products/timedeal/endtime');
