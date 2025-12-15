@@ -51,15 +51,13 @@ const Login = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         className="login-input"
                     />
-                    <div style={{ position: 'relative' }}>
-                        <input
-                            type="password"
-                            placeholder="비밀번호 8자~20자"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="login-input"
-                        />
-                    </div>
+                    <input
+                        type="password"
+                        placeholder="비밀번호 8자~20자"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="login-input"
+                    />
 
                     {error && <div className="login-error">{error}</div>}
 

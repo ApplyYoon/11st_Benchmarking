@@ -81,7 +81,7 @@ const TimeDeal = () => {
                         <div className="timer-digit seconds">{formatTime(timeLeft.s)}</div>
                     </div>
                 </div>
-                <span className="section-more">더보기 &gt;</span>
+                <Link to='/shocking-deal'><span className="section-more">더보기 &gt;</span></Link>
             </div>
 
             {loading ? (
