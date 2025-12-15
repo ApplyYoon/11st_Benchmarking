@@ -5,6 +5,7 @@ import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import './index.css'
+import './styles.css'
 
 createRoot(document.getElementById('root')).render(
     // StrictMode disabled temporarily for OAuth (causes double API calls)

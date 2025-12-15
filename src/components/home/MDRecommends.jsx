@@ -7,13 +7,12 @@ const MDRecommends = () => {
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
     const ITEMS_PER_LOAD = 8;
-    const MAX_ITEMS = 32; // 최대 32개까지만 표시
+    const MAX_ITEMS = 32;
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 const allProducts = await productApi.getAllProducts();
-                // Start with non-Timedeal/Best items
                 const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
                 setItems(initialItems);
             } catch (error) {
@@ -28,7 +27,6 @@ const MDRecommends = () => {
         setLoading(true);
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        // Generate mock unique items
         const allProducts = await productApi.getAllProducts();
         const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
         const newItems = initialItems.map((item, idx) => ({
@@ -41,7 +39,6 @@ const MDRecommends = () => {
         setLoading(false);
     };
 
-    // 11번가 베스트 섹션 감지 - 베스트가 화면에서 벗어나면 MD 추천 표시
     useEffect(() => {
         let observer;
         let timeoutId;
@@ -82,41 +79,20 @@ const MDRecommends = () => {
         <>
             {isVisible && (
                 <div>
-                    <h2 style={{ fontSize: '26px', fontWeight: '900', marginBottom: '20px', color: '#111' }}>MD 추천</h2>
+                    <h2 className="section-title" style={{ marginBottom: '20px' }}>MD 추천</h2>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px 20px' }}>
+                    <div className="product-grid">
                         {items.map((product) => (
                             <ProductCard key={product.id} product={product} />
                         ))}
                     </div>
 
                     {items.length < MAX_ITEMS && (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '40px' }}>
+                        <div className="load-more-container">
                             <button
                                 onClick={loadMore}
                                 disabled={loading}
-                                style={{
-                                    padding: '14px 40px',
-                                    fontSize: '15px',
-                                    fontWeight: 'bold',
-                                    color: '#333',
-                                    backgroundColor: '#fff',
-                                    border: '2px solid #333',
-                                    borderRadius: '4px',
-                                    cursor: loading ? 'not-allowed' : 'pointer',
-                                    transition: 'all 0.2s',
-                                    opacity: loading ? 0.6 : 1
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!loading) {
-                                        e.target.style.backgroundColor = '#333';
-                                        e.target.style.color = '#fff';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.target.style.backgroundColor = '#fff';
-                                    e.target.style.color = '#333';
-                                }}
+                                className="load-more-btn"
                             >
                                 {loading ? '로딩 중...' : '새상품 더보기'}
                             </button>

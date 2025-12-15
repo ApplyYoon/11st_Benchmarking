@@ -78,9 +78,7 @@ const ProductDetail = () => {
             alert('사이즈를 선택해주세요.');
             return;
         }
-        for (let i = 0; i < quantity; i++) {
-            addToCart({ ...product, selectedSize });
-        }
+        addToCart({ ...product, selectedSize }, quantity);
         alert(`${product.name}이(가) 장바구니에 추가되었습니다.`);
     };
 

@@ -25,16 +25,14 @@ const MyPage = () => {
         return null;
     }
 
-    // [New] Extract unique years from orders
     const getAvailableYears = () => {
         if (!user.orders || user.orders.length === 0) return [];
-        const years = user.orders.map(order => order.date.split('-')[0]); // "2024-12-14" -> "2024"
-        return [...new Set(years)].sort((a, b) => b - a); // Unique & Descending
+        const years = user.orders.map(order => order.date.split('-')[0]);
+        return [...new Set(years)].sort((a, b) => b - a);
     };
 
     const availableYears = getAvailableYears();
 
-    // [New] Filter orders based on selectedYear
     const getFilteredOrders = () => {
         if (!user.orders) return [];
         if (selectedYear === '전체') return user.orders;
@@ -44,36 +42,42 @@ const MyPage = () => {
     const filteredOrders = getFilteredOrders();
 
     return (
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 20px', display: 'flex', gap: '30px' }}>
+        <div className="mypage-container">
             {/* Left Sidebar */}
-            <div style={{ width: '200px' }}>
-                <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '20px', textAlign: 'center', marginBottom: '20px' }}>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>{user.name}님</div>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#f01a21', marginTop: '10px' }}>{(user.points || 0).toLocaleString()} P</div>
+            <div className="mypage-sidebar">
+                <div className="mypage-user-info">
+                    <div className="mypage-user-name">{user.name}님</div>
+                    <div className="mypage-user-points">{(user.points || 0).toLocaleString()} P</div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid #eee' }}>
-                    <div style={{ padding: '15px', fontWeight: 'bold', backgroundColor: '#f9f9f9', borderBottom: '1px solid #eee' }}>나의 쇼핑</div>
-                    <div onClick={() => setActiveTab('orders')} style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer', color: activeTab === 'orders' ? '#f01a21' : '#333', fontWeight: activeTab === 'orders' ? 'bold' : 'normal' }}>주문/배송 조회</div>
-                    <div onClick={() => setActiveTab('cancel')} style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer', color: activeTab === 'cancel' ? '#f01a21' : '#333', fontWeight: activeTab === 'cancel' ? 'bold' : 'normal' }}>취소/반품/교환</div>
-                    <div onClick={() => setActiveTab('wishlist')} style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer', color: activeTab === 'wishlist' ? '#f01a21' : '#333', fontWeight: activeTab === 'wishlist' ? 'bold' : 'normal' }}>찜한 상품</div>
-                    <div onClick={() => setActiveTab('recent')} style={{ padding: '12px 15px', fontSize: '13px', cursor: 'pointer', color: activeTab === 'recent' ? '#f01a21' : '#333', fontWeight: activeTab === 'recent' ? 'bold' : 'normal' }}>최근 본 상품</div>
+                <div className="mypage-nav">
+                    <div className="mypage-nav-header">나의 쇼핑</div>
+                    <div onClick={() => setActiveTab('orders')} className={`mypage-nav-item ${activeTab === 'orders' ? 'active' : ''}`}>
+                        주문/배송 조회
+                    </div>
+                    <div onClick={() => setActiveTab('cancel')} className={`mypage-nav-item ${activeTab === 'cancel' ? 'active' : ''}`}>
+                        취소/반품/교환
+                    </div>
+                    <div onClick={() => setActiveTab('wishlist')} className={`mypage-nav-item ${activeTab === 'wishlist' ? 'active' : ''}`}>
+                        찜한 상품
+                    </div>
+                    <div onClick={() => setActiveTab('recent')} className={`mypage-nav-item ${activeTab === 'recent' ? 'active' : ''}`}>
+                        최근 본 상품
+                    </div>
                 </div>
             </div>
 
             {/* Content */}
-            <div style={{ flex: 1 }}>
-                <div style={{ marginBottom: '60px' }}>
+            <div className="mypage-content">
+                <div className="mypage-section">
                     {activeTab === 'orders' && (
                         <>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '15px', borderBottom: '2px solid #333' }}>
-                                <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>주문/배송 조회</h2>
-
-                                {/* Year Filter Dropdown */}
+                            <div className="mypage-header">
+                                <h2 className="mypage-title">주문/배송 조회</h2>
                                 <select
                                     value={selectedYear}
                                     onChange={(e) => setSelectedYear(e.target.value)}
-                                    style={{ padding: '5px 10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                    className="mypage-filter-select"
                                 >
                                     <option value="전체">전체 기간</option>
                                     {availableYears.map(year => (
@@ -84,36 +88,31 @@ const MyPage = () => {
 
                             {filteredOrders.length > 0 ? (
                                 filteredOrders.map(order => (
-                                    <div key={order.id} style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '20px', marginTop: '15px' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-                                            <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{order.date}</span>
-                                            <span style={{ fontSize: '12px', color: '#888' }}>주문번호 {order.id}</span>
+                                    <div key={order.id} className="mypage-order-card">
+                                        <div className="mypage-order-header">
+                                            <span className="mypage-order-date">{order.date}</span>
+                                            <span className="mypage-order-id">주문번호 {order.id}</span>
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div className="mypage-order-body">
                                             <div>
-                                                <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px' }}>{order.name}</div>
-                                                <div style={{ fontSize: '14px' }}>{order.amount.toLocaleString()}원</div>
+                                                <div className="mypage-order-name">{order.name}</div>
+                                                <div className="mypage-order-amount">{order.amount.toLocaleString()}원</div>
                                             </div>
-                                            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                                {/* <div style={{ fontSize: '16px', fontWeight: 'bold', color: order.status === '취소완료' ? '#ccc' : '#333', marginBottom: '8px' }}>{order.status}</div> */}
-
-                                                {/* 주문완료 상태일 때 취소 가능 */}
+                                            <div className="mypage-order-actions">
                                                 {order.status === 'PAID' && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => cancelOrder(order.id)}
-                                                            style={{ fontSize: '12px', padding: '5px 10px', border: '1px solid #f01a21', backgroundColor: '#f01a21', color: 'white', cursor: 'pointer', borderRadius: '2px' }}
-                                                        >
-                                                            주문취소
-                                                        </button>
-                                                    </>
+                                                    <button
+                                                        onClick={() => cancelOrder(order.id)}
+                                                        className="mypage-cancel-btn"
+                                                    >
+                                                        주문취소
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div style={{ padding: '50px 0', textAlign: 'center', color: '#888', borderBottom: '1px solid #eee' }}>
+                                <div className="mypage-empty">
                                     {selectedYear === '전체' ? '주문 내역이 없습니다.' : `${selectedYear}년 주문 내역이 없습니다.`}
                                 </div>
                             )}
@@ -122,49 +121,44 @@ const MyPage = () => {
 
                     {activeTab === 'cancel' && (
                         <>
-                            <h2 style={{ fontSize: '20px', fontWeight: 'bold', paddingBottom: '15px', borderBottom: '2px solid #333' }}>취소/반품/교환 내역</h2>
+                            <h2 className="mypage-title" style={{ paddingBottom: '15px', borderBottom: '2px solid #333' }}>취소/반품/교환 내역</h2>
                             {user.orders && user.orders.filter(o => o.status === '취소완료').length > 0 ? (
                                 user.orders.filter(o => o.status === '취소완료').map(order => (
-                                    <div key={order.id} style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '20px', marginTop: '15px', opacity: 0.7 }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-                                            <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{order.date}</span>
-                                            <span style={{ fontSize: '12px', color: '#888' }}>주문번호 {order.id}</span>
+                                    <div key={order.id} className="mypage-order-card cancelled">
+                                        <div className="mypage-order-header">
+                                            <span className="mypage-order-date">{order.date}</span>
+                                            <span className="mypage-order-id">주문번호 {order.id}</span>
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div className="mypage-order-body">
                                             <div>
-                                                <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px' }}>{order.name}</div>
-                                                <div style={{ fontSize: '14px' }}>{order.amount.toLocaleString()}원</div>
+                                                <div className="mypage-order-name">{order.name}</div>
+                                                <div className="mypage-order-amount">{order.amount.toLocaleString()}원</div>
                                             </div>
-                                            <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#888' }}>취소완료</div>
+                                            <div className="mypage-order-status cancelled">취소완료</div>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div style={{ padding: '50px 0', textAlign: 'center', color: '#888', borderBottom: '1px solid #eee' }}>취소/반품/교환 내역이 없습니다.</div>
+                                <div className="mypage-empty">취소/반품/교환 내역이 없습니다.</div>
                             )}
                         </>
                     )}
 
                     {activeTab === 'wishlist' && (
                         <>
-                            <h2 style={{ fontSize: '20px', fontWeight: 'bold', paddingBottom: '15px', borderBottom: '2px solid #333' }}>찜한 상품</h2>
-                            <div style={{ padding: '50px 0', textAlign: 'center', color: '#888', borderBottom: '1px solid #eee' }}>
-                                찜한 상품이 없습니다.
-                            </div>
+                            <h2 className="mypage-title" style={{ paddingBottom: '15px', borderBottom: '2px solid #333' }}>찜한 상품</h2>
+                            <div className="mypage-empty">찜한 상품이 없습니다.</div>
                         </>
                     )}
 
                     {activeTab === 'recent' && (
                         <>
-                            <h2 style={{ fontSize: '20px', fontWeight: 'bold', paddingBottom: '15px', borderBottom: '2px solid #333' }}>최근 본 상품</h2>
-                            <div style={{ padding: '50px 0', textAlign: 'center', color: '#888', borderBottom: '1px solid #eee' }}>
-                                최근 본 상품 내역이 없습니다.
-                            </div>
+                            <h2 className="mypage-title" style={{ paddingBottom: '15px', borderBottom: '2px solid #333' }}>최근 본 상품</h2>
+                            <div className="mypage-empty">최근 본 상품 내역이 없습니다.</div>
                         </>
                     )}
                 </div>
             </div>
-
         </div>
     );
 };

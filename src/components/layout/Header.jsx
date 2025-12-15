@@ -4,6 +4,7 @@ import { Search, ShoppingCart, User, Menu, Truck, LayoutGrid } from 'lucide-reac
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { productApi } from '../../api/productApi';
+import '../../styles.css';
 
 const Header = ({ onMenuClick }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -33,25 +34,23 @@ const Header = ({ onMenuClick }) => {
     };
 
     return (
-        <header style={{ borderBottom: '1px solid #e5e5e5', backgroundColor: 'white', zIndex: 1000, position: 'sticky', top: 0 }}>
+        <header className="header">
             {/* Main Header Row */}
-            <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '30px', height: '80px' }}>
+            <div className="header-main">
 
                 {/* Burger Menu & Logo */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <button
-                        onClick={onMenuClick}
-                        style={{ border: '1px solid #ddd', borderRadius: '50%', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white', cursor: 'pointer' }}>
+                <div className="header-left">
+                    <button onClick={onMenuClick} className="menu-btn">
                         <Menu size={24} color="#333" strokeWidth={1.5} />
                     </button>
-                    <Link to="/" style={{ fontSize: '34px', fontWeight: '900', textDecoration: 'none', color: '#f01a21', letterSpacing: '-1.5px', fontFamily: 'sans-serif' }}>
+                    <Link to="/" className="logo">
                         11st
                     </Link>
                 </div>
 
                 {/* 11st Style Rounded Search Bar */}
-                <form onSubmit={handleSearch} style={{ flex: 1, position: 'relative', maxWidth: '580px', marginLeft: '20px' }}>
-                    <div style={{ position: 'relative', width: '100%' }}>
+                <form onSubmit={handleSearch} className="search-form">
+                    <div className="search-wrapper">
                         <input
                             type="text"
                             placeholder="통합검색"
@@ -66,37 +65,12 @@ const Header = ({ onMenuClick }) => {
                             onBlur={() => {
                                 setTimeout(() => setIsFocused(false), 200);
                             }}
-                            style={{
-                                width: '100%',
-                                padding: '13px 60px 13px 25px',
-                                border: '2px solid #f01a21',
-                                borderRadius: (searchTerm && isFocused) ? '20px 20px 0 0' : '28px', // Change border radius when open
-                                borderBottom: (searchTerm && isFocused) ? 'none' : '2px solid #f01a21',
-                                fontSize: '16px',
-                                outline: 'none',
-                                backgroundColor: '#fff',
-                                color: '#333',
-                                boxSizing: 'border-box',
-                                zIndex: 1002,
-                                position: 'relative'
-                            }}
+                            className={`search-input ${searchTerm && isFocused ? 'dropdown-open' : ''}`}
                         />
 
                         {/* Search Suggestions Dropdown */}
                         {searchTerm && isFocused && (
-                            <div style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: 0,
-                                width: '100%',
-                                backgroundColor: 'white',
-                                border: '2px solid #f01a21',
-                                borderTop: 'none',
-                                borderRadius: '0 0 20px 20px',
-                                zIndex: 1001,
-                                overflow: 'hidden',
-                                boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
-                            }}>
+                            <div className="search-dropdown">
                                 {['노트북', '삼성전자', 'LG전자', '아이폰', '갤럭시', '나이키', '아디다스', '생수', '라면', '커피', '마스크', '영양제', '게이밍 노트북', '기계식 키보드']
                                     .filter(keyword => keyword.includes(searchTerm))
                                     .slice(0, 8)
@@ -107,16 +81,9 @@ const Header = ({ onMenuClick }) => {
                                                 setSearchTerm(keyword);
                                                 navigate(`/search?q=${encodeURIComponent(keyword)}`);
                                             }}
-                                            style={{
-                                                padding: '12px 25px',
-                                                cursor: 'pointer',
-                                                fontSize: '14px',
-                                                color: '#333'
-                                            }}
-                                            onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                                            className="search-suggestion"
                                         >
-                                            <span style={{ color: '#f01a21', fontWeight: 'bold' }}>{searchTerm}</span>
+                                            <span className="search-highlight">{searchTerm}</span>
                                             {keyword.replace(searchTerm, '')}
                                         </div>
                                     ))}
@@ -124,171 +91,96 @@ const Header = ({ onMenuClick }) => {
                         )}
                     </div>
 
-                    <button
-                        type="submit"
-                        style={{
-                            position: 'absolute',
-                            right: '6px',
-                            top: '24px', // Hardcode for alignment since input height changes visually with border
-                            transform: 'translateY(-50%)',
-                            background: '#f01a21',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '38px',
-                            height: '38px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            zIndex: 1003
-                        }}
-                    >
+                    <button type="submit" className="search-btn">
                         <Search color="white" size={20} strokeWidth={2.5} />
                     </button>
                 </form>
 
                 {/* Right Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '25px', marginLeft: 'auto' }}>
+                <div className="header-actions">
                     {user ? (
                         <div
-                            style={{ position: 'relative', cursor: 'pointer', zIndex: 1000, height: '100%', display: 'flex', alignItems: 'center' }}
+                            className="user-menu-container"
                             onMouseEnter={() => setIsUserMenuOpen(true)}
                             onMouseLeave={() => setIsUserMenuOpen(false)}
                         >
-                            <Link to="/user-info" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <Link to="/user-info" className="header-action-link">
                                 <User size={26} strokeWidth={1.5} color="#f01a21" />
-                                <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>{user.name}님</span>
+                                <span className="header-action-label">{user.name}님</span>
                             </Link>
 
                             {/* Hover Dropdown Menu */}
                             {isUserMenuOpen && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '40px',
-                                    left: '50%',
-                                    transform: 'translateX(-50%)',
-                                    backgroundColor: 'white',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '4px',
-                                    padding: '10px 0',
-                                    minWidth: '160px',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                    zIndex: 1001,
-                                    whiteSpace: 'nowrap'
-                                }}>
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '-6px',
-                                        left: '50%',
-                                        transform: 'translateX(-50%) rotate(45deg)',
-                                        width: '10px',
-                                        height: '10px',
-                                        backgroundColor: 'white',
-                                        borderLeft: '1px solid #ddd',
-                                        borderTop: '1px solid #ddd',
-                                        zIndex: 1002
-                                    }}></div>
+                                <div className="user-menu-dropdown">
+                                    <div className="user-menu-arrow"></div>
 
-                                    <Link to="/my-coupons" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                    <Link to="/my-coupons" className="user-menu-item">
                                         나의 쿠폰
                                     </Link>
-                                    <Link to="/mypage" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                    <Link to="/mypage" className="user-menu-item">
                                         주문/배송조회
                                     </Link>
-                                    <Link to="/mypage" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                    <Link to="/mypage" className="user-menu-item">
                                         취소/반품/교환
                                     </Link>
-                                    <div style={{ width: '100%', height: '1px', backgroundColor: '#eee', margin: '5px 0' }}></div>
-                                    <Link to="/" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                    <div className="user-menu-divider"></div>
+                                    <Link to="/" className="user-menu-item">
                                         고객센터
                                     </Link>
-                                    <Link to="/user-info" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                    <Link to="/user-info" className="user-menu-item">
                                         회원정보
                                     </Link>
-                                    <div style={{ width: '100%', height: '1px', backgroundColor: '#eee', margin: '5px 0' }}></div>
-                                    <button onClick={logout} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 20px', background: 'none', border: 'none', color: '#888', fontSize: '12px', cursor: 'pointer' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
+                                    <div className="user-menu-divider"></div>
+                                    <button onClick={logout} className="user-menu-logout">
                                         로그아웃
                                     </button>
                                 </div>
                             )}
                         </div>
                     ) : (
-                        <Link to="/login" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Link to="/login" className="header-action-link">
                             <User size={26} strokeWidth={1.5} />
-                            <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>로그인</span>
+                            <span className="header-action-label">로그인</span>
                         </Link>
                     )}
 
-                    <Link to="/mypage" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Link to="/mypage" className="header-action-link">
                         <LayoutGrid size={26} strokeWidth={1.5} />
-                        <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>마이페이지</span>
+                        <span className="header-action-label">마이페이지</span>
                     </Link>
 
-                    <Link to="/cart" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-                        <div style={{ position: 'relative' }}>
+                    <Link to="/cart" className="header-action-link" style={{ position: 'relative' }}>
+                        <div className="cart-icon-container">
                             <ShoppingCart size={26} strokeWidth={1.5} />
                             {cart.length > 0 && (
-                                <span style={{
-                                    position: 'absolute',
-                                    top: '-6px',
-                                    right: '-6px',
-                                    backgroundColor: '#f01a21',
-                                    color: 'white',
-                                    borderRadius: '50%',
-                                    minWidth: '18px',
-                                    height: '18px',
-                                    fontSize: '11px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontWeight: 'bold',
-                                    padding: '0 4px'
-                                }}>
+                                <span className="cart-badge">
                                     {cart.length}
                                 </span>
                             )}
                         </div>
-                        <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>장바구니</span>
+                        <span className="header-action-label">장바구니</span>
                     </Link>
                 </div>
             </div>
 
             {/* Secondary Navigation Row - Replicating top section of 11st */}
-            <div style={{ borderTop: '1px solid #f0f0f0' }}>
-                <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', height: '48px', gap: '25px', fontSize: '14px' }}>
+            <div className="secondary-nav">
+                <div className="secondary-nav-inner">
                     <Link 
                         to="/" 
-                        style={{ 
-                            textDecoration: 'none', 
-                            color: location.pathname === '/' ? '#f01a21' : '#333', 
-                            fontWeight: 'bold',
-                            borderBottom: location.pathname === '/' ? '2px solid #f01a21' : 'none',
-                            paddingBottom: '2px'
-                        }}
+                        className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
                     >
                         홈
                     </Link>
                     <Link 
                         to="/best" 
-                        style={{ 
-                            textDecoration: 'none', 
-                            color: location.pathname === '/best' ? '#f01a21' : '#333', 
-                            fontWeight: 'bold',
-                            borderBottom: location.pathname === '/best' ? '2px solid #f01a21' : 'none',
-                            paddingBottom: '2px'
-                        }}
+                        className={`nav-link ${location.pathname === '/best' ? 'active' : ''}`}
                     >
                         베스트
                     </Link>
                     <Link 
                         to="/shocking-deal" 
-                        style={{ 
-                            textDecoration: 'none', 
-                            color: '#f01a21', 
-                            fontWeight: 'bold',
-                            borderBottom: location.pathname === '/shocking-deal' ? '2px solid #f01a21' : 'none',
-                            paddingBottom: '2px'
-                        }}
+                        className={`nav-link ${location.pathname === '/shocking-deal' ? 'active' : ''} highlight`}
                     >
                         쇼킹딜
                     </Link>

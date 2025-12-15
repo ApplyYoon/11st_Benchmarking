@@ -3,6 +3,7 @@ import { productApi } from '../api/productApi';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import '../styles.css';
 
 const ShockingDeal = () => {
     const { addToCart } = useCart();
@@ -95,76 +96,46 @@ const ShockingDeal = () => {
     const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + bannerItems.length) % bannerItems.length);
 
     return (
-        <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', paddingBottom: '50px' }}>
+        <div className="shockingdeal-container">
             {/* Hero Banner with Carousel */}
-            <div style={{
-                background: 'linear-gradient(90deg, #d32323 0%, #f15757 100%)',
-                color: 'white',
-                padding: '40px 0',
-                marginBottom: '30px',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="shockingdeal-hero">
+                <div className="shockingdeal-hero-inner">
 
                     {/* Left: Branding & Timer */}
-                    <div style={{ flex: 1, paddingRight: '40px', zIndex: 2 }}>
-                        <h1 style={{ fontSize: '56px', fontWeight: '900', marginBottom: '15px', fontStyle: 'italic', textShadow: '2px 2px 4px rgba(0,0,0,0.2)', lineHeight: 1.1 }}>
+                    <div className="shockingdeal-branding">
+                        <h1 className="shockingdeal-title">
                             SHOCKING<br />DEAL
                         </h1>
-                        <p style={{ fontSize: '22px', marginBottom: '30px', opacity: 0.9, fontWeight: '500' }}>
+                        <p className="shockingdeal-subtitle">
                             오늘만 이 가격! 망설이면 품절됩니다.
                         </p>
-                        <div style={{
-                            display: 'inline-block',
-                            backgroundColor: 'rgba(0,0,0,0.2)',
-                            padding: '12px 35px',
-                            borderRadius: '50px',
-                            fontSize: '28px',
-                            fontWeight: 'bold',
-                            border: '2px solid rgba(255,255,255,0.3)',
-                            backdropFilter: 'blur(5px)'
-                        }}>
-                            남은 시간 <span style={{ color: '#fff000', marginLeft: '10px', fontFamily: 'monospace' }}>{timeLeft}</span>
+                        <div className="shockingdeal-timer">
+                            남은 시간 <span className="shockingdeal-timer-time">{timeLeft}</span>
                         </div>
                     </div>
 
                     {/* Right: Product Carousel */}
-                    <div style={{ width: '640px', position: 'relative', zIndex: 2 }}>
-                        <div style={{
-                            backgroundColor: 'white',
-                            borderRadius: '16px',
-                            overflow: 'hidden',
-                            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-                            height: '320px',
-                            display: 'flex'
-                        }}>
+                    <div className="shockingdeal-carousel-wrapper">
+                        <div className="shockingdeal-carousel">
                             {/* Individual Slide */}
                             {bannerItems.map((item, index) => (
-                                <div key={item.id} style={{
-                                    minWidth: '100%',
-                                    height: '100%',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    transition: 'transform 0.5s ease-in-out',
-                                    transform: `translateX(-${currentSlide * 100}%)`
-                                }}>
-                                    <div style={{ height: '60%', overflow: 'hidden', position: 'relative' }}>
-                                        <img src={item.imageUrl || item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        <div style={{ position: 'absolute', top: 0, left: 0, padding: '10px 20px', background: '#f01a21', color: 'white', fontWeight: 'bold', fontSize: '18px', borderRadius: '0 0 10px 0' }}>
+                                <div key={item.id} className="shockingdeal-slide" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+                                    <div className="shockingdeal-slide-image">
+                                        <img src={item.imageUrl || item.image} alt={item.name} className="shockingdeal-slide-img" />
+                                        <div className="shockingdeal-slide-badge">
                                             {item.discountRate || item.discount}% OFF
                                         </div>
                                     </div>
-                                    <div style={{ padding: '20px', height: '40%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                        <h3 style={{ color: '#333', margin: '0 0 10px 0', fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    <div className="shockingdeal-slide-content">
+                                        <h3 className="shockingdeal-slide-name">
                                             {(item.isTimeDeal || item.timeDeal) ? `[타임딜] ${item.name}` : item.name}
                                         </h3>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div className="shockingdeal-slide-price-row">
                                             <div>
-                                                <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '14px', marginRight: '8px' }}>{item.originalPrice.toLocaleString()}원</span>
-                                                <span style={{ color: '#f01a21', fontSize: '24px', fontWeight: 'bold' }}>{item.price.toLocaleString()}원</span>
+                                                <span className="shockingdeal-slide-original-price">{item.originalPrice.toLocaleString()}원</span>
+                                                <span className="shockingdeal-slide-price">{item.price.toLocaleString()}원</span>
                                             </div>
-                                            <Link to={`/product/${item.id}`} style={{ padding: '8px 20px', backgroundColor: '#333', color: 'white', textDecoration: 'none', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold' }}>
+                                            <Link to={`/product/${item.id}`} className="shockingdeal-slide-buy-btn">
                                                 구매하기
                                             </Link>
                                         </div>
@@ -174,133 +145,81 @@ const ShockingDeal = () => {
                         </div>
 
                         {/* Carousel Controls */}
-                        <button onClick={prevSlide} style={{ position: 'absolute', top: '50%', left: '-20px', transform: 'translateY(-50%)', width: '40px', height: '40px', borderRadius: '50%', border: 'none', backgroundColor: 'white', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                        <button onClick={prevSlide} className="shockingdeal-carousel-prev">
                             <ChevronLeft size={24} color="#333" />
                         </button>
-                        <button onClick={nextSlide} style={{ position: 'absolute', top: '50%', right: '-20px', transform: 'translateY(-50%)', width: '40px', height: '40px', borderRadius: '50%', border: 'none', backgroundColor: 'white', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                        <button onClick={nextSlide} className="shockingdeal-carousel-next">
                             <ChevronRight size={24} color="#333" />
                         </button>
                     </div>
 
                     {/* Decorative Background Element */}
-                    <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '600px', height: '600px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', zIndex: 1, pointerEvents: 'none' }}></div>
+                    <div className="shockingdeal-decorative"></div>
                 </div>
             </div>
 
             {/* Product Grid */}
-            <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 20px' }}>
-                <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '20px', display: 'flex', alignItems: 'center' }}>
-                    <span style={{ color: '#f01a21', marginRight: '10px' }}>⚡</span>
+            <div className="shockingdeal-content">
+                <h2 className="shockingdeal-section-title">
+                    <span className="shockingdeal-section-icon">⚡</span>
                     지금 가장 핫한 딜
                 </h2>
 
                 {loading ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}>
-                        <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                    <div className="loading-container">
+                        <div className="spinner" />
                     </div>
                 ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+                    <div className="shockingdeal-grid">
                         {shockingDeals.map(product => (
-                        <div key={product.id} style={{
-                            backgroundColor: 'white',
-                            borderRadius: '12px',
-                            overflow: 'hidden',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                            position: 'relative',
-                            transition: 'transform 0.2s',
-                        }}>
+                        <div key={product.id} className="shockingdeal-product-card">
                             {/* Badge */}
-                            <div style={{
-                                position: 'absolute',
-                                top: '15px',
-                                left: '0',
-                                backgroundColor: '#f01a21',
-                                color: 'white',
-                                padding: '5px 15px',
-                                fontSize: '14px',
-                                fontWeight: 'bold',
-                                borderRadius: '0 4px 4px 0',
-                                zIndex: 1
-                            }}>
+                            <div className="shockingdeal-product-badge">
                                 {product.discountRate || product.discount}% OFF
                             </div>
 
                             {/* Image */}
-                            <div style={{ height: '220px', overflow: 'hidden', position: 'relative' }}>
+                            <div className="shockingdeal-product-image">
                                 <img
                                     src={product.imageUrl || product.image}
                                     alt={product.name}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    className="shockingdeal-product-img"
                                 />
                             </div>
 
                             {/* Content */}
-                            <div style={{ padding: '20px' }}>
+                            <div className="shockingdeal-product-content">
                                 {product.stockQuantity !== undefined && (
                                     <>
-                                        <div style={{ fontSize: '13px', color: '#888', marginBottom: '5px' }}>
-                                            남은 수량 <span style={{ color: '#f01a21', fontWeight: 'bold' }}>{product.stockQuantity}개</span>
+                                        <div className="shockingdeal-product-stock">
+                                            남은 수량 <span className="shockingdeal-product-stock-number">{product.stockQuantity}개</span>
                                         </div>
 
                                         {/* Stock Bar */}
-                                        <div style={{
-                                            width: '100%',
-                                            height: '6px',
-                                            backgroundColor: '#eee',
-                                            borderRadius: '3px',
-                                            marginBottom: '15px',
-                                            overflow: 'hidden'
-                                        }}>
-                                            <div style={{
-                                                width: `${Math.min((product.stockQuantity / 100) * 100, 100)}%`,
-                                                height: '100%',
-                                                backgroundColor: '#f01a21',
-                                                borderRadius: '3px'
-                                            }}></div>
+                                        <div className="shockingdeal-product-stock-bar">
+                                            <div className="shockingdeal-product-stock-bar-fill" style={{ width: `${Math.min((product.stockQuantity / 100) * 100, 100)}%` }}></div>
                                         </div>
                                     </>
                                 )}
 
                                 <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: '#333' }}>
-                                    <h3 style={{
-                                        fontSize: '16px',
-                                        fontWeight: 'normal',
-                                        lineHeight: '1.4',
-                                        marginBottom: '15px',
-                                        height: '44px',
-                                        overflow: 'hidden',
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: 'vertical'
-                                    }}>
+                                    <h3 className="shockingdeal-product-name">
                                         {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
                                     </h3>
                                 </Link>
 
-                                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                                <div className="shockingdeal-product-price-row">
                                     <div>
-                                        <div style={{ textDecoration: 'line-through', color: '#aaa', fontSize: '13px' }}>
+                                        <div className="shockingdeal-product-original-price">
                                             {product.originalPrice.toLocaleString()}원
                                         </div>
-                                        <div style={{ fontSize: '20px', fontWeight: '900', color: '#f01a21' }}>
+                                        <div className="shockingdeal-product-price">
                                             {product.price.toLocaleString()}원
                                         </div>
                                     </div>
                                     <button
                                         onClick={() => addToCart(product)}
-                                        style={{
-                                            backgroundColor: '#333',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '50%',
-                                            width: '36px',
-                                            height: '36px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            cursor: 'pointer'
-                                        }}
+                                        className="shockingdeal-product-cart-btn"
                                     >
                                         <ShoppingCart size={18} />
                                     </button>

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { ShoppingCart, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import ProductCardImage from './ProductCardImage';
 
 const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
     const { addToCart } = useCart();
-    const [imageLoaded, setImageLoaded] = useState(false);
     const [showSizeModal, setShowSizeModal] = useState(false);
     const [selectedSize, setSelectedSize] = useState(null);
 
@@ -49,79 +48,30 @@ const ProductCard = ({ product }) => {
 
     return (
         <>
-            <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
-                <div style={{ position: 'relative', width: '100%', backgroundColor: 'white' }}
-                    className="product-card"
-                >
+            <Link to={`/product/${product.id}`} className="product-card-link">
+                <div className="product-card">
                     {/* Image Area */}
-                    <div style={{ position: 'relative', paddingTop: '100%', overflow: 'hidden', borderRadius: '8px', backgroundColor: '#f4f4f4', marginBottom: '12px' }}>
-                        <img
-                            src={product.imageUrl || product.image}
-                            alt={product.name}
-                            loading="lazy"
-                            onLoad={() => setImageLoaded(true)}
-                            style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                opacity: imageLoaded ? 1 : 0,
-                                transition: 'opacity 0.4s ease-in-out'
-                            }}
-                        />
-
-                        {/* Badges */}
-                        {(product.isTimeDeal || product.timeDeal) && (
-                            <div style={{ position: 'absolute', top: '10px', left: '10px', backgroundColor: '#f01a21', color: 'white', padding: '5px 10px', fontSize: '12px', fontWeight: 'bold', borderRadius: '4px', zIndex: 5 }}>
-                                [타임딜]
-                            </div>
-                        )}
-                        {(product.isBest || product.best) && (
-                            <div style={{ position: 'absolute', top: '0', left: '12px', backgroundColor: '#333', color: 'white', width: '32px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '900', clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 50% 85%, 0% 100%)', zIndex: 5 }}>
-                                {product.rank}
-                            </div>
-                        )}
-
-                        {/* Hover Action (Cart) */}
-                        <div style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
-                            <button
-                                onClick={handleCartClick}
-                                style={{
-                                    width: '36px', height: '36px',
-                                    borderRadius: '50%',
-                                    backgroundColor: 'rgba(255,255,255,0.9)',
-                                    border: '1px solid #eee',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                }}
-                            >
-                                <ShoppingCart size={18} color="#333" />
-                            </button>
-                        </div>
-                    </div>
+                    <ProductCardImage product={product} onCartClick={handleCartClick} />
 
                     {/* Info Area */}
                     <div>
-                        <h3 style={{ fontSize: '14px', color: '#111', margin: '0 0 8px', lineHeight: '1.4', height: '40px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', fontWeight: 'normal' }}>
+                        <h3 className="product-card-name">
                             {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
                         </h3>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div className="product-card-price-row">
                             {(product.discountRate || product.discount) > 0 && (
-                                <span style={{ color: '#f01a21', fontWeight: '900', fontSize: '18px', fontFamily: 'sans-serif' }}>{product.discountRate || product.discount}%</span>
+                                <span className="product-card-discount">{product.discountRate || product.discount}%</span>
                             )}
-                            <span style={{ fontWeight: '900', fontSize: '18px', color: '#111', fontFamily: 'sans-serif' }}>{product.price.toLocaleString()}</span>
-                            <span style={{ fontSize: '14px', fontWeight: 'normal' }}>원</span>
+                            <span className="product-card-price">{product.price.toLocaleString()}</span>
+                            <span className="product-card-currency">원</span>
                         </div>
                         {(product.discountRate || product.discount) > 0 && (
-                            <div style={{ textDecoration: 'line-through', color: '#999', fontSize: '13px', marginTop: '2px' }}>
+                            <div className="product-card-original-price">
                                 {product.originalPrice.toLocaleString()}원
                             </div>
                         )}
-                        <div style={{ marginTop: '8px' }}>
-                            <span style={{ fontSize: '11px', color: '#666', border: '1px solid #ddd', padding: '2px 4px', borderRadius: '2px' }}>무료배송</span>
+                        <div className="product-card-badge-container">
+                            <span className="product-card-shipping-badge">무료배송</span>
                         </div>
                     </div>
                 </div>
@@ -129,79 +79,40 @@ const ProductCard = ({ product }) => {
 
             {/* Size Selection Modal */}
             {showSizeModal && (
-                <div
-                    onClick={handleCloseModal}
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 1000
-                    }}
-                >
-                    <div
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                            backgroundColor: 'white',
-                            borderRadius: '12px',
-                            padding: '24px',
-                            width: '320px',
-                            maxWidth: '90vw',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-                        }}
-                    >
+                <div onClick={handleCloseModal} className="modal-overlay">
+                    <div onClick={(e) => e.stopPropagation()} className="modal-content">
                         {/* Modal Header */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>사이즈 선택</h3>
-                            <button
-                                onClick={handleCloseModal}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
-                            >
+                        <div className="modal-header">
+                            <h3 className="modal-title">사이즈 선택</h3>
+                            <button onClick={handleCloseModal} className="modal-close-btn">
                                 <X size={20} color="#666" />
                             </button>
                         </div>
 
                         {/* Product Info */}
-                        <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #eee' }}>
+                        <div className="modal-product-info">
                             <img
                                 src={product.imageUrl || product.image}
                                 alt={product.name}
-                                style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
+                                className="modal-product-image"
                             />
-                            <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px', lineHeight: '1.3' }}>
+                            <div className="modal-product-details">
+                                <div className="modal-product-name">
                                     {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
                                 </div>
-                                <div style={{ fontSize: '15px', fontWeight: 'bold' }}>{product.price.toLocaleString()}원</div>
+                                <div className="modal-product-price">{product.price.toLocaleString()}원</div>
                             </div>
                         </div>
 
                         {/* Size Options */}
-                        <div style={{ marginBottom: '20px' }}>
-                            <div style={{ fontSize: '13px', color: '#666', marginBottom: '10px' }}>사이즈를 선택해주세요</div>
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <div className="size-options-container">
+                            <div className="size-options-label">사이즈를 선택해주세요</div>
+                            <div className="size-options">
                                 {sizes.map((size) => (
                                     <button
                                         key={size}
                                         onClick={(e) => { e.stopPropagation(); setSelectedSize(size); }}
-                                        style={{
-                                            minWidth: '44px',
-                                            height: '36px',
-                                            padding: '0 12px',
-                                            border: selectedSize === size ? '2px solid #111' : '1px solid #ddd',
-                                            backgroundColor: selectedSize === size ? '#111' : '#fff',
-                                            color: selectedSize === size ? '#fff' : '#333',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            fontSize: '13px',
-                                            fontWeight: selectedSize === size ? 'bold' : 'normal',
-                                            transition: 'all 0.2s'
-                                        }}
+                                        className={`size-btn ${selectedSize === size ? 'selected' : ''}`}
                                     >
                                         {size}
                                     </button>
@@ -212,18 +123,7 @@ const ProductCard = ({ product }) => {
                         {/* Add to Cart Button */}
                         <button
                             onClick={handleAddWithSize}
-                            style={{
-                                width: '100%',
-                                padding: '14px',
-                                backgroundColor: selectedSize ? '#f01a21' : '#ccc',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontSize: '15px',
-                                fontWeight: 'bold',
-                                cursor: selectedSize ? 'pointer' : 'not-allowed',
-                                transition: 'background-color 0.2s'
-                            }}
+                            className={`add-cart-btn ${selectedSize ? 'active' : ''}`}
                         >
                             장바구니 담기
                         </button>

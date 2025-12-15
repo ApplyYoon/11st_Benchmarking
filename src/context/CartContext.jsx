@@ -54,7 +54,7 @@ export const CartProvider = ({ children }) => {
         }
     }, [cart, user]);
 
-    const addToCart = async (product) => {
+    const addToCart = async (product, quantity) => {
         if (user) {
             try {
                 await client.post('/cart', {
@@ -75,7 +75,7 @@ export const CartProvider = ({ children }) => {
                 if (existing) {
                     return prev.map((item) =>
                         item.id === product.id && item.selectedSize === product.selectedSize
-                            ? { ...item, quantity: item.quantity + 1 }
+                            ? { ...item, quantity: item.quantity + quantity }
                             : item
                     );
                 }

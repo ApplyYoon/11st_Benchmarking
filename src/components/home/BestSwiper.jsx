@@ -8,7 +8,6 @@ const BestSwiper = ({ onLoadComplete }) => {
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
 
-    // Config constants
     const MAX_ITEMS_LIMIT = 16;
 
     useEffect(() => {
@@ -31,7 +30,6 @@ const BestSwiper = ({ onLoadComplete }) => {
         setLoading(true);
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        // 현재 표시된 상품 수를 기준으로 다음 상품들 가져오기
         setBestItems(prev => {
             const currentCount = prev.length;
             const nextItems = initialBestItems.slice(currentCount, currentCount + 4);
@@ -39,13 +37,11 @@ const BestSwiper = ({ onLoadComplete }) => {
         });
         setLoading(false);
 
-        // 모든 아이템 로드 완료 체크
         if (onLoadComplete && (bestItems.length + 4 >= Math.min(initialBestItems.length, MAX_ITEMS_LIMIT))) {
             onLoadComplete();
         }
     };
 
-    // 타임딜 섹션 감지 - 타임딜이 화면에서 벗어나면 11번가 베스트 표시
     useEffect(() => {
         const timedealSection = document.getElementById('timedeal-section');
         if (!timedealSection) {
@@ -66,7 +62,6 @@ const BestSwiper = ({ onLoadComplete }) => {
         return () => observer.disconnect();
     }, [isVisible]);
 
-    // 레이지 로딩 감지
     useEffect(() => {
         const maxDisplay = Math.min(initialBestItems.length, MAX_ITEMS_LIMIT);
         if (!isVisible || bestItems.length >= maxDisplay) return;
@@ -85,29 +80,27 @@ const BestSwiper = ({ onLoadComplete }) => {
     return (
         <>
             {isVisible && (
-                <div id="best-section" style={{ marginBottom: '60px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                        <h2 style={{ fontSize: '26px', fontWeight: '900', margin: 0, color: '#111' }}>11번가 베스트</h2>
-                        <span style={{ fontSize: '14px', color: '#666', cursor: 'pointer' }}>더보기 &gt;</span>
+                <div id="best-section" className="best-section">
+                    <div className="section-header">
+                        <h2 className="section-title">11번가 베스트</h2>
+                        <span className="section-more">더보기 &gt;</span>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+                    <div className="product-grid">
                         {bestItems.map(product => (
                             <ProductCard key={product.id} product={product} />
                         ))}
                     </div>
 
-                    {/* 로딩 트리거 - 섹션 하단에 위치 */}
                     {bestItems.length < Math.min(initialBestItems.length, MAX_ITEMS_LIMIT) && (
-                        <div id="best-loading-trigger" style={{ height: '1px', marginTop: '20px' }} />
+                        <div id="best-loading-trigger" className="loading-trigger" />
                     )}
 
                     {loading && (
-                        <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '20px' }}>
-                            <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                        <div className="loading-container-small">
+                            <div className="spinner" />
                         </div>
                     )}
-                    <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                 </div>
             )}
         </>

@@ -2,6 +2,7 @@ import React from 'react';
 import Header from './Header';
 import Sidebar from '../Sidebar';
 import { useState } from 'react';
+import '../../styles.css';
 
 const Layout = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -15,16 +16,16 @@ const Layout = ({ children }) => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif' }}>
+        <div className="layout-wrapper">
             <Header onMenuClick={toggleSidebar} />
             <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
             {/* Width constraint is handled by pages themselves to allow full-width banners */}
-            <main style={{ flex: 1, width: '100%', backgroundColor: 'white' }}>
+            <main className="layout-main">
                 {children}
             </main>
-            <footer style={{ backgroundColor: '#f9f9f9', padding: '50px 20px', borderTop: '1px solid #e5e5e5', color: '#666', fontSize: '12px' }}>
-                <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-                    <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', fontWeight: 'bold', color: '#333' }}>
+            <footer className="footer">
+                <div className="footer-inner">
+                    <div className="footer-links">
                         <span>이용약관</span>
                         <span>개인정보처리방침</span>
                         <span>청소년보호정책</span>
@@ -35,7 +36,7 @@ const Layout = ({ children }) => {
                     <p>사업자등록번호: 230-00-12345 | 통신판매업신고: 2024-서울강남-00000</p>
                     <p>주소: 서울특별시 강남구 테헤란로 152 강남파이낸스센터</p>
                     <p>고객센터: 1599-0110 | 팩스: 02-1234-5678 | 이메일: customerservice@11st.co.kr</p>
-                    <p style={{ marginTop: '15px' }}>Copyright © 11st Corp. All Rights Reserved.</p>
+                    <p className="footer-copyright">Copyright © 11st Corp. All Rights Reserved.</p>
                 </div>
             </footer>
         </div>
