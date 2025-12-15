@@ -135,7 +135,7 @@ sequenceDiagram
     DB-->>Backend: 사용자 정보
     Backend->>Backend: 비밀번호 검증
     Backend->>Backend: JWT 토큰 생성
-    Backend-->>API: Set-Cookie: auth_token (HttpOnly)
+    Backend-->>API: Set-Cookie: accessToken (HttpOnly)
     API-->>Auth: 사용자 정보 반환
     Auth->>Auth: setUser(userData)
     Auth->>Auth: localStorage.setItem('user_profile', ...)

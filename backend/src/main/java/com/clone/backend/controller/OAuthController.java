@@ -50,7 +50,7 @@ public class OAuthController {
             String jwtToken = jwtTokenProvider.generateTokenFromEmail(user.getEmail());
 
             // 5. Set token in httpOnly cookie
-            Cookie cookie = new Cookie("auth_token", jwtToken);
+            Cookie cookie = new Cookie("accessToken", jwtToken);
             cookie.setHttpOnly(true);
             cookie.setSecure(false); // Set to true in production with HTTPS
             cookie.setPath("/");
