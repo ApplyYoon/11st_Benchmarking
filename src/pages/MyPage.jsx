@@ -18,12 +18,30 @@ const MyPage = () => {
     const { user, cancelOrder, confirmPurchase } = useAuth();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('orders');
-
+    const [selectedYear, setSelectedYear] = useState('전체');
 
     if (!user) {
         navigate('/login');
         return null;
     }
+
+    // [New] Extract unique years from orders
+    const getAvailableYears = () => {
+        if (!user.orders || user.orders.length === 0) return [];
+        const years = user.orders.map(order => order.date.split('-')[0]); // "2024-12-14" -> "2024"
+        return [...new Set(years)].sort((a, b) => b - a); // Unique & Descending
+    };
+
+    const availableYears = getAvailableYears();
+
+    // [New] Filter orders based on selectedYear
+    const getFilteredOrders = () => {
+        if (!user.orders) return [];
+        if (selectedYear === '전체') return user.orders;
+        return user.orders.filter(order => order.date.startsWith(selectedYear));
+    };
+
+    const filteredOrders = getFilteredOrders();
 
     return (
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 20px', display: 'flex', gap: '30px' }}>
@@ -48,9 +66,24 @@ const MyPage = () => {
                 <div style={{ marginBottom: '60px' }}>
                     {activeTab === 'orders' && (
                         <>
-                            <h2 style={{ fontSize: '20px', fontWeight: 'bold', paddingBottom: '15px', borderBottom: '2px solid #333' }}>주문/배송 조회</h2>
-                            {user.orders && user.orders.length > 0 ? (
-                                user.orders.map(order => (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '15px', borderBottom: '2px solid #333' }}>
+                                <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>주문/배송 조회</h2>
+
+                                {/* Year Filter Dropdown */}
+                                <select
+                                    value={selectedYear}
+                                    onChange={(e) => setSelectedYear(e.target.value)}
+                                    style={{ padding: '5px 10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                >
+                                    <option value="전체">전체 기간</option>
+                                    {availableYears.map(year => (
+                                        <option key={year} value={year}>{year}년</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {filteredOrders.length > 0 ? (
+                                filteredOrders.map(order => (
                                     <div key={order.id} style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '20px', marginTop: '15px' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
                                             <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{order.date}</span>
@@ -80,7 +113,9 @@ const MyPage = () => {
                                     </div>
                                 ))
                             ) : (
-                                <div style={{ padding: '50px 0', textAlign: 'center', color: '#888', borderBottom: '1px solid #eee' }}>최근 주문 내역이 없습니다.</div>
+                                <div style={{ padding: '50px 0', textAlign: 'center', color: '#888', borderBottom: '1px solid #eee' }}>
+                                    {selectedYear === '전체' ? '주문 내역이 없습니다.' : `${selectedYear}년 주문 내역이 없습니다.`}
+                                </div>
                             )}
                         </>
                     )}

@@ -4,7 +4,7 @@ import ProductCard from '../components/shared/ProductCard';
 import { getCategoryName, getCategoryKey, categoryMap } from '../utils/categoryUtils';
 
 const Best = () => {
-    const [mainTab, setMainTab] = useState('베스트 500');
+    const [mainTab, setMainTab] = useState('베스트 25');
     const [selectedCategory, setSelectedCategory] = useState('전체');
     const [sortBy, setSortBy] = useState('인기순');
     const [products, setProducts] = useState([]);
@@ -33,7 +33,7 @@ const Best = () => {
         if (products.length === 0) return;
 
         let baseProductsForCategories = [];
-        if (mainTab === '베스트 500') {
+        if (mainTab === '베스트 25') {
             baseProductsForCategories = products.filter(p => p.isBest || p.best);
         } else if (mainTab === '쇼킹딜 베스트') {
             baseProductsForCategories = products.filter(p => {
@@ -59,8 +59,8 @@ const Best = () => {
 
     // 탭에 따라 상품 필터링
     let baseProducts = [];
-    if (mainTab === '베스트 500') {
-        // 베스트 500: isBest가 true인 상품만
+    if (mainTab === '베스트 25') {
+        // 베스트 25: isBest가 true인 상품만
         baseProducts = products.filter(p => p.isBest || p.best);
     } else if (mainTab === '쇼킹딜 베스트') {
         // 쇼킹딜 베스트: 할인율이 높은 상품들 (할인율 20% 이상 또는 타임딜 상품)
@@ -106,7 +106,7 @@ const Best = () => {
                 }}>
                     <button
                         onClick={() => {
-                            setMainTab('베스트 500');
+                            setMainTab('베스트 25');
                             setSelectedCategory('전체');
                         }}
                         style={{
@@ -114,15 +114,15 @@ const Best = () => {
                             padding: '20px',
                             border: 'none',
                             backgroundColor: 'white',
-                            borderBottom: mainTab === '베스트 500' ? '3px solid #f01a21' : '3px solid transparent',
+                            borderBottom: mainTab === '베스트 25' ? '3px solid #f01a21' : '3px solid transparent',
                             cursor: 'pointer',
                             fontSize: '16px',
                             fontWeight: 'bold',
-                            color: mainTab === '베스트 500' ? '#f01a21' : '#666',
+                            color: mainTab === '베스트 25' ? '#f01a21' : '#666',
                             transition: 'all 0.2s'
                         }}
                     >
-                        베스트 <span style={{ color: '#f01a21' }}>500</span>
+                        베스트 <span style={{ color: '#f01a21' }}>25</span>
                     </button>
                     <button
                         onClick={() => {
@@ -206,7 +206,7 @@ const Best = () => {
                     alignItems: 'center'
                 }}>
                     <span style={{ fontSize: '13px', color: '#999' }}>
-                        {mainTab === '베스트 500' ? '베스트 500 ?' : '쇼킹딜 베스트 ?'}
+                        {mainTab === '베스트 25' ? '베스트 25 ?' : '쇼킹딜 베스트 ?'}
                     </span>
                 </div>
 

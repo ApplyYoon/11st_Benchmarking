@@ -7,7 +7,7 @@ const MDRecommends = () => {
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
     const ITEMS_PER_LOAD = 8;
-    const MAX_ITEMS = Math.min(allItems.length, 32); // 최대 32개까지만 표시
+    const MAX_ITEMS = 32; // 최대 32개까지만 표시
 
     useEffect(() => {
         const fetchProducts = async () => {
