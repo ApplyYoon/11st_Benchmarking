@@ -6,8 +6,21 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const { login } = useAuth();
+    const { login, signup } = useAuth();
     const navigate = useNavigate();
+
+    const handleSocialLogin = (provider) => {
+        if (provider === 'Kakao') {
+            // Redirect to Kakao OAuth authorization URL
+            const KAKAO_CLIENT_ID = 'df51448645c334cdd1f85b5521edfe51';
+            const REDIRECT_URI = encodeURIComponent('http://localhost:5173/oauth/kakao/callback');
+            const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+            window.location.href = kakaoAuthUrl;
+        } else if (provider === 'Naver') {
+            // Naver OAuth will be implemented when API key is provided
+            alert('네이버 로그인은 API 키 등록 후 사용 가능합니다.');
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -55,7 +68,7 @@ const Login = () => {
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <input
                         type="text"
-                        placeholder="아이디 입력"
+                        placeholder="이메일을 입력해 주세요"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         style={{
@@ -134,6 +147,7 @@ const Login = () => {
                             cursor: 'pointer',
                             transition: 'transform 0.2s'
                         }}
+                            onClick={() => handleSocialLogin('Kakao')}
                             onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                             onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         >
@@ -152,6 +166,7 @@ const Login = () => {
                             cursor: 'pointer',
                             transition: 'transform 0.2s'
                         }}
+                            onClick={() => handleSocialLogin('Naver')}
                             onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                             onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         >

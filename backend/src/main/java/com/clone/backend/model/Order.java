@@ -1,13 +1,15 @@
+/**
+ * 주문 POJO (MongoDB 저장용)
+ * - 주문 ID, 사용자 ID (샤딩 키), 주문명, 총액, 상태
+ * - OrderItem 목록을 내장 문서로 포함
+ * - userId 기준으로 Shard A/B에 분산 저장
+ */
 package com.clone.backend.model;
 
-import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import org.hibernate.annotations.CreationTimestamp;
 import java.util.List;
 
-@Entity
-@Table(name = "orders")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,26 +17,17 @@ import java.util.List;
 @Builder
 public class Order {
 
-    @Id
-    private String id; // Uses Order ID from Toss or generated UUID
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    private String id; // Order ID (Toss OrderId)
+    private Long userId; // Sharding Key (Reference to User)
 
     private String orderName;
     private int totalAmount;
-
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private String status; // Using String for simplicity in Mongo, or can keep Enum
 
     private String paymentKey;
-
-    @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderItem> items;
+    private List<OrderItem> items; // Embedded items
 
     public enum OrderStatus {
         PENDING, PAID, CANCELLED

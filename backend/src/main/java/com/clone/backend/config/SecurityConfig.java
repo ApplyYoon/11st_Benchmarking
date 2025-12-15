@@ -1,6 +1,12 @@
+/**
+ * Spring Security 보안 설정 클래스
+ * - JWT 기반 인증 필터 적용
+ * - CORS 설정 (localhost:5173 허용)
+ * - /api/auth/**, /api/products/** 등 공개 엔드포인트 설정
+ * - BCrypt 비밀번호 암호화
+ */
 package com.clone.backend.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,8 +27,11 @@ import com.clone.backend.security.JwtAuthenticationFilter;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private com.clone.backend.security.JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -31,10 +40,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/h2-console/**", "/api/products/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/h2-console/**", "/api/products/**", "/api/users/**")
+                        .permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .headers(headers -> headers.frameOptions().disable()); // Create frame options for H2 console
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())); // Create frame options for H2 console
 
         return http.build();
     }

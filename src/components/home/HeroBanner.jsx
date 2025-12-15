@@ -20,9 +20,9 @@ const HeroBanner = () => {
     });
 
     const banners = [
-        '/images/login-banner-1.png',
-        '/images/login-banner-2.png',
-        '/images/login-banner-3.png'
+        'https://11st-benchmarking-images-storage.s3.amazonaws.com/login-banner-1.png',
+        'https://11st-benchmarking-images-storage.s3.amazonaws.com/login-banner-2.png',
+        'https://11st-benchmarking-images-storage.s3.amazonaws.com/login-banner-3.png'
     ];
 
     // 7초마다 자동 슬라이드 (일시정지 상태가 아닐 때만)

@@ -1,42 +1,33 @@
-version: '3.8'
-
 services:
-  db:
-    image: postgres:15
-    container_name: 11st-postgres
-    environment:
-      POSTGRES_DB: clone11st
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  app:
+  backend-ubuntu:
     build: .
-    container_name: 11st-backend
+    container_name: ubuntu_dev_env
     ports:
       - "8080:8080"
-    environment:
-      # Override DB Host to use the service name 'db'
-      - DATASOURCE_URL=jdbc:postgresql://db:5432/clone11st
-      - DATASOURCE_USERNAME=postgres
-      - DATASOURCE_PASSWORD=password
-      - JWT_SECRET=${JWT_SECRET}
-      - TOSS_CLIENT_KEY=${TOSS_CLIENT_KEY}
-      - TOSS_SECRET_KEY=${TOSS_SECRET_KEY}
+    volumes:
+      - ./:/app
+      - /app/build
+      - /app/.gradle
     env_file:
       - .env
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
+    command: tail -f /dev/null
+
+  mongo-shard-a:
+    image: mongo:latest
+    container_name: mongo_shard_a
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_shard_a_data:/data/db
+
+  mongo-shard-b:
+    image: mongo:latest
+    container_name: mongo_shard_b
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_shard_b_data:/data/db
 
 volumes:
-  postgres_data:
+  mongo_shard_a_data:
+  mongo_shard_b_data:
