@@ -81,7 +81,15 @@ const Best = () => {
         : baseProducts.filter(p => p.category === selectedCategory);
 
     // 정렬
-    if (sortBy === '낮은가격순') {
+    if (sortBy === '인기순') {
+        // 베스트 상품을 먼저, 그 다음 ID 순서
+        filteredProducts = [...filteredProducts].sort((a, b) => {
+            if (a.isBest && !b.isBest) return -1;
+            if (!a.isBest && b.isBest) return 1;
+            if (a.isBest && b.isBest) return (a.rank || 0) - (b.rank || 0);
+            return a.id - b.id;
+        });
+    } else if (sortBy === '낮은가격순') {
         filteredProducts = [...filteredProducts].sort((a, b) => a.price - b.price);
     } else if (sortBy === '높은가격순') {
         filteredProducts = [...filteredProducts].sort((a, b) => b.price - a.price);

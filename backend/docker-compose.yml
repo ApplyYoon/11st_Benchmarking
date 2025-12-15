@@ -28,6 +28,16 @@ services:
     volumes:
       - mongo_shard_b_data:/data/db
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
 volumes:
   mongo_shard_a_data:
   mongo_shard_b_data:
+  redis_data:

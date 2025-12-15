@@ -52,7 +52,7 @@ const Payment = () => {
     const availablePoints = user?.points || 0;
 
     // Destructure location state
-    const { amount, orderName, category } = location.state || {};
+    const { amount, orderName, category, items } = location.state || {};
 
     const finalAmount = amount ? Math.max(0, amount - discountAmount - usedPoints) : 0;
 
@@ -287,10 +287,32 @@ const Payment = () => {
                     <div>
                         {/* Order Product */}
                         <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>주문상품</h2>
-                            <div style={{ padding: '20px', backgroundColor: '#f8f8f8', borderRadius: '6px', fontSize: '15px' }}>
-                                <div style={{ fontWeight: 'bold', color: '#333' }}>{orderName}</div>
-                            </div>
+                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>
+                                주문상품 <span style={{ color: '#f01a21', marginLeft: '5px' }}>{items ? items.length : 1}건</span>
+                            </h2>
+                            {items && items.length > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    {items.map((item, index) => (
+                                        <div key={index} style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#f8f8f8', borderRadius: '6px', alignItems: 'center' }}>
+                                            <img src={item.image} alt={item.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', backgroundColor: 'white' }} />
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '4px' }}>{item.name}</div>
+                                                {item.selectedSize && <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>옵션: {item.selectedSize}</div>}
+                                                <div style={{ fontSize: '13px', color: '#666' }}>
+                                                    {item.quantity}개 / {item.price.toLocaleString()}원
+                                                </div>
+                                            </div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '15px' }}>
+                                                {(item.price * item.quantity).toLocaleString()}원
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ padding: '20px', backgroundColor: '#f8f8f8', borderRadius: '6px', fontSize: '15px' }}>
+                                    <div style={{ fontWeight: 'bold', color: '#333' }}>{orderName}</div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Coupon Discount */}

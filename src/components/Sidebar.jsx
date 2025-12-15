@@ -96,13 +96,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                     </Link>
                 </nav>
 
-                <div className="sidebar-footer">
-                    <div className="footer-links">
-                        <Link to="/" onClick={handleLinkClick}>고객센터</Link>
-                        <span className="divider">|</span>
-                        <Link to="/" onClick={handleLinkClick}>설정</Link>
-                    </div>
-                </div>
+                
             </aside>
         </>
     );
