@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { PRODUCTS } from '../../api/mockData';
+import { productApi } from '../../api/productApi';
 import ProductCard from '../shared/ProductCard';
 
 const MDRecommends = () => {
-    // Start with non-Timedeal/Best items
-    const initialItems = PRODUCTS.filter(p => !p.isTimeDeal && !p.isBest);
-    const [items, setItems] = useState(initialItems);
+    const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false); // 섹션 표시 여부
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const allProducts = await productApi.getAllProducts();
+                // Start with non-Timedeal/Best items
+                const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
+                setItems(initialItems);
+            } catch (error) {
+                console.error('상품 로딩 실패:', error);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     const loadMore = async () => {
         if (loading) return;
@@ -16,6 +28,8 @@ const MDRecommends = () => {
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // Generate mock unique items
+        const allProducts = await productApi.getAllProducts();
+        const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
         const newItems = initialItems.map((item, idx) => ({
             ...item,
             id: Date.now() + idx + Math.random(),

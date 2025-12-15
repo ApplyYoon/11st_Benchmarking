@@ -94,10 +94,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                         <Zap size={20} />
                         <span>쇼킹딜</span>
                     </Link>
-                    <Link to="/" className="nav-item" onClick={handleLinkClick}>
-                        <Gift size={20} />
-                        <span>이벤트</span>
-                    </Link>
                 </nav>
 
                 <div className="sidebar-footer">

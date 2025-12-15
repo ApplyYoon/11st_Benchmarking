@@ -2,7 +2,7 @@
  * 인증 서비스
  * - 회원가입: 이메일 중복 확인, 비밀번호 BCrypt 암호화
  * - 로그인: 비밀번호 검증
- * - 초기 등급 FAMILY, 포인트 0으로 설정
+ * - 초기 포인트 1000으로 설정
  */
 package com.clone.backend.service;
 
@@ -38,7 +38,6 @@ public class AuthService {
                 .address(request.getAddress())
                 .detailAddress(request.getDetailAddress())
                 .zipCode(request.getZipCode())
-                .grade(User.Grade.FAMILY)
                 .points(1000)
                 .build();
 

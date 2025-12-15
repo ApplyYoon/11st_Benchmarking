@@ -136,7 +136,6 @@ public class KakaoOAuthService {
                 .email(email)
                 .password("KAKAO_OAUTH_USER_" + kakaoId) // OAuth users don't need a real password
                 .name(nickname)
-                .grade(User.Grade.FAMILY)
                 .points(1000) // Welcome points
                 .address("")
                 .detailAddress("")

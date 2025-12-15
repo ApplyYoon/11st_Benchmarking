@@ -1,11 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { COUPONS } from '../api/mockData';
+import { couponApi } from '../api/productApi';
 
 const MyCoupons = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const [myCoupons, setMyCoupons] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCoupons = async () => {
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                const coupons = await couponApi.getMyCoupons();
+                setMyCoupons(coupons);
+            } catch (error) {
+                console.error('쿠폰 로딩 실패:', error);
+                setMyCoupons([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCoupons();
+    }, [user]);
 
     // 로그인하지 않은 경우 처리
     if (!user) {
@@ -18,11 +42,6 @@ const MyCoupons = () => {
             </div>
         );
     }
-
-    // 사용자가 보유한 쿠폰 매핑
-    const myCoupons = user.coupons
-        ? user.coupons.map(id => COUPONS.find(c => c.id === id)).filter(Boolean)
-        : [];
 
     return (
         <div style={{ backgroundColor: '#f8f8f8', minHeight: '100vh', padding: '40px 0' }}>
@@ -48,7 +67,12 @@ const MyCoupons = () => {
                         </button>
                     </div>
 
-                    {myCoupons.length > 0 ? (
+                    {loading ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: '50px 0' }}>
+                            <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                        </div>
+                    ) : myCoupons.length > 0 ? (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
                             {myCoupons.map(coupon => (
                                 <div key={coupon.id} style={{
@@ -84,7 +108,7 @@ const MyCoupons = () => {
                                         </div>
                                     </div>
                                     <div style={{ fontSize: '12px', color: '#666', borderTop: '1px dashed #eee', paddingTop: '10px', marginTop: '15px' }}>
-                                        유효기간: 2025-12-31 까지
+                                        유효기간: {coupon.validUntil ? new Date(coupon.validUntil).toLocaleDateString('ko-KR') : '제한 없음'} 까지
                                     </div>
                                 </div>
                             ))}

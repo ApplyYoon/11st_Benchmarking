@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { PRODUCTS } from '../api/mockData';
 import ProductCard from '../components/shared/ProductCard';
-
-import { getRelatedKeywords } from '../api/searchUtils';
+import { productApi } from '../api/productApi';
+import { getCategoryName } from '../utils/categoryUtils';
 
 const Search = () => {
     const [searchParams] = useSearchParams();
@@ -11,31 +10,46 @@ const Search = () => {
     const originalQuery = searchParams.get('original');
     const [results, setResults] = useState([]);
     const [relatedKeywords, setRelatedKeywords] = useState([]);
+    const [categories, setCategories] = useState(['all']);
+    const [loading, setLoading] = useState(false);
 
     // Filters
     const [category, setCategory] = useState('all');
     const [price, setPrice] = useState('all');
 
     useEffect(() => {
-        let filtered = PRODUCTS.filter(p =>
-            p.name.includes(query) || (p.category && p.category.includes(query))
-        );
+        const fetchData = async () => {
+            if (!query) {
+                setResults([]);
+                return;
+            }
 
-        if (category !== 'all') {
-            filtered = filtered.filter(p => p.category === category);
-        }
+            setLoading(true);
+            try {
+                const products = await productApi.searchProducts(query, category, price);
+                setResults(products);
 
-        if (price !== 'all') {
-            if (price === 'under10k') filtered = filtered.filter(p => p.price < 10000);
-            else if (price === '10k-50k') filtered = filtered.filter(p => p.price >= 10000 && p.price <= 50000);
-            else if (price === 'over50k') filtered = filtered.filter(p => p.price > 50000);
-        }
+                // 카테고리 목록 가져오기
+                const allProducts = await productApi.getAllProducts();
+                const uniqueCategories = ['all', ...new Set(allProducts.map(p => p.category).filter(Boolean))];
+                setCategories(uniqueCategories);
 
-        setResults(filtered);
-        setRelatedKeywords(getRelatedKeywords(query));
+                // 연관 검색어는 검색 결과에서 추출
+                const related = products
+                    .map(p => p.name)
+                    .filter(name => name.includes(query) && name !== query)
+                    .slice(0, 8);
+                setRelatedKeywords(related);
+            } catch (error) {
+                console.error('검색 실패:', error);
+                setResults([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
     }, [query, category, price]);
-
-    const categories = ['all', ...new Set(PRODUCTS.map(p => p.category).filter(Boolean))];
 
     return (
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 20px', display: 'flex', gap: '30px' }}>
@@ -56,7 +70,7 @@ const Search = () => {
                                         onChange={() => setCategory(cat)}
                                         style={{ accentColor: '#333', marginRight: '6px' }}
                                     />
-                                    {cat === 'all' ? '전체' : cat}
+                                    {cat === 'all' ? '전체' : getCategoryName(cat)}
                                 </label>
                             </div>
                         ))}
@@ -133,7 +147,12 @@ const Search = () => {
 
                 </div>
 
-                {results.length > 0 ? (
+                {loading ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}>
+                        <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                    </div>
+                ) : results.length > 0 ? (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                         {results.map(product => (
                             <ProductCard key={product.id} product={product} />

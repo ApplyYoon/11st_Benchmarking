@@ -56,7 +56,7 @@ const ProductCard = ({ product }) => {
                     {/* Image Area */}
                     <div style={{ position: 'relative', paddingTop: '100%', overflow: 'hidden', borderRadius: '8px', backgroundColor: '#f4f4f4', marginBottom: '12px' }}>
                         <img
-                            src={product.image}
+                            src={product.imageUrl || product.image}
                             alt={product.name}
                             loading="lazy"
                             onLoad={() => setImageLoaded(true)}
@@ -73,12 +73,12 @@ const ProductCard = ({ product }) => {
                         />
 
                         {/* Badges */}
-                        {product.isTimeDeal && (
+                        {(product.isTimeDeal || product.timeDeal) && (
                             <div style={{ position: 'absolute', top: '10px', left: '10px', backgroundColor: '#f01a21', color: 'white', padding: '5px 10px', fontSize: '12px', fontWeight: 'bold', borderRadius: '4px', zIndex: 5 }}>
-                                타임딜
+                                [타임딜]
                             </div>
                         )}
-                        {product.isBest && (
+                        {(product.isBest || product.best) && (
                             <div style={{ position: 'absolute', top: '0', left: '12px', backgroundColor: '#333', color: 'white', width: '32px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: '900', clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 50% 85%, 0% 100%)', zIndex: 5 }}>
                                 {product.rank}
                             </div>
@@ -106,16 +106,16 @@ const ProductCard = ({ product }) => {
                     {/* Info Area */}
                     <div>
                         <h3 style={{ fontSize: '14px', color: '#111', margin: '0 0 8px', lineHeight: '1.4', height: '40px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', fontWeight: 'normal' }}>
-                            {product.name}
+                            {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
                         </h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            {product.discount > 0 && (
-                                <span style={{ color: '#f01a21', fontWeight: '900', fontSize: '18px', fontFamily: 'sans-serif' }}>{product.discount}%</span>
+                            {(product.discountRate || product.discount) > 0 && (
+                                <span style={{ color: '#f01a21', fontWeight: '900', fontSize: '18px', fontFamily: 'sans-serif' }}>{product.discountRate || product.discount}%</span>
                             )}
                             <span style={{ fontWeight: '900', fontSize: '18px', color: '#111', fontFamily: 'sans-serif' }}>{product.price.toLocaleString()}</span>
                             <span style={{ fontSize: '14px', fontWeight: 'normal' }}>원</span>
                         </div>
-                        {product.discount > 0 && (
+                        {(product.discountRate || product.discount) > 0 && (
                             <div style={{ textDecoration: 'line-through', color: '#999', fontSize: '13px', marginTop: '2px' }}>
                                 {product.originalPrice.toLocaleString()}원
                             </div>
@@ -169,12 +169,14 @@ const ProductCard = ({ product }) => {
                         {/* Product Info */}
                         <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #eee' }}>
                             <img
-                                src={product.image}
+                                src={product.imageUrl || product.image}
                                 alt={product.name}
                                 style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
                             />
                             <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px', lineHeight: '1.3' }}>{product.name}</div>
+                                <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px', lineHeight: '1.3' }}>
+                                    {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
+                                </div>
                                 <div style={{ fontSize: '15px', fontWeight: 'bold' }}>{product.price.toLocaleString()}원</div>
                             </div>
                         </div>

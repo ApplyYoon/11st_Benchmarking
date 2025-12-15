@@ -1,29 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { PRODUCTS } from '../../api/mockData';
+import { productApi } from '../../api/productApi';
 import ProductCard from '../shared/ProductCard';
 
 const BestSwiper = ({ onLoadComplete }) => {
-    const initialBestItems = PRODUCTS.filter(p => p.isBest).sort((a, b) => a.rank - b.rank);
-    const [bestItems, setBestItems] = useState(initialBestItems.slice(0, 4));
+    const [initialBestItems, setInitialBestItems] = useState([]);
+    const [bestItems, setBestItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [loadCount, setLoadCount] = useState(0);
     const [isVisible, setIsVisible] = useState(false); // 섹션 표시 여부
     const MAX_LOADS = 3; // 최대 3번만 로드
 
+    useEffect(() => {
+        const fetchBestProducts = async () => {
+            try {
+                const products = await productApi.getBestProducts();
+                const sorted = products.sort((a, b) => (a.rank || 0) - (b.rank || 0));
+                setInitialBestItems(sorted);
+                setBestItems(sorted.slice(0, 4));
+            } catch (error) {
+                console.error('베스트 상품 로딩 실패:', error);
+            }
+        };
+        fetchBestProducts();
+    }, []);
+
     const loadMore = async () => {
-        if (loading || loadCount >= MAX_LOADS) return;
+        if (loading || loadCount >= MAX_LOADS || initialBestItems.length === 0) return;
         setLoading(true);
         // Simulate fetch
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        // Generate mock unique items
-        const newItems = initialBestItems.slice(0, 4).map((item, idx) => ({
-            ...item,
-            id: Date.now() + idx + Math.random(),
-            name: `[베스트] ${item.name}`
-        }));
-
-        setBestItems(prev => [...prev, ...newItems]);
+        // 현재 표시된 상품 수를 기준으로 다음 상품들 가져오기
+        setBestItems(prev => {
+            const currentCount = prev.length;
+            const nextItems = initialBestItems.slice(currentCount, currentCount + 4);
+            return [...prev, ...nextItems];
+        });
         setLoadCount(prev => prev + 1);
         setLoading(false);
     };

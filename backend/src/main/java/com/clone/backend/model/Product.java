@@ -6,6 +6,7 @@
  */
 package com.clone.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -38,9 +39,11 @@ public class Product {
     private String imageUrl;
     private String category;
 
+    @JsonProperty("isTimeDeal")
     private boolean isTimeDeal;
     private LocalDateTime timeDealEndTime;
 
+    @JsonProperty("isBest")
     private boolean isBest;
     private Integer rank;
 
