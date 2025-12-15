@@ -294,7 +294,7 @@ const Payment = () => {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                     {items.map((item, index) => (
                                         <div key={index} style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#f8f8f8', borderRadius: '6px', alignItems: 'center' }}>
-                                            <img src={item.image} alt={item.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', backgroundColor: 'white' }} />
+                                            <img src={item.imageUrl || item.image} alt={item.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', backgroundColor: 'white' }} />
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '4px' }}>{item.name}</div>
                                                 {item.selectedSize && <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>옵션: {item.selectedSize}</div>}
