@@ -71,7 +71,8 @@ const ProductDetail = () => {
             state: {
                 amount: totalAmount,
                 orderName,
-                category: product.category
+                category: product.category,
+                items: [{ ...product, quantity, selectedSize }]
             }
         });
     };

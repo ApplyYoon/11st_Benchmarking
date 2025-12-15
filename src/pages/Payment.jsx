@@ -48,7 +48,7 @@ const Payment = () => {
     const [discountAmount, setDiscountAmount] = useState(0);
 
     // Destructure location state
-    const { amount, orderName, category } = location.state || {};
+    const { amount, orderName, category, items } = location.state || {};
 
     const finalAmount = amount ? amount - discountAmount : 0;
 
@@ -69,13 +69,17 @@ const Payment = () => {
                 if (!coupon) return null;
 
                 const isAmountSatisfied = !coupon.minOrderAmount || coupon.minOrderAmount <= amount;
-                const isCategorySatisfied = !coupon.category || coupon.category === category;
+
+                // Validate Category: Check if single category matches OR if any item in the list matches the coupon category
+                const isCategorySatisfied = !coupon.category ||
+                    (category === coupon.category) ||
+                    (items && items.some(item => item.category === coupon.category));
 
                 let reason = '';
                 if (!isAmountSatisfied) reason = `최소주문 ${coupon.minOrderAmount.toLocaleString()}원 이상`;
                 else if (!isCategorySatisfied) {
                     const categoryName = coupon.category === 'fashion' ? '의류' : coupon.category;
-                    reason = `${categoryName} 전용`;
+                    reason = `${categoryName} 상품 포함 시 사용 가능`;
                 }
 
                 return {
@@ -85,7 +89,7 @@ const Payment = () => {
                 };
             })
             .filter(Boolean);
-    }, [user, amount, category]);
+    }, [user, amount, category, items]);
 
     const handleCouponChange = (e) => {
         const couponId = Number(e.target.value);
@@ -268,10 +272,32 @@ const Payment = () => {
                     <div>
                         {/* Order Product */}
                         <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>주문상품</h2>
-                            <div style={{ padding: '20px', backgroundColor: '#f8f8f8', borderRadius: '6px', fontSize: '15px' }}>
-                                <div style={{ fontWeight: 'bold', color: '#333' }}>{orderName}</div>
-                            </div>
+                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>
+                                주문상품 <span style={{ color: '#f01a21', marginLeft: '5px' }}>{items ? items.length : 1}건</span>
+                            </h2>
+                            {items && items.length > 0 ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    {items.map((item, index) => (
+                                        <div key={index} style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#f8f8f8', borderRadius: '6px', alignItems: 'center' }}>
+                                            <img src={item.image} alt={item.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', backgroundColor: 'white' }} />
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '4px' }}>{item.name}</div>
+                                                {item.selectedSize && <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>옵션: {item.selectedSize}</div>}
+                                                <div style={{ fontSize: '13px', color: '#666' }}>
+                                                    {item.quantity}개 / {item.price.toLocaleString()}원
+                                                </div>
+                                            </div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '15px' }}>
+                                                {(item.price * item.quantity).toLocaleString()}원
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ padding: '20px', backgroundColor: '#f8f8f8', borderRadius: '6px', fontSize: '15px' }}>
+                                    <div style={{ fontWeight: 'bold', color: '#333' }}>{orderName}</div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Coupon Discount */}
