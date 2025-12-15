@@ -164,11 +164,6 @@ const UserInfo = () => {
 
                         <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '20px', alignItems: 'center', marginBottom: '15px' }}>
                             <div style={{ color: '#666' }}>아이디</div>
-                            <div>{user.id}</div>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '20px', alignItems: 'center', marginBottom: '15px' }}>
-                            <div style={{ color: '#666' }}>이름</div>
                             {isEditing ? (
                                 <input
                                     type="text"
