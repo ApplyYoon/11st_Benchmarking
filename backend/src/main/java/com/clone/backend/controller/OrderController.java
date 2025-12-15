@@ -31,12 +31,14 @@ public class OrderController {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
+    private final UserCouponRepository userCouponRepository;
 
     public OrderController(OrderRepository orderRepository, CartRepository cartRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository, UserCouponRepository userCouponRepository) {
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
+        this.userCouponRepository = userCouponRepository;
     }
 
     @Value("${toss.secret-key}")
@@ -216,6 +218,22 @@ public class OrderController {
 
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // 쿠폰 사용 처리
+            Long couponId = payload.get("couponId") != null ? Long.valueOf(payload.get("couponId").toString()) : null;
+            if (couponId != null) {
+                var userCouponOpt = userCouponRepository.findByUserIdAndCouponId(user.getId(), couponId);
+                if (userCouponOpt.isPresent()) {
+                    UserCoupon userCoupon = userCouponOpt.get();
+                    if (userCoupon.isUsed()) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of("message", "이미 사용된 쿠폰입니다."));
+                    }
+                    userCoupon.setUsed(true);
+                    userCoupon.setUsedAt(java.time.LocalDateTime.now());
+                    userCouponRepository.save(userCoupon);
+                }
+            }
 
             // 포인트 차감 처리
             if (usedPoints > 0) {
