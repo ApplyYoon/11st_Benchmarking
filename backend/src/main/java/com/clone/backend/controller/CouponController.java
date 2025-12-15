@@ -8,6 +8,7 @@ package com.clone.backend.controller;
 import com.clone.backend.model.Coupon;
 import com.clone.backend.model.User;
 import com.clone.backend.model.UserCoupon;
+import com.clone.backend.repository.CouponRepository;
 import com.clone.backend.repository.UserCouponRepository;
 import com.clone.backend.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
@@ -26,12 +27,15 @@ public class CouponController {
 
     private final UserCouponRepository userCouponRepository;
     private final UserRepository userRepository;
+    private final CouponRepository couponRepository;
 
     public CouponController(
             UserCouponRepository userCouponRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            CouponRepository couponRepository) {
         this.userCouponRepository = userCouponRepository;
         this.userRepository = userRepository;
+        this.couponRepository = couponRepository;
     }
 
     /**
@@ -135,6 +139,58 @@ public class CouponController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 쿠폰 발급
+     */
+    @PostMapping("/issue")
+    public ResponseEntity<Map<String, Object>> issueCoupon(
+            Authentication authentication,
+            @RequestBody Map<String, Object> payload) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Long couponId = Long.valueOf(payload.get("couponId").toString());
+
+        // 쿠폰 존재 확인
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElse(null);
+        if (coupon == null) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("message", "쿠폰을 찾을 수 없습니다.");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        // 이미 발급받은 쿠폰인지 확인
+        var existingCoupon = userCouponRepository.findByUserIdAndCouponId(user.getId(), couponId);
+        if (existingCoupon.isPresent() && !existingCoupon.get().isUsed()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("message", "이미 발급받은 쿠폰입니다.");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        // UserCoupon 생성 및 저장
+        UserCoupon userCoupon = UserCoupon.builder()
+                .user(user)
+                .coupon(coupon)
+                .isUsed(false)
+                .issuedAt(LocalDateTime.now())
+                .build();
+
+        userCouponRepository.save(userCoupon);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "쿠폰이 발급되었습니다.");
+        return ResponseEntity.ok(response);
     }
 }
 
