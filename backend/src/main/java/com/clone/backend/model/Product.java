@@ -12,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,7 +37,6 @@ public class Product {
     private Long id;
 
     private String name;
-    private int price;
     private int originalPrice;
     private int discountRate;
     private String imageUrl;
@@ -51,4 +51,21 @@ public class Product {
     private Integer rank;
 
     private int stockQuantity;
+
+    /**
+     * 할인된 가격을 계산하여 반환
+     * originalPrice와 discountRate를 기반으로 할인 가격 계산
+     */
+    @Transient
+    @JsonProperty("price")
+    public int getPrice() {
+        if (originalPrice <= 0) {
+            return 0;
+        }
+        if (discountRate <= 0) {
+            return originalPrice;
+        }
+        // 할인 가격 계산: 원래 가격 * (100 - 할인률) / 100
+        return (int) Math.round(originalPrice * (100.0 - discountRate) / 100.0);
+    }
 }

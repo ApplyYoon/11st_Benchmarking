@@ -182,7 +182,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const addCoupon = (couponId) => {
+    const addCoupon = async (couponId) => {
         if (!user) return { success: false, message: '로그인이 필요합니다.' };
 
         // 이미 보유한 쿠폰인지 확인 (중복 방지)
@@ -190,14 +190,24 @@ export const AuthProvider = ({ children }) => {
             return { success: false, message: '이미 발급받은 쿠폰입니다.' };
         }
 
-        const updatedUser = {
-            ...user,
-            coupons: [...(user.coupons || []), couponId]
-        };
+        try {
+            // 백엔드 API 호출
+            await client.post('/coupons/issue', { couponId });
 
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        return { success: true, message: '쿠폰이 발급되었습니다!' };
+            // 성공 시 로컬 상태 업데이트
+            const updatedUser = {
+                ...user,
+                coupons: [...(user.coupons || []), couponId]
+            };
+
+            setUser(updatedUser);
+            localStorage.setItem('user_profile', JSON.stringify(updatedUser));
+            return { success: true, message: '쿠폰이 발급되었습니다!' };
+        } catch (error) {
+            console.error('쿠폰 발급 실패:', error);
+            const errorMessage = error.response?.data?.message || '쿠폰 발급에 실패했습니다.';
+            return { success: false, message: errorMessage };
+        }
     };
 
     const updateAddress = async (addressData) => {

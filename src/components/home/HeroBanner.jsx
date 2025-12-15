@@ -61,8 +61,8 @@ const HeroBanner = () => {
         }
     };
 
-    const handleCouponIssue = () => {
-        const result = addCoupon(5); // 쿠폰 ID 5
+    const handleCouponIssue = async () => {
+        const result = await addCoupon(2); // 쿠폰 ID 5
 
         // 결과 모달로 변경
         setModalConfig({
