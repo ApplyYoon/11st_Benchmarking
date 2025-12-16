@@ -154,10 +154,16 @@ public class ProductController {
 
     /**
      * 카테고리 목록 조회 API
+     * search 파라미터가 있으면 해당 검색어와 매칭되는 상품의 카테고리만 반환
      */
     @GetMapping("/categories")
-    public ResponseEntity<List<String>> getCategories() {
-        List<String> categories = productRepository.findDistinctCategories();
+    public ResponseEntity<List<String>> getCategories(@RequestParam(required = false) String search) {
+        List<String> categories;
+        if (search != null && !search.trim().isEmpty()) {
+            categories = productRepository.findCategoriesBySearchQuery(search.trim());
+        } else {
+            categories = productRepository.findDistinctCategories();
+        }
         return ResponseEntity.ok(categories);
     }
 

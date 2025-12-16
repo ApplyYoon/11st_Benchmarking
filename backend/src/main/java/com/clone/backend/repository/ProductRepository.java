@@ -119,4 +119,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
       LIMIT 10
       """, nativeQuery = true)
   List<String> findRelatedKeywords(@Param("query") String query);
+
+  /**
+   * 검색어에 해당하는 상품이 있는 카테고리 목록 조회
+   */
+  @Query("SELECT DISTINCT p.category FROM Product p WHERE p.category IS NOT NULL AND LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))")
+  List<String> findCategoriesBySearchQuery(@Param("query") String query);
 }

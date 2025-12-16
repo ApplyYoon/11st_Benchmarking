@@ -79,6 +79,7 @@ const Search = () => {
             setResults([]);
             setOffset(0);
             setHasMore(true);
+            setCategory('all'); // 검색어 변경 시 카테고리 리셋
 
             try {
                 const products = await productApi.searchProductsPaginated(query, category, price, 0, ITEMS_PER_PAGE);
@@ -86,9 +87,9 @@ const Search = () => {
                 setOffset(ITEMS_PER_PAGE);
                 setHasMore(products.length === ITEMS_PER_PAGE);
 
-                // 카테고리 목록 가져오기 (최적화된 API 사용)
+                // 카테고리 목록 가져오기 (검색 결과에 맞는 카테고리만)
                 try {
-                    const categoryList = await productApi.getCategories();
+                    const categoryList = await productApi.getCategories(query);
                     const uniqueCategories = ['all', ...categoryList.filter(Boolean)];
                     setCategories(uniqueCategories);
                 } catch (catError) {

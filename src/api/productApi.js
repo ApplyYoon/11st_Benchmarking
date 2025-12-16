@@ -70,9 +70,13 @@ export const productApi = {
         return response.data;
     },
 
-    // 카테고리 목록 조회
-    getCategories: async () => {
-        const response = await client.get('/products/categories');
+    // 카테고리 목록 조회 (검색어가 있으면 해당 검색 결과의 카테고리만)
+    getCategories: async (search = null) => {
+        const params = {};
+        if (search) {
+            params.search = search;
+        }
+        const response = await client.get('/products/categories', { params });
         return response.data;
     },
 
