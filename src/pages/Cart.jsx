@@ -1,8 +1,8 @@
 import React from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
-import { useNavigate } from 'react-router-dom';
-import '../styles/Cart.css';
+import { useAuth } from '../context/AuthContext'; // 사용자 정보 가져오기
+import { useCart } from '../context/CartContext'; // 장바구니 정보 가져오기
+import { useNavigate } from 'react-router-dom'; // 페이지 이동
+import '../styles/Cart.css'; // 스타일 적용 
 
 const Cart = () => {
     const { cart, removeFromCart, updateQuantity, totalAmount } = useCart();
@@ -16,18 +16,15 @@ const Cart = () => {
             return;
         }
 
-        // Pass payment data via state
-        // Here we just navigate to /payment with state
-        // 장바구니 결제 시엔 category 정보가 모호하므로(여러 상품 섞임), 
-        // 대표 상품의 카테고리나, 혹은 'mix' 등으로 처리해야 할 수 있음.
-        // 현재는 첫 번째 상품의 카테고리를 넘기거나, 생략하여 Payment에서 '전체 대상' 쿠폰만 뜨게 유도.
-        const firstItemCategory = cart.length > 0 ? cart[0].category : undefined;
+        // 장바구니에 있는 모든 상품의 카테고리를 추출하여 배열로 전달
+        // 이를 통해 여러 카테고리의 상품이 섞여 있어도 모든 관련 쿠폰을 조회할 수 있음
+        const uniqueCategories = [...new Set(cart.map(item => item.category).filter(Boolean))];
 
         navigate('/payment', {
             state: {
                 amount: totalAmount,
                 orderName: cart[0].name + (cart.length > 1 ? ` 외 ${cart.length - 1}건` : ''),
-                category: firstItemCategory,
+                category: uniqueCategories, // 배열로 전달
                 items: cart
             }
         });
