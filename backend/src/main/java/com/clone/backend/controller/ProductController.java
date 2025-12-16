@@ -46,8 +46,14 @@ public class ProductController {
         List<Product> products;
 
         if ("timedeal".equals(type)) {
+            if (page != null && size != null) {
+                return productRepository.findByIsTimeDealTrue(PageRequest.of(page, size)).getContent();
+            }
             products = productRepository.findByIsTimeDealTrue();
         } else if ("best".equals(type)) {
+            if (page != null && size != null) {
+                return productRepository.findByIsBestTrueOrderByRankAsc(PageRequest.of(page, size)).getContent();
+            }
             products = productRepository.findByIsBestTrueOrderByRankAsc();
         } else if (category != null && !category.equals("all")) {
             products = productRepository.findByCategory(category);

@@ -28,19 +28,25 @@ export const productApi = {
         return response.data;
     },
 
-    // 타임딜 상품 조회
-    getTimeDealProducts: async () => {
-        const response = await client.get('/products', {
-            params: { type: 'timedeal' }
-        });
+    // 타임딜 상품 조회 (페이징 지원)
+    getTimeDealProducts: async (page, size) => {
+        const params = { type: 'timedeal' };
+        if (page !== undefined && size !== undefined) {
+            params.page = page;
+            params.size = size;
+        }
+        const response = await client.get('/products', { params });
         return response.data;
     },
 
-    // 베스트 상품 조회
-    getBestProducts: async () => {
-        const response = await client.get('/products', {
-            params: { type: 'best' }
-        });
+    // 베스트 상품 조회 (페이징 지원)
+    getBestProducts: async (page, size) => {
+        const params = { type: 'best' };
+        if (page !== undefined && size !== undefined) {
+            params.page = page;
+            params.size = size;
+        }
+        const response = await client.get('/products', { params });
         return response.data;
     },
 

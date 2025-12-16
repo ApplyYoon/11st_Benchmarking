@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { productApi } from '../api/productApi';
 import ProductCard from '../components/shared/ProductCard';
 import { getCategoryName, getCategoryKey, categoryMap } from '../utils/categoryUtils';
+
+const PAGE_SIZE = 8;
 
 const Best = () => {
     const [mainTab, setMainTab] = useState('베스트 25');
@@ -9,46 +11,80 @@ const Best = () => {
     const [sortBy, setSortBy] = useState('인기순');
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(0);
     const [categories, setCategories] = useState(['전체']);
 
     const sortOptions = ['인기순', '낮은가격순', '높은가격순'];
 
+    // Intersection Observer ref
+    const observerRef = useRef();
+    const lastProductRef = useCallback(node => {
+        if (loadingMore) return;
+        if (observerRef.current) observerRef.current.disconnect();
+
+        observerRef.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore && !loading) {
+                setPage(prev => prev + 1);
+            }
+        }, { threshold: 0.1 });
+
+        if (node) observerRef.current.observe(node);
+    }, [loadingMore, hasMore, loading]);
+
+    // 탭 변경 시 초기화
+    useEffect(() => {
+        setProducts([]);
+        setPage(0);
+        setHasMore(true);
+        setLoading(true);
+    }, [mainTab]);
+
+    // 초기 데이터 로드 또는 페이지 변경 시 데이터 로드
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                setLoading(true);
-                const data = await productApi.getProducts();
-                setProducts(data);
+                if (page === 0) {
+                    setLoading(true);
+                } else {
+                    setLoadingMore(true);
+                }
+
+                let data;
+                if (mainTab === '베스트 25') {
+                    data = await productApi.getBestProducts(page, PAGE_SIZE);
+                } else {
+                    // 쇼킹딜 베스트: 타임딜 상품 사용
+                    data = await productApi.getTimeDealProducts(page, PAGE_SIZE);
+                }
+
+                if (data.length < PAGE_SIZE) {
+                    setHasMore(false);
+                }
+
+                if (page === 0) {
+                    setProducts(data);
+                } else {
+                    setProducts(prev => [...prev, ...data]);
+                }
             } catch (error) {
                 console.error('상품 로딩 실패:', error);
             } finally {
                 setLoading(false);
+                setLoadingMore(false);
             }
         };
         fetchProducts();
-    }, []);
+    }, [mainTab, page]);
 
     // 탭에 따라 카테고리 목록 업데이트
     useEffect(() => {
         if (products.length === 0) return;
 
-        let baseProductsForCategories = [];
-        if (mainTab === '베스트 25') {
-            baseProductsForCategories = products.filter(p => p.isBest || p.best);
-        } else if (mainTab === '쇼킹딜 베스트') {
-            baseProductsForCategories = products.filter(p => {
-                const discountRate = p.discountRate || p.discount || 0;
-                return discountRate >= 20 || p.isTimeDeal || p.timeDeal;
-            });
-        }
-
-        if (baseProductsForCategories.length > 0) {
-            const uniqueCategories = ['전체', ...new Set(baseProductsForCategories.map(p => p.category).filter(Boolean))];
-            setCategories(uniqueCategories);
-        } else {
-            setCategories(['전체']);
-        }
-    }, [mainTab, products]);
+        const uniqueCategories = ['전체', ...new Set(products.map(p => p.category).filter(Boolean))];
+        setCategories(uniqueCategories);
+    }, [products]);
 
     // 선택된 카테고리가 현재 카테고리 목록에 없으면 '전체'로 리셋
     useEffect(() => {
@@ -57,28 +93,10 @@ const Best = () => {
         }
     }, [categories, selectedCategory]);
 
-    // 탭에 따라 상품 필터링
-    let baseProducts = [];
-    if (mainTab === '베스트 25') {
-        // 베스트 25: isBest가 true인 상품만
-        baseProducts = products.filter(p => p.isBest || p.best);
-    } else if (mainTab === '쇼킹딜 베스트') {
-        // 쇼킹딜 베스트: 할인율이 높은 상품들 (할인율 20% 이상 또는 타임딜 상품)
-        baseProducts = products.filter(p => {
-            const discountRate = p.discountRate || p.discount || 0;
-            return discountRate >= 20 || p.isTimeDeal || p.timeDeal;
-        }).sort((a, b) => {
-            // 할인율이 높은 순으로 정렬
-            const discountA = a.discountRate || a.discount || 0;
-            const discountB = b.discountRate || b.discount || 0;
-            return discountB - discountA;
-        });
-    }
-
-    // 카테고리 필터링
+    // 카테고리 필터링 (백엔드에서 이미 베스트/타임딜 필터링됨)
     let filteredProducts = selectedCategory === '전체'
-        ? baseProducts
-        : baseProducts.filter(p => p.category === selectedCategory);
+        ? products
+        : products.filter(p => p.category === selectedCategory);
 
     // 정렬
     if (sortBy === '인기순') {
@@ -225,7 +243,7 @@ const Best = () => {
                     <div style={{ display: 'flex', gap: '8px' }}>
                         {sortOptions.map((option) => (
                             <button
-                                key={option} 
+                                key={option}
                                 onClick={() => setSortBy(option)}
                                 style={{
                                     padding: '8px 16px',
@@ -263,17 +281,38 @@ const Best = () => {
                             <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                         </div>
                     ) : (
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(4, 1fr)',
-                            gap: '20px',
-                            backgroundColor: 'white',
-                            padding: '20px'
-                        }}>
-                            {filteredProducts.map((product) => (
-                                <ProductCard key={product.id} product={product} />
-                            ))}
-                        </div>
+                        <>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(4, 1fr)',
+                                gap: '20px',
+                                backgroundColor: 'white',
+                                padding: '20px'
+                            }}>
+                                {filteredProducts.map((product, index) => {
+                                    const isLast = index === filteredProducts.length - 1;
+                                    return (
+                                        <div key={product.id} ref={isLast ? lastProductRef : null}>
+                                            <ProductCard product={product} />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Loading More Indicator */}
+                            {loadingMore && (
+                                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0', backgroundColor: 'white' }}>
+                                    <div style={{ width: '24px', height: '24px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                                </div>
+                            )}
+
+                            {/* End of List */}
+                            {!hasMore && filteredProducts.length > 0 && (
+                                <div style={{ textAlign: 'center', padding: '40px 0', color: '#999', fontSize: '14px', backgroundColor: 'white' }}>
+                                    모든 상품을 불러왔습니다 ✨
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
 

@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { productApi } from '../api/productApi';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+
+const PAGE_SIZE = 8;
 
 const ShockingDeal = () => {
     const { addToCart } = useCart();
@@ -11,6 +13,9 @@ const ShockingDeal = () => {
     const [shockingDeals, setShockingDeals] = useState([]);
     const [bannerItems, setBannerItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(0);
 
     // Countdown Timer Logic
     const [timeLeft, setTimeLeft] = useState('');
@@ -18,17 +23,34 @@ const ShockingDeal = () => {
     // Banner Carousel State
     const [currentSlide, setCurrentSlide] = useState(0);
 
+    // Intersection Observer ref
+    const observerRef = useRef();
+    const lastProductRef = useCallback(node => {
+        if (loadingMore) return;
+        if (observerRef.current) observerRef.current.disconnect();
+
+        observerRef.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore && !loading) {
+                setPage(prev => prev + 1);
+            }
+        }, { threshold: 0.1 });
+
+        if (node) observerRef.current.observe(node);
+    }, [loadingMore, hasMore, loading]);
+
+    // Initial data load
     useEffect(() => {
-        const fetchTimeDealData = async () => {
+        const fetchInitialData = async () => {
             try {
                 setLoading(true);
                 const [products, endTimeData] = await Promise.all([
-                    productApi.getTimeDealProducts(),
+                    productApi.getTimeDealProducts(0, PAGE_SIZE),
                     productApi.getTimeDealEndTime()
                 ]);
-                
+
                 setShockingDeals(products);
                 setBannerItems(products.slice(0, 5));
+                setHasMore(products.length === PAGE_SIZE);
 
                 // 타임딜 종료 시간 설정
                 if (endTimeData.endTime) {
@@ -46,7 +68,7 @@ const ShockingDeal = () => {
                             setTimeLeft('00:00:00');
                         }
                     };
-                    
+
                     calculateTimeLeft();
                     const timer = setInterval(calculateTimeLeft, 1000);
                     return () => clearInterval(timer);
@@ -79,8 +101,32 @@ const ShockingDeal = () => {
             }
         };
 
-        fetchTimeDealData();
+        fetchInitialData();
     }, []);
+
+    // Load more data when page changes
+    useEffect(() => {
+        if (page === 0) return;
+
+        const loadMore = async () => {
+            try {
+                setLoadingMore(true);
+                const products = await productApi.getTimeDealProducts(page, PAGE_SIZE);
+
+                if (products.length < PAGE_SIZE) {
+                    setHasMore(false);
+                }
+
+                setShockingDeals(prev => [...prev, ...products]);
+            } catch (error) {
+                console.error('추가 데이터 로딩 실패:', error);
+            } finally {
+                setLoadingMore(false);
+            }
+        };
+
+        loadMore();
+    }, [page]);
 
     // Auto-slide effect
     useEffect(() => {
@@ -200,115 +246,137 @@ const ShockingDeal = () => {
                         <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                     </div>
                 ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
-                        {shockingDeals.map(product => (
-                        <div key={product.id} style={{
-                            backgroundColor: 'white',
-                            borderRadius: '12px',
-                            overflow: 'hidden',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                            position: 'relative',
-                            transition: 'transform 0.2s',
-                        }}>
-                            {/* Badge */}
-                            <div style={{
-                                position: 'absolute',
-                                top: '15px',
-                                left: '0',
-                                backgroundColor: '#f01a21',
-                                color: 'white',
-                                padding: '5px 15px',
-                                fontSize: '14px',
-                                fontWeight: 'bold',
-                                borderRadius: '0 4px 4px 0',
-                                zIndex: 1
-                            }}>
-                                {product.discountRate || product.discount}% OFF
-                            </div>
-
-                            {/* Image */}
-                            <div style={{ height: '220px', overflow: 'hidden', position: 'relative' }}>
-                                <img
-                                    src={product.imageUrl || product.image}
-                                    alt={product.name}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                />
-                            </div>
-
-                            {/* Content */}
-                            <div style={{ padding: '20px' }}>
-                                {product.stockQuantity !== undefined && (
-                                    <>
-                                        <div style={{ fontSize: '13px', color: '#888', marginBottom: '5px' }}>
-                                            남은 수량 <span style={{ color: '#f01a21', fontWeight: 'bold' }}>{product.stockQuantity}개</span>
-                                        </div>
-
-                                        {/* Stock Bar */}
-                                        <div style={{
-                                            width: '100%',
-                                            height: '6px',
-                                            backgroundColor: '#eee',
-                                            borderRadius: '3px',
-                                            marginBottom: '15px',
-                                            overflow: 'hidden'
+                    <>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+                            {shockingDeals.map((product, index) => {
+                                const isLast = index === shockingDeals.length - 1;
+                                return (
+                                    <div
+                                        key={product.id}
+                                        ref={isLast ? lastProductRef : null}
+                                        style={{
+                                            backgroundColor: 'white',
+                                            borderRadius: '12px',
+                                            overflow: 'hidden',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                                            position: 'relative',
+                                            transition: 'transform 0.2s',
                                         }}>
-                                            <div style={{
-                                                width: `${Math.min((product.stockQuantity / 100) * 100, 100)}%`,
-                                                height: '100%',
-                                                backgroundColor: '#f01a21',
-                                                borderRadius: '3px'
-                                            }}></div>
+                                        {/* Badge */}
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '15px',
+                                            left: '0',
+                                            backgroundColor: '#f01a21',
+                                            color: 'white',
+                                            padding: '5px 15px',
+                                            fontSize: '14px',
+                                            fontWeight: 'bold',
+                                            borderRadius: '0 4px 4px 0',
+                                            zIndex: 1
+                                        }}>
+                                            {product.discountRate || product.discount}% OFF
                                         </div>
-                                    </>
-                                )}
 
-                                <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: '#333' }}>
-                                    <h3 style={{
-                                        fontSize: '16px',
-                                        fontWeight: 'normal',
-                                        lineHeight: '1.4',
-                                        marginBottom: '15px',
-                                        height: '44px',
-                                        overflow: 'hidden',
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: 'vertical'
-                                    }}>
-                                        {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
-                                    </h3>
-                                </Link>
-
-                                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                                    <div>
-                                        <div style={{ textDecoration: 'line-through', color: '#aaa', fontSize: '13px' }}>
-                                            {product.originalPrice.toLocaleString()}원
+                                        {/* Image */}
+                                        <div style={{ height: '220px', overflow: 'hidden', position: 'relative' }}>
+                                            <img
+                                                src={product.imageUrl || product.image}
+                                                alt={product.name}
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                            />
                                         </div>
-                                        <div style={{ fontSize: '20px', fontWeight: '900', color: '#f01a21' }}>
-                                            {product.price.toLocaleString()}원
+
+                                        {/* Content */}
+                                        <div style={{ padding: '20px' }}>
+                                            {product.stockQuantity !== undefined && (
+                                                <>
+                                                    <div style={{ fontSize: '13px', color: '#888', marginBottom: '5px' }}>
+                                                        남은 수량 <span style={{ color: '#f01a21', fontWeight: 'bold' }}>{product.stockQuantity}개</span>
+                                                    </div>
+
+                                                    {/* Stock Bar */}
+                                                    <div style={{
+                                                        width: '100%',
+                                                        height: '6px',
+                                                        backgroundColor: '#eee',
+                                                        borderRadius: '3px',
+                                                        marginBottom: '15px',
+                                                        overflow: 'hidden'
+                                                    }}>
+                                                        <div style={{
+                                                            width: `${Math.min((product.stockQuantity / 100) * 100, 100)}%`,
+                                                            height: '100%',
+                                                            backgroundColor: '#f01a21',
+                                                            borderRadius: '3px'
+                                                        }}></div>
+                                                    </div>
+                                                </>
+                                            )}
+
+                                            <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: '#333' }}>
+                                                <h3 style={{
+                                                    fontSize: '16px',
+                                                    fontWeight: 'normal',
+                                                    lineHeight: '1.4',
+                                                    marginBottom: '15px',
+                                                    height: '44px',
+                                                    overflow: 'hidden',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical'
+                                                }}>
+                                                    {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
+                                                </h3>
+                                            </Link>
+
+                                            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                                                <div>
+                                                    <div style={{ textDecoration: 'line-through', color: '#aaa', fontSize: '13px' }}>
+                                                        {product.originalPrice.toLocaleString()}원
+                                                    </div>
+                                                    <div style={{ fontSize: '20px', fontWeight: '900', color: '#f01a21' }}>
+                                                        {product.price.toLocaleString()}원
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => addToCart(product)}
+                                                    style={{
+                                                        backgroundColor: '#333',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '50%',
+                                                        width: '36px',
+                                                        height: '36px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    <ShoppingCart size={18} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => addToCart(product)}
-                                        style={{
-                                            backgroundColor: '#333',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '50%',
-                                            width: '36px',
-                                            height: '36px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        <ShoppingCart size={18} />
-                                    </button>
-                                </div>
-                            </div>
+                                );
+                            })}
                         </div>
-                        ))}
-                    </div>
+
+                        {/* Loading More Indicator */}
+                        {loadingMore && (
+                            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+                                <div style={{ width: '24px', height: '24px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                            </div>
+                        )}
+
+                        {/* End of List */}
+                        {!hasMore && shockingDeals.length > 0 && (
+                            <div style={{ textAlign: 'center', padding: '40px 0', color: '#999', fontSize: '14px' }}>
+                                모든 상품을 불러왔습니다 ✨
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>
