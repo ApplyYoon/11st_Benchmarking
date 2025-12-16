@@ -12,7 +12,7 @@ const MDRecommends = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const allProducts = await productApi.getAllProducts();
+                const allProducts = await productApi.getProducts();
                 // Start with non-Timedeal/Best items
                 const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
                 setItems(initialItems);
@@ -29,7 +29,7 @@ const MDRecommends = () => {
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // Generate mock unique items
-        const allProducts = await productApi.getAllProducts();
+        const allProducts = await productApi.getProducts();
         const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
         const newItems = initialItems.map((item, idx) => ({
             ...item,

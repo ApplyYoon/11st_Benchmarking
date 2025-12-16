@@ -4,9 +4,13 @@ import client from './client';
  * 상품 API 호출 함수
  */
 export const productApi = {
-    // 모든 상품 조회
-    getAllProducts: async () => {
-        const response = await client.get('/products');
+    // 상품 조회 (limit를 주면 해당 개수만, 없으면 전체)
+    getProducts: async (limit) => {
+        const config = {};
+        if (limit != null) {
+            config.params = { limit };
+        }
+        const response = await client.get('/products', config);
         return response.data;
     },
 

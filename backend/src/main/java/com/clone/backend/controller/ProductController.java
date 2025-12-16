@@ -36,31 +36,31 @@ public class ProductController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String type,
-            @RequestParam(required = false) String priceRange) {
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(required = false) Integer limit) {
+
+        List<Product> products;
+
         if ("timedeal".equals(type)) {
-            return productRepository.findByIsTimeDealTrue();
+            products = productRepository.findByIsTimeDealTrue();
+        } else if ("best".equals(type)) {
+            products = productRepository.findByIsBestTrueOrderByRankAsc();
+        } else if (category != null && !category.equals("all")) {
+            products = productRepository.findByCategory(category);
+        } else if (search != null) {
+            products = productRepository.findByNameContaining(search);
+        } else {
+            products = productRepository.findAll();
         }
-        if ("best".equals(type)) {
-            return productRepository.findByIsBestTrueOrderByRankAsc();
-        }
-        if (category != null && !category.equals("all")) {
-            List<Product> products = productRepository.findByCategory(category);
-            if (priceRange != null && !priceRange.equals("all")) {
-                return filterByPriceRange(products, priceRange);
-            }
-            return products;
-        }
-        if (search != null) {
-            List<Product> products = productRepository.findByNameContaining(search);
-            if (priceRange != null && !priceRange.equals("all")) {
-                return filterByPriceRange(products, priceRange);
-            }
-            return products;
-        }
-        List<Product> products = productRepository.findAll();
+
         if (priceRange != null && !priceRange.equals("all")) {
-            return filterByPriceRange(products, priceRange);
+            products = filterByPriceRange(products, priceRange);
         }
+
+        if (limit != null && limit > 0 && products.size() > limit) {
+            return products.subList(0, limit);
+        }
+
         return products;
     }
 
