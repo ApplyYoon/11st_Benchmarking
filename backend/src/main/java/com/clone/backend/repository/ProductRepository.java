@@ -7,14 +7,11 @@
 package com.clone.backend.repository;
 
 import com.clone.backend.model.Product;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -34,7 +31,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     /**
      * PostgreSQL similarity 함수를 사용하여 가장 유사한 상품명 키워드 찾기
      * pg_trgm 확장이 활성화되어 있어야 함
-     * similarity 값이 0.3 이상인 것 중 가장 높은 값을 반환
+     * similarity 값이 0.1 이상인 것 중 가장 높은 값을 반환
+     * 키워드 단위 비교를 우선하고, 없으면 상품명 전체 비교
      */
     @Query(value = """
             WITH product_keywords AS (
@@ -45,16 +43,36 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                     ), ' '
                 ))) AS keyword
                 FROM products
+                WHERE name IS NOT NULL
+            ),
+            keyword_match AS (
+                SELECT keyword, similarity(keyword, :query) AS sim
+                FROM product_keywords
+                WHERE length(keyword) >= 2
+                  AND length(keyword) <= length(:query) + 4
+                  AND length(keyword) >= length(:query) - 4
+                  AND keyword != :query
+                  AND NOT (keyword LIKE '%' || :query || '%')
+                  AND NOT (:query LIKE '%' || keyword || '%')
+                  AND similarity(keyword, :query) >= 0.1
+                ORDER BY similarity(keyword, :query) DESC
+                LIMIT 1
+            ),
+            full_name_match AS (
+                SELECT name AS keyword, similarity(name, :query) AS sim
+                FROM products
+                WHERE name IS NOT NULL
+                  AND name != :query
+                  AND NOT (name LIKE '%' || :query || '%')
+                  AND NOT (:query LIKE '%' || name || '%')
+                  AND similarity(name, :query) >= 0.1
+                ORDER BY similarity(name, :query) DESC
+                LIMIT 1
             )
-            SELECT keyword
-            FROM product_keywords
-            WHERE length(keyword) >= 2
-              AND keyword != :query
-              AND NOT (keyword LIKE '%' || :query || '%')
-              AND NOT (:query LIKE '%' || keyword || '%')
-              AND similarity(keyword, :query) > 0.3
-            ORDER BY similarity(keyword, :query) DESC
-            LIMIT 1
+            SELECT COALESCE(
+                (SELECT keyword FROM keyword_match),
+                (SELECT keyword FROM full_name_match)
+            ) AS keyword
             """, nativeQuery = true)
     String findMostSimilarKeyword(@Param("query") String query);
 
