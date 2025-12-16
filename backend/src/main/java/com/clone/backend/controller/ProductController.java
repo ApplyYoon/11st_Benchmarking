@@ -39,7 +39,9 @@ public class ProductController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String priceRange,
-            @RequestParam(required = false) Integer limit) {
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
 
         List<Product> products;
 
@@ -52,6 +54,10 @@ public class ProductController {
         } else if (search != null) {
             products = productRepository.findByNameContaining(search);
         } else {
+            // Default: MD Recommendations (exclude TimeDeal/Best)
+            if (page != null && size != null) {
+                return productRepository.findByIsTimeDealFalseAndIsBestFalse(PageRequest.of(page, size)).getContent();
+            }
             products = productRepository.findAll();
         }
 
