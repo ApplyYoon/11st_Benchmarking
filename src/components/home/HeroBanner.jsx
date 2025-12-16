@@ -60,7 +60,7 @@ const HeroBanner = () => {
     };
 
     const handleCouponIssue = async () => {
-        const result = await addCoupon(2); // 쿠폰 ID 5
+        const result = await addCoupon(3); // 쿠폰 ID 5
 
         // 결과 모달로 변경
         setModalConfig({
