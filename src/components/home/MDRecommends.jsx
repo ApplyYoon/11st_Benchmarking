@@ -6,27 +6,31 @@ const MDRecommends = () => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
     const ITEMS_PER_LOAD = 8;
-    const MAX_ITEMS = 32; // 최대 32개까지만 표시
+    const MAX_ITEMS = 10000;
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchInitialProducts = async () => {
             try {
                 const allProducts = await productApi.getProducts();
                 // Start with non-Timedeal/Best items
                 const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
                 setItems(initialItems);
+                if (initialItems.length < ITEMS_PER_LOAD) {
+                    setHasMore(false);
+                }
             } catch (error) {
                 console.error('상품 로딩 실패:', error);
             }
         };
-        fetchProducts();
+        fetchInitialProducts();
     }, []);
 
     const loadMore = async () => {
         if (loading || items.length >= MAX_ITEMS) return;
         setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 800));
 
         // Generate mock unique items
         const allProducts = await productApi.getProducts();
@@ -37,8 +41,20 @@ const MDRecommends = () => {
             name: `[추천] ${item.name}`
         }));
 
-        setItems(prev => [...prev, ...newItems]);
-        setLoading(false);
+            if (newItems.length === 0) {
+                setHasMore(false);
+            } else {
+                setItems(prev => [...prev, ...newItems]);
+                setPage(nextPage);
+                if (newItems.length < ITEMS_PER_LOAD) {
+                    setHasMore(false);
+                }
+            }
+        } catch (error) {
+            console.error('추가 상품 로딩 실패:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // 11번가 베스트 섹션 감지 - 베스트가 화면에서 벗어나면 MD 추천 표시

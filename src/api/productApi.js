@@ -91,12 +91,28 @@ export const couponApi = {
     },
 
     // 주문에 사용 가능한 쿠폰 조회
-    getAvailableCoupons: async (amount, category) => {
+    getAvailableCoupons: async (amount, categories) => {
         const params = { amount };
-        if (category) {
-            params.category = category;
+        if (categories) {
+            params.categories = categories; // Array passed to params
         }
-        const response = await client.get('/coupons/available', { params });
+        // Note: Axios by default serializes arrays as categories[]=v1&categories[]=v2
+        // Spring MVC requires brackets or configuration. 
+        // To be safe with default Spring Boot @RequestParam List, we often need to pass same key.
+        // client.get handles params. 
+        const response = await client.get('/coupons/available', {
+            params,
+            paramsSerializer: params => {
+                // Custom serializer to match Spring's default expectation for simple lists if needed, 
+                // but standard formatted usually works. 
+                // Let's use simple comma separation if string, or keep array. 
+                // Actually safer to join with comma for simple list in Spring Boot default
+                if (Array.isArray(categories)) {
+                    return `amount=${amount}&categories=${categories.join(',')}`;
+                }
+                return `amount=${amount}`;
+            }
+        });
         return response.data;
     }
 };
