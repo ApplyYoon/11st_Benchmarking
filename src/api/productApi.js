@@ -36,10 +36,26 @@ export const productApi = {
         return response.data;
     },
 
+    // 타임딜 상품 페이지네이션 조회
+    getTimeDealProductsPaginated: async (offset = 0, limit = 32) => {
+        const response = await client.get('/products', {
+            params: { type: 'timedeal', offset, limit }
+        });
+        return response.data;
+    },
+
     // 베스트 상품 조회
     getBestProducts: async () => {
         const response = await client.get('/products', {
             params: { type: 'best' }
+        });
+        return response.data;
+    },
+
+    // 전체 상품 페이지네이션 조회
+    getProductsPaginated: async (offset = 0, limit = 32) => {
+        const response = await client.get('/products', {
+            params: { offset, limit }
         });
         return response.data;
     },

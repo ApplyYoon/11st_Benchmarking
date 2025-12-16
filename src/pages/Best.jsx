@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { productApi } from '../api/productApi';
 import ProductCard from '../components/shared/ProductCard';
 import { getCategoryName, getCategoryKey, categoryMap } from '../utils/categoryUtils';
+
+const ITEMS_PER_PAGE = 32;
+const MAX_ITEMS = 15000;
 
 const Best = () => {
     const [mainTab, setMainTab] = useState('베스트 25');
@@ -9,16 +12,64 @@ const Best = () => {
     const [sortBy, setSortBy] = useState('인기순');
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
     const [categories, setCategories] = useState(['전체']);
+    const loaderRef = useRef(null);
 
     const sortOptions = ['인기순', '낮은가격순', '높은가격순'];
 
+    // 추가 데이터 로딩
+    const loadMore = useCallback(async () => {
+        if (loadingMore || !hasMore || products.length >= MAX_ITEMS) return;
+        
+        setLoadingMore(true);
+        try {
+            const newProducts = await productApi.getProductsPaginated(offset, ITEMS_PER_PAGE);
+            
+            if (newProducts.length === 0 || newProducts.length < ITEMS_PER_PAGE) {
+                setHasMore(false);
+            }
+            
+            if (newProducts.length > 0) {
+                setProducts(prev => [...prev, ...newProducts]);
+                setOffset(prev => prev + ITEMS_PER_PAGE);
+            }
+        } catch (error) {
+            console.error('추가 상품 로딩 실패:', error);
+        } finally {
+            setLoadingMore(false);
+        }
+    }, [offset, loadingMore, hasMore, products.length]);
+
+    // IntersectionObserver로 하단 감지
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && !loadingMore && hasMore && !loading) {
+                    loadMore();
+                }
+            },
+            { threshold: 0.1, rootMargin: '200px' }
+        );
+
+        if (loaderRef.current) {
+            observer.observe(loaderRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, [loadMore, loadingMore, hasMore, loading]);
+
+    // 초기 데이터 로딩
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                const data = await productApi.getProducts();
+                const data = await productApi.getProductsPaginated(0, ITEMS_PER_PAGE);
                 setProducts(data);
+                setOffset(ITEMS_PER_PAGE);
+                setHasMore(data.length === ITEMS_PER_PAGE);
             } catch (error) {
                 console.error('상품 로딩 실패:', error);
             } finally {
@@ -263,22 +314,39 @@ const Best = () => {
                             <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                         </div>
                     ) : (
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(4, 1fr)',
-                            gap: '20px',
-                            backgroundColor: 'white',
-                            padding: '20px'
-                        }}>
-                            {filteredProducts.map((product) => (
-                                <ProductCard key={product.id} product={product} />
-                            ))}
-                        </div>
+                        <>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(4, 1fr)',
+                                gap: '20px',
+                                backgroundColor: 'white',
+                                padding: '20px'
+                            }}>
+                                {filteredProducts.map((product, index) => (
+                                    <ProductCard key={`${product.id}-${index}`} product={product} />
+                                ))}
+                            </div>
+
+                            {/* 무한 스크롤 로더 */}
+                            <div ref={loaderRef} style={{ height: '50px', margin: '20px 0' }}>
+                                {loadingMore && (
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                        <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                                    </div>
+                                )}
+                                {!hasMore && products.length > 0 && (
+                                    <div style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
+                                        모든 상품을 불러왔습니다 ({products.length}개)
+                                    </div>
+                                )}
+                            </div>
+                        </>
                     )}
                 </div>
 
                 {/* 빈 상태 */}
-                {filteredProducts.length === 0 && (
+                {!loading && filteredProducts.length === 0 && (
                     <div style={{
                         backgroundColor: 'white',
                         textAlign: 'center',
