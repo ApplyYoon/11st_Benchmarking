@@ -29,6 +29,10 @@ public class Order {
     private String paymentKey;
     private LocalDateTime createdAt;
 
+    // 포인트 관련 필드 (취소 시 환급용)
+    private int usedPoints; // 주문 시 사용한 포인트
+    private int earnedPoints; // 주문 시 적립된 포인트
+
     private List<OrderItem> items; // Embedded items
 
     public enum OrderStatus {

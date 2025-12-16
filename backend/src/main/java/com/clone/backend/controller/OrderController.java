@@ -241,6 +241,21 @@ public class OrderController {
                         .body(Map.of("message", "이미 취소된 주문입니다."));
             }
 
+            // ═══════════════════════════════════════════════════════════════
+            // 포인트 환급/회수 처리
+            // ═══════════════════════════════════════════════════════════════
+            int usedPoints = order.getUsedPoints(); // 당시 사용한 포인트
+            int earnedPoints = order.getEarnedPoints(); // 당시 적립된 포인트
+
+            // 적립 포인트 회수 + 사용 포인트 환급
+            int pointChange = usedPoints - earnedPoints;
+            int newPoints = user.getPoints() + pointChange;
+            user.setPoints(Math.max(0, newPoints)); // 음수 방지
+            userRepository.save(user);
+
+            System.out.println("DEBUG: Point refund - used: " + usedPoints + ", earned: " + earnedPoints + ", change: "
+                    + pointChange);
+
             // 주문 취소 처리
             Order cancelledOrder = orderRepository.cancelOrder(user, orderId);
 
@@ -347,6 +362,9 @@ public class OrderController {
                 }
             }
 
+            // 적립 포인트 계산 (0.5%, 최대 5000P)
+            int earnedPoints = Math.min((int) Math.floor(amount * 0.005), 5000);
+
             // Create order directly without Toss verification
             Order order = Order.builder()
                     .id(orderId)
@@ -356,6 +374,8 @@ public class OrderController {
                     .status(Order.OrderStatus.PAID.name())
                     .paymentKey("DEMO_KEY_" + System.currentTimeMillis())
                     .createdAt(java.time.LocalDateTime.now())
+                    .usedPoints(usedPoints) // 사용 포인트 저장
+                    .earnedPoints(earnedPoints) // 적립 포인트 저장
                     .build();
 
             order.setItems(orderItems);
