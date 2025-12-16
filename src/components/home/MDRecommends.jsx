@@ -34,6 +34,14 @@ const MDRecommends = () => {
 
         try {
             const newItems = await productApi.getRecommendedProducts(page, ITEMS_PER_LOAD);
+            // Generate mock unique items
+            const allProducts = await productApi.getProducts();
+            const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
+//             const newItems = initialItems.map((item, idx) => ({
+//                 ...item,
+//                 id: Date.now() + idx + Math.random(),
+//                 name: `[추천] ${item.name}`
+//             }));
 
             if (newItems.length === 0) {
                 setHasMore(false);
