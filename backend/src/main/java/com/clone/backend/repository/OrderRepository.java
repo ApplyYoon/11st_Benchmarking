@@ -82,6 +82,7 @@ public class OrderRepository {
         return allOrders;
     }
 
+    @SuppressWarnings("null")
     public void delete(User user, String orderId) {
         if (user == null || user.getId() == null) {
             throw new IllegalArgumentException("User is required for deleting order");
@@ -111,6 +112,7 @@ public class OrderRepository {
     /**
      * 주문 취소 (상태를 CANCELLED로 변경)
      */
+    @SuppressWarnings("null")
     public Order cancelOrder(User user, String orderId) {
         if (user == null || user.getId() == null) {
             throw new IllegalArgumentException("User is required for canceling order");
