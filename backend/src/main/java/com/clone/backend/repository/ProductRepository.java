@@ -32,6 +32,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
   Page<Product> findByIsBestTrueOrderByRankAsc(Pageable pageable);
 
   /**
+   * 중복되지 않는 모든 카테고리 목록 조회
+   */
+  @Query("SELECT DISTINCT p.category FROM Product p WHERE p.category IS NOT NULL")
+  List<String> findDistinctCategories();
+
+  /**
    * 일반 MD 추천 상품 (TimeDeal도 아니고 Best도 아닌 상품) 페이징 조회
    */
   Page<Product> findByIsTimeDealFalseAndIsBestFalse(Pageable pageable);

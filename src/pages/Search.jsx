@@ -27,15 +27,15 @@ const Search = () => {
     // 추가 데이터 로딩
     const loadMore = useCallback(async () => {
         if (loadingMore || !hasMore || results.length >= MAX_ITEMS || !query) return;
-        
+
         setLoadingMore(true);
         try {
             const newProducts = await productApi.searchProductsPaginated(query, category, price, offset, ITEMS_PER_PAGE);
-            
+
             if (newProducts.length === 0 || newProducts.length < ITEMS_PER_PAGE) {
                 setHasMore(false);
             }
-            
+
             if (newProducts.length > 0) {
                 setResults(prev => [...prev, ...newProducts]);
                 setOffset(prev => prev + ITEMS_PER_PAGE);
@@ -78,19 +78,24 @@ const Search = () => {
             setResults([]);
             setOffset(0);
             setHasMore(true);
-            
+
             try {
                 const products = await productApi.searchProductsPaginated(query, category, price, 0, ITEMS_PER_PAGE);
                 setResults(products);
                 setOffset(ITEMS_PER_PAGE);
                 setHasMore(products.length === ITEMS_PER_PAGE);
 
-                // 카테고리 목록 가져오기
-                const allProducts = await productApi.getProducts();
-                const uniqueCategories = ['all', ...new Set(allProducts.map(p => p.category).filter(Boolean))];
-                setCategories(uniqueCategories);
+                // 카테고리 목록 가져오기 (최적화된 API 사용)
+                try {
+                    const categoryList = await productApi.getCategories();
+                    const uniqueCategories = ['all', ...categoryList.filter(Boolean)];
+                    setCategories(uniqueCategories);
+                } catch (catError) {
+                    console.error('카테고리 로딩 실패:', catError);
+                    // Fallback handles by default state
+                }
 
-                // 연관 검색어는 검색 결과에서 추출
+                // 연관 검색어는 현재 페이지 검색 결과에서 추출 (or dedicated API if available)
                 const related = products
                     .map(p => p.name)
                     .filter(name => name.includes(query) && name !== query)

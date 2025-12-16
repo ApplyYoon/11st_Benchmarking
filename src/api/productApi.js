@@ -70,6 +70,12 @@ export const productApi = {
         return response.data;
     },
 
+    // 카테고리 목록 조회
+    getCategories: async () => {
+        const response = await client.get('/products/categories');
+        return response.data;
+    },
+
     // 검색
     searchProducts: async (query, category = 'all', priceRange = 'all') => {
         const params = { search: query };

@@ -153,6 +153,15 @@ public class ProductController {
     }
 
     /**
+     * 카테고리 목록 조회 API
+     */
+    @GetMapping("/categories")
+    public ResponseEntity<List<String>> getCategories() {
+        List<String> categories = productRepository.findDistinctCategories();
+        return ResponseEntity.ok(categories);
+    }
+
+    /**
      * 가격 범위로 필터링
      */
     private List<Product> filterByPriceRange(List<Product> products, String priceRange) {
