@@ -48,6 +48,22 @@ export const productApi = {
         return response.data;
     },
 
+    // 베스트 상품 페이지네이션 조회
+    getBestProductsPaginated: async (offset = 0, limit = 32) => {
+        const response = await client.get('/products', {
+            params: { type: 'best', offset, limit }
+        });
+        return response.data;
+    },
+
+    // 전체 상품 페이지네이션 조회
+    getProductsPaginated: async (offset = 0, limit = 32) => {
+        const response = await client.get('/products', {
+            params: { offset, limit }
+        });
+        return response.data;
+    },
+
     // 카테고리별 상품 조회
     getProductsByCategory: async (category) => {
         const response = await client.get('/products', {
