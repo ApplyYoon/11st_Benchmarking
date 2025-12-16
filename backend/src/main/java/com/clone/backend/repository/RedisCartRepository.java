@@ -34,6 +34,7 @@ public class RedisCartRepository {
     /**
      * 장바구니에 상품 추가 (이미 있으면 수량 증가)
      */
+    @SuppressWarnings("null")
     public RedisCartItem addItem(Long userId, RedisCartItem item) {
         String cartKey = getCartKey(userId);
         String productKey = String.valueOf(item.getProductId());
@@ -58,6 +59,7 @@ public class RedisCartRepository {
     /**
      * 사용자의 전체 장바구니 조회
      */
+    @SuppressWarnings("null")
     public List<RedisCartItem> getCart(Long userId) {
         String cartKey = getCartKey(userId);
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(cartKey);
@@ -75,6 +77,7 @@ public class RedisCartRepository {
     /**
      * 특정 상품 수량 변경
      */
+    @SuppressWarnings("null")
     public RedisCartItem updateQuantity(Long userId, Long productId, int quantity) {
         String cartKey = getCartKey(userId);
         String productKey = String.valueOf(productId);
@@ -92,6 +95,7 @@ public class RedisCartRepository {
     /**
      * 특정 상품 삭제
      */
+    @SuppressWarnings("null")
     public void removeItem(Long userId, Long productId) {
         String cartKey = getCartKey(userId);
         String productKey = String.valueOf(productId);
@@ -101,6 +105,7 @@ public class RedisCartRepository {
     /**
      * 장바구니 전체 비우기
      */
+    @SuppressWarnings("null")
     public void clearCart(Long userId) {
         String cartKey = getCartKey(userId);
         redisTemplate.delete(cartKey);
@@ -109,6 +114,7 @@ public class RedisCartRepository {
     /**
      * 장바구니 TTL 확인 (초 단위)
      */
+    @SuppressWarnings("null")
     public Long getTTL(Long userId) {
         String cartKey = getCartKey(userId);
         return redisTemplate.getExpire(cartKey, TimeUnit.SECONDS);

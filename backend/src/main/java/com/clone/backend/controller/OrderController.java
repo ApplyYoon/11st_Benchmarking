@@ -29,14 +29,14 @@ import java.util.stream.Collectors;
 public class OrderController {
 
     private final OrderRepository orderRepository;
-    private final CartRepository cartRepository;
+    private final RedisCartRepository redisCartRepository;
     private final UserRepository userRepository;
     private final UserCouponRepository userCouponRepository;
 
-    public OrderController(OrderRepository orderRepository, CartRepository cartRepository,
+    public OrderController(OrderRepository orderRepository, RedisCartRepository redisCartRepository,
             UserRepository userRepository, UserCouponRepository userCouponRepository) {
         this.orderRepository = orderRepository;
-        this.cartRepository = cartRepository;
+        this.redisCartRepository = redisCartRepository;
         this.userRepository = userRepository;
         this.userCouponRepository = userCouponRepository;
     }
@@ -105,21 +105,21 @@ public class OrderController {
                         .createdAt(java.time.LocalDateTime.now())
                         .build();
 
-                // Move cart items to order items
-                List<CartItem> cartItems = cartRepository.findByUser(user);
+                // Move cart items to order items (Redis에서 가져오기)
+                List<RedisCartItem> cartItems = redisCartRepository.getCart(user.getId());
                 List<OrderItem> orderItems = cartItems.stream().map(ci -> OrderItem.builder()
-                        .productId(ci.getProduct().getId())
-                        .productName(ci.getProduct().getName())
-                        .productImage(ci.getProduct().getImageUrl())
-                        .priceAtPurchase(ci.getProduct().getPrice())
+                        .productId(ci.getProductId())
+                        .productName(ci.getProductName())
+                        .productImage(ci.getProductImage())
+                        .priceAtPurchase(ci.getPrice())
                         .quantity(ci.getQuantity())
                         .build()).collect(Collectors.toList());
 
                 order.setItems(orderItems);
                 orderRepository.save(order);
 
-                // Clear cart
-                cartRepository.deleteAll(cartItems);
+                // Clear cart (Redis에서 삭제)
+                redisCartRepository.clearCart(user.getId());
 
                 return ResponseEntity.ok(order);
             } else {
@@ -201,7 +201,7 @@ public class OrderController {
     public ResponseEntity<?> cancelOrder(@PathVariable String orderId) {
         try {
             System.out.println("DEBUG: Cancel order request for orderId: " + orderId);
-            
+
             // Get current user from SecurityContext
             String email = null;
             Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
@@ -222,13 +222,14 @@ public class OrderController {
             // 주문 찾기 및 상태 확인
             List<Order> userOrders = orderRepository.findByUserOrderByCreatedAtDesc(user);
             System.out.println("DEBUG: Found " + userOrders.size() + " orders for user");
-            
+
             Order order = userOrders.stream()
                     .filter(o -> o.getId().equals(orderId))
                     .findFirst()
                     .orElseThrow(() -> {
                         System.out.println("DEBUG: Order not found in user's order list. OrderId: " + orderId);
-                        System.out.println("DEBUG: Available order IDs: " + userOrders.stream().map(Order::getId).collect(java.util.stream.Collectors.toList()));
+                        System.out.println("DEBUG: Available order IDs: "
+                                + userOrders.stream().map(Order::getId).collect(java.util.stream.Collectors.toList()));
                         return new RuntimeException("주문을 찾을 수 없습니다. (주문 ID: " + orderId + ")");
                     });
 
@@ -269,7 +270,8 @@ public class OrderController {
         try {
             String orderName = (String) payload.get("orderName");
             Integer amount = (Integer) payload.get("amount");
-            Integer usedPoints = payload.get("usedPoints") != null ? ((Number) payload.get("usedPoints")).intValue() : 0;
+            Integer usedPoints = payload.get("usedPoints") != null ? ((Number) payload.get("usedPoints")).intValue()
+                    : 0;
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> itemsData = (List<Map<String, Object>>) payload.get("items");
             String orderId = "DEMO_" + System.currentTimeMillis();
@@ -313,7 +315,7 @@ public class OrderController {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                             .body(Map.of("message", "사용 포인트는 결제 금액을 초과할 수 없습니다."));
                 }
-                
+
                 // 포인트 차감 및 적립 (결제 금액의 0.5%, 최대 5000P)
                 int earnedPoints = Math.min((int) Math.floor(amount * 0.005), 5000);
                 int newPoints = user.getPoints() - usedPoints + earnedPoints;
@@ -334,9 +336,12 @@ public class OrderController {
                     OrderItem orderItem = OrderItem.builder()
                             .productId(itemData.get("id") != null ? Long.valueOf(itemData.get("id").toString()) : null)
                             .productName((String) itemData.get("name"))
-                            .productImage((String) itemData.get("imageUrl") != null ? (String) itemData.get("imageUrl") : (String) itemData.get("image"))
-                            .priceAtPurchase(itemData.get("price") != null ? ((Number) itemData.get("price")).intValue() : 0)
-                            .quantity(itemData.get("quantity") != null ? ((Number) itemData.get("quantity")).intValue() : 1)
+                            .productImage((String) itemData.get("imageUrl") != null ? (String) itemData.get("imageUrl")
+                                    : (String) itemData.get("image"))
+                            .priceAtPurchase(
+                                    itemData.get("price") != null ? ((Number) itemData.get("price")).intValue() : 0)
+                            .quantity(itemData.get("quantity") != null ? ((Number) itemData.get("quantity")).intValue()
+                                    : 1)
                             .build();
                     orderItems.add(orderItem);
                 }

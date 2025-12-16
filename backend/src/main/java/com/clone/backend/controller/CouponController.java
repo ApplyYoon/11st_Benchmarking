@@ -119,10 +119,11 @@ public class CouponController {
                     map.put("userCouponId", uc.getId());
 
                     // 사용 가능 여부 체크
-                    boolean isAmountSatisfied = coupon.getMinOrderAmount() == null || coupon.getMinOrderAmount() <= amount;
+                    boolean isAmountSatisfied = coupon.getMinOrderAmount() == null
+                            || coupon.getMinOrderAmount() <= amount;
                     boolean isCategorySatisfied = coupon.getCategory() == null || coupon.getCategory().equals(category);
                     boolean isValid = (coupon.getValidFrom() == null || coupon.getValidFrom().isBefore(now)) &&
-                                     (coupon.getValidUntil() == null || coupon.getValidUntil().isAfter(now));
+                            (coupon.getValidUntil() == null || coupon.getValidUntil().isAfter(now));
                     boolean isNotUsed = !uc.isUsed();
 
                     boolean isApplicable = isAmountSatisfied && isCategorySatisfied && isValid && isNotUsed;
@@ -151,6 +152,7 @@ public class CouponController {
     /**
      * 쿠폰 발급
      */
+
     @PostMapping("/issue")
     public ResponseEntity<Map<String, Object>> issueCoupon(
             Authentication authentication,
@@ -166,7 +168,13 @@ public class CouponController {
             return ResponseEntity.status(401).build();
         }
 
-        Long couponId = Long.valueOf(payload.get("couponId").toString());
+        Object couponIdObj = payload.get("couponId");
+        if (couponIdObj == null) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("message", "couponId가 필요합니다.");
+            return ResponseEntity.badRequest().body(error);
+        }
+        Long couponId = Long.valueOf(couponIdObj.toString());
 
         // 쿠폰 존재 확인
         Coupon coupon = couponRepository.findById(couponId)
@@ -200,4 +208,3 @@ public class CouponController {
         return ResponseEntity.ok(response);
     }
 }
-
