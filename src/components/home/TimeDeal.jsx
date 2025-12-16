@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { productApi } from '../../api/productApi';
+import '../../styles/TimeDeal.css';
 
 const TimeDeal = () => {
     const [deals, setDeals] = useState([]);
@@ -71,44 +72,43 @@ const TimeDeal = () => {
     const formatTime = (num) => String(num).padStart(2, '0');
 
     return (
-        <div id="timedeal-section" style={{ marginBottom: '60px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <h2 style={{ fontSize: '26px', fontWeight: '900', margin: 0, color: '#111' }}>타임딜</h2>
-                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center', fontSize: '24px', fontWeight: 'bold' }}>
-                        <div style={{ backgroundColor: '#333', color: 'white', borderRadius: '4px', padding: '0 6px', minWidth: '40px', textAlign: 'center' }}>{formatTime(timeLeft.h)}</div>
+        <div id="timedeal-section" className="timedeal-section">
+            <div className="timedeal-header">
+                <div className="timedeal-header-left">
+                    <h2 className="timedeal-title">타임딜</h2>
+                    <div className="timedeal-timer">
+                        <div className="timedeal-timer-box">{formatTime(timeLeft.h)}</div>
                         <span>:</span>
-                        <div style={{ backgroundColor: '#333', color: 'white', borderRadius: '4px', padding: '0 6px', minWidth: '40px', textAlign: 'center' }}>{formatTime(timeLeft.m)}</div>
+                        <div className="timedeal-timer-box">{formatTime(timeLeft.m)}</div>
                         <span>:</span>
-                        <div style={{ backgroundColor: '#f01a21', color: 'white', borderRadius: '4px', padding: '0 6px', minWidth: '40px', textAlign: 'center' }}>{formatTime(timeLeft.s)}</div>
+                        <div className="timedeal-timer-box timedeal-timer-box-seconds">{formatTime(timeLeft.s)}</div>
                     </div>
                 </div>
-                <Link to='/shocking-deal'><span style={{ fontSize: '14px', color: '#666', cursor: 'pointer' }}>더보기 &gt;</span></Link>
+                <Link to='/shocking-deal'><span className="timedeal-more">더보기 &gt;</span></Link>
             </div>
 
             {loading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-                    <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                    <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                <div className="timedeal-loading">
+                    <div className="timedeal-spinner" />
                 </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+                <div className="timedeal-grid">
                     {deals.map(product => (
-                        <Link to={`/product/${product.id}`} key={product.id} style={{ textDecoration: 'none', color: 'inherit' }}>
-                            <div style={{ border: '1px solid #eee', borderRadius: '8px', padding: '0', overflow: 'hidden', cursor: 'pointer', transition: 'box-shadow 0.2s' }}>
-                                <div style={{ position: 'relative', paddingTop: '100%' }}>
-                                    <img src={product.imageUrl || product.image} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                        <Link to={`/product/${product.id}`} key={product.id} className="timedeal-product-link">
+                            <div className="timedeal-product-card">
+                                <div className="timedeal-product-image-container">
+                                    <img src={product.imageUrl || product.image} className="timedeal-product-image" alt="" />
                                 </div>
-                                <div style={{ padding: '20px' }}>
-                                    <div style={{ fontSize: '16px', color: '#111', fontWeight: 'bold', height: '44px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', marginBottom: '10px' }}>
+                                <div className="timedeal-product-content">
+                                    <div className="timedeal-product-name">
                                         {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                                        <span style={{ color: '#f01a21', fontSize: '24px', fontWeight: '900' }}>{product.discountRate || product.discount}%</span>
-                                        <span style={{ color: '#111', fontSize: '24px', fontWeight: '900' }}>{product.price.toLocaleString()}</span>
-                                        <span style={{ fontSize: '14px' }}>원</span>
+                                    <div className="timedeal-product-price-row">
+                                        <span className="timedeal-product-discount">{product.discountRate || product.discount}%</span>
+                                        <span className="timedeal-product-price">{product.price.toLocaleString()}</span>
+                                        <span className="timedeal-product-price-unit">원</span>
                                     </div>
-                                    <div style={{ textDecoration: 'line-through', color: '#999', fontSize: '14px' }}>{product.originalPrice.toLocaleString()}원</div>
+                                    <div className="timedeal-product-original-price">{product.originalPrice.toLocaleString()}원</div>
                                 </div>
                             </div>
                         </Link>

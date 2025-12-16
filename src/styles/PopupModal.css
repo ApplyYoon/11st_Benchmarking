@@ -1,0 +1,82 @@
+/* PopupModal */
+.popup-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+}
+
+.popup-modal-box {
+    background-color: white;
+    width: 320px;
+    border-radius: 12px;
+    padding: 30px 20px 20px 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    transform: translateY(-20px);
+    animation: fadeIn 0.2s ease-out forwards;
+}
+
+.popup-modal-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.popup-modal-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0 0 10px 0;
+    color: #111;
+}
+
+.popup-modal-message {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 25px 0;
+    line-height: 1.5;
+    white-space: pre-line;
+}
+
+.popup-modal-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.popup-modal-btn {
+    flex: 1;
+    padding: 12px 0;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.popup-modal-btn-cancel {
+    border: 1px solid #ddd;
+    background-color: white;
+    color: #666;
+}
+
+.popup-modal-btn-confirm {
+    border: none;
+    background-color: #f01a21;
+    color: white;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(-20px);
+    }
+}

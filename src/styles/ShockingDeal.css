@@ -1,0 +1,389 @@
+/* ShockingDeal Page Container */
+.shocking-deal-container {
+    background-color: #f4f4f4;
+    min-height: 100vh;
+    padding-bottom: 50px;
+}
+
+/* Hero Banner */
+.shocking-deal-hero {
+    background: linear-gradient(90deg, #d32323 0%, #f15757 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.shocking-deal-hero-wrapper {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.shocking-deal-hero-left {
+    flex: 1;
+    padding-right: 40px;
+    z-index: 2;
+}
+
+.shocking-deal-hero-title {
+    font-size: 56px;
+    font-weight: 900;
+    margin-bottom: 15px;
+    font-style: italic;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    line-height: 1.1;
+}
+
+.shocking-deal-hero-subtitle {
+    font-size: 22px;
+    margin-bottom: 30px;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.shocking-deal-timer-box {
+    display: inline-block;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 12px 35px;
+    border-radius: 50px;
+    font-size: 28px;
+    font-weight: bold;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+.shocking-deal-timer-time {
+    color: #fff000;
+    margin-left: 10px;
+    font-family: monospace;
+}
+
+/* Product Carousel */
+.shocking-deal-carousel-wrapper {
+    width: 640px;
+    position: relative;
+    z-index: 2;
+}
+
+.shocking-deal-carousel {
+    background-color: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    height: 320px;
+    display: flex;
+}
+
+.shocking-deal-carousel-slide {
+    min-width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.5s ease-in-out;
+}
+
+.shocking-deal-carousel-image-container {
+    height: 60%;
+    overflow: hidden;
+    position: relative;
+}
+
+.shocking-deal-carousel-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.shocking-deal-carousel-badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 10px 20px;
+    background: #f01a21;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    border-radius: 0 0 10px 0;
+}
+
+.shocking-deal-carousel-content {
+    padding: 20px;
+    height: 40%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.shocking-deal-carousel-product-name {
+    color: #333;
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.shocking-deal-carousel-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.shocking-deal-carousel-original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.shocking-deal-carousel-price {
+    color: #f01a21;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.shocking-deal-carousel-buy-btn {
+    padding: 8px 20px;
+    background-color: #333;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Carousel Controls */
+.shocking-deal-carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background-color: white;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.shocking-deal-carousel-control-prev {
+    left: -20px;
+}
+
+.shocking-deal-carousel-control-next {
+    right: -20px;
+}
+
+/* Decorative Background */
+.shocking-deal-hero-decoration {
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Product Grid Section */
+.shocking-deal-grid-wrapper {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.shocking-deal-section-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.shocking-deal-section-icon {
+    color: #f01a21;
+    margin-right: 10px;
+}
+
+/* Loading Spinner */
+.shocking-deal-loading {
+    display: flex;
+    justify-content: center;
+    padding: 100px 0;
+}
+
+.shocking-deal-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #eee;
+    border-top: 3px solid #f01a21;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Product Grid */
+.shocking-deal-products-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.shocking-deal-product-card {
+    background-color: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.shocking-deal-product-badge {
+    position: absolute;
+    top: 15px;
+    left: 0;
+    background-color: #f01a21;
+    color: white;
+    padding: 5px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 0 4px 4px 0;
+    z-index: 1;
+}
+
+.shocking-deal-product-image-container {
+    height: 220px;
+    overflow: hidden;
+    position: relative;
+}
+
+.shocking-deal-product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.shocking-deal-product-content {
+    padding: 20px;
+}
+
+.shocking-deal-product-stock {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.shocking-deal-product-stock-count {
+    color: #f01a21;
+    font-weight: bold;
+}
+
+.shocking-deal-product-stock-bar {
+    width: 100%;
+    height: 6px;
+    background-color: #eee;
+    border-radius: 3px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.shocking-deal-product-stock-fill {
+    height: 100%;
+    background-color: #f01a21;
+    border-radius: 3px;
+}
+
+.shocking-deal-product-link {
+    text-decoration: none;
+    color: #333;
+}
+
+.shocking-deal-product-name {
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 1.4;
+    margin-bottom: 15px;
+    height: 44px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.shocking-deal-product-price-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.shocking-deal-product-original-price {
+    text-decoration: line-through;
+    color: #aaa;
+    font-size: 13px;
+}
+
+.shocking-deal-product-price {
+    font-size: 20px;
+    font-weight: 900;
+    color: #f01a21;
+}
+
+.shocking-deal-product-cart-btn {
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Infinite Scroll Loader */
+.shocking-deal-loader {
+    height: 50px;
+    margin: 20px 0;
+}
+
+.shocking-deal-loader-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.shocking-deal-loader-spinner-inner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #eee;
+    border-top: 3px solid #f01a21;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.shocking-deal-loader-complete {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+}

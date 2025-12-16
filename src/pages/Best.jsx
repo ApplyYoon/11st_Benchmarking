@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { productApi } from '../api/productApi';
 import ProductCard from '../components/shared/ProductCard';
 import { getCategoryName, getCategoryKey, categoryMap } from '../utils/categoryUtils';
+import '../styles/Best.css';
 
 const ITEMS_PER_PAGE = 32;
 const MAX_ITEMS = 15000;
@@ -134,69 +135,33 @@ const Best = () => {
     }
 
     return (
-        <div style={{ backgroundColor: '#f8f8f8', minHeight: '100vh', paddingBottom: '60px' }}>
-            <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+        <div className="best-page-container">
+            <div className="best-page-wrapper">
                 {/* 메인 탭 (베스트 500 / 쇼핑몰 베스트) */}
-                <div style={{
-                    backgroundColor: 'white',
-                    borderBottom: '1px solid #e5e5e5',
-                    display: 'flex'
-                }}>
+                <div className="best-main-tabs">
                     <button
                         onClick={() => {
                             setMainTab('베스트 25');
                             setSelectedCategory('전체');
                         }}
-                        style={{
-                            flex: 1,
-                            padding: '20px',
-                            border: 'none',
-                            backgroundColor: 'white',
-                            borderBottom: mainTab === '베스트 25' ? '3px solid #f01a21' : '3px solid transparent',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            fontWeight: 'bold',
-                            color: mainTab === '베스트 25' ? '#f01a21' : '#666',
-                            transition: 'all 0.2s'
-                        }}
+                        className={`best-main-tab-btn ${mainTab === '베스트 25' ? 'best-main-tab-btn-active' : ''}`}
                     >
-                        베스트 <span style={{ color: '#f01a21' }}>25</span>
+                        베스트 <span className="best-main-tab-number">25</span>
                     </button>
                     <button
                         onClick={() => {
                             setMainTab('쇼킹딜 베스트');
                             setSelectedCategory('전체');
                         }}
-                        style={{
-                            flex: 1,
-                            padding: '20px',
-                            border: 'none',
-                            backgroundColor: 'white',
-                            borderBottom: mainTab === '쇼킹딜 베스트' ? '3px solid #f01a21' : '3px solid transparent',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            fontWeight: 'bold',
-                            color: mainTab === '쇼킹딜 베스트' ? '#f01a21' : '#666',
-                            transition: 'all 0.2s'
-                        }}
+                        className={`best-main-tab-btn ${mainTab === '쇼킹딜 베스트' ? 'best-main-tab-btn-active' : ''}`}
                     >
                         쇼킹딜 베스트
                     </button>
                 </div>
 
                 {/* 카테고리 탭 */}
-                <div style={{
-                    backgroundColor: 'white',
-                    borderBottom: '1px solid #e5e5e5',
-                    padding: '0 20px',
-                    overflowX: 'auto',
-                    whiteSpace: 'nowrap'
-                }}>
-                    <div style={{
-                        display: 'inline-flex',
-                        gap: '0',
-                        minWidth: '100%'
-                    }}>
+                <div className="best-category-tabs">
+                    <div className="best-category-tabs-inner">
                         {categories.map((category) => {
                             // 카테고리를 한글로 표시 (전체는 그대로, 영어 카테고리는 한글로 변환)
                             const displayName = category === '전체' ? '전체' : getCategoryName(category);
@@ -204,28 +169,7 @@ const Best = () => {
                                 <button
                                     key={category}
                                     onClick={() => setSelectedCategory(category)}
-                                    style={{
-                                        padding: '18px 20px',
-                                        border: 'none',
-                                        backgroundColor: 'white',
-                                        borderBottom: selectedCategory === category ? '3px solid #f01a21' : '3px solid transparent',
-                                        color: selectedCategory === category ? '#f01a21' : '#666',
-                                        fontSize: '14px',
-                                        fontWeight: selectedCategory === category ? 'bold' : 'normal',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        whiteSpace: 'nowrap'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (selectedCategory !== category) {
-                                            e.target.style.color = '#333';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (selectedCategory !== category) {
-                                            e.target.style.color = '#666';
-                                        }
-                                    }}
+                                    className={`best-category-tab-btn ${selectedCategory === category ? 'best-category-tab-btn-active' : ''}`}
                                 >
                                     {displayName}
                                 </button>
@@ -235,57 +179,23 @@ const Best = () => {
                 </div>
 
                 {/* 안내 */}
-                <div style={{
-                    backgroundColor: 'white',
-                    padding: '15px 20px',
-                    borderBottom: '1px solid #e5e5e5',
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center'
-                }}>
-                    <span style={{ fontSize: '13px', color: '#999' }}>
+                <div className="best-info-section">
+                    <span className="best-info-text">
                         {mainTab === '베스트 25' ? '베스트 25 ?' : '쇼킹딜 베스트 ?'}
                     </span>
                 </div>
 
                 {/* 정렬 옵션 */}
-                <div style={{
-                    backgroundColor: 'white',
-                    padding: '20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '10px'
-                }}>
-                    <div style={{ fontSize: '15px', color: '#333', fontWeight: 'bold' }}>
-                        총 <span style={{ color: '#f01a21' }}>{filteredProducts.length}</span>개
+                <div className="best-sort-section">
+                    <div className="best-product-count">
+                        총 <span className="best-product-count-number">{filteredProducts.length}</span>개
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="best-sort-buttons">
                         {sortOptions.map((option) => (
                             <button
                                 key={option}
                                 onClick={() => setSortBy(option)}
-                                style={{
-                                    padding: '8px 16px',
-                                    border: '1px solid #e5e5e5',
-                                    backgroundColor: sortBy === option ? '#f01a21' : 'white',
-                                    color: sortBy === option ? 'white' : '#666',
-                                    fontSize: '13px',
-                                    fontWeight: sortBy === option ? 'bold' : 'normal',
-                                    cursor: 'pointer',
-                                    borderRadius: '4px',
-                                    transition: 'all 0.2s'
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (sortBy !== option) {
-                                        e.target.style.backgroundColor = '#f8f8f8';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (sortBy !== option) {
-                                        e.target.style.backgroundColor = 'white';
-                                    }
-                                }}
+                                className={`best-sort-btn ${sortBy === option ? 'best-sort-btn-active' : ''}`}
                             >
                                 {option}
                             </button>
@@ -294,36 +204,28 @@ const Best = () => {
                 </div>
 
                 {/* 상품 그리드 */}
-                <div style={{ padding: '0 20px' }}>
+                <div className="best-products-wrapper">
                     {loading ? (
-                        <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0', backgroundColor: 'white' }}>
-                            <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                        <div className="best-loading-container">
+                            <div className="best-spinner" />
                         </div>
                     ) : (
                         <>
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(4, 1fr)',
-                                gap: '20px',
-                                backgroundColor: 'white',
-                                padding: '20px'
-                            }}>
+                            <div className="best-products-grid">
                                 {filteredProducts.map((product, index) => (
                                     <ProductCard key={`${product.id}-${index}`} product={product} />
                                 ))}
                             </div>
 
                             {/* 무한 스크롤 로더 */}
-                            <div ref={loaderRef} style={{ height: '50px', margin: '20px 0' }}>
+                            <div ref={loaderRef} className="best-infinite-loader">
                                 {loadingMore && (
-                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                                        <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                                    <div className="best-loading-more-container">
+                                        <div className="best-spinner" />
                                     </div>
                                 )}
                                 {!hasMore && products.length > 0 && (
-                                    <div style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
+                                    <div className="best-all-loaded-message">
                                         모든 상품을 불러왔습니다 ({products.length}개)
                                     </div>
                                 )}
@@ -334,18 +236,12 @@ const Best = () => {
 
                 {/* 빈 상태 */}
                 {!loading && filteredProducts.length === 0 && (
-                    <div style={{
-                        backgroundColor: 'white',
-                        textAlign: 'center',
-                        padding: '100px 20px',
-                        margin: '0 20px',
-                        color: '#999'
-                    }}>
-                        <div style={{ fontSize: '48px', marginBottom: '20px' }}>📦</div>
-                        <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>
+                    <div className="best-empty-state">
+                        <div className="best-empty-icon">📦</div>
+                        <div className="best-empty-title">
                             상품이 없습니다
                         </div>
-                        <div style={{ fontSize: '14px' }}>
+                        <div className="best-empty-message">
                             다른 카테고리를 선택해보세요
                         </div>
                     </div>

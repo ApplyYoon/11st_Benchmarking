@@ -1,0 +1,42 @@
+/* MDRecommends */
+.md-recommends-title {
+    font-size: 26px;
+    font-weight: 900;
+    margin-bottom: 20px;
+    color: #111;
+}
+
+.md-recommends-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px 20px;
+}
+
+.md-recommends-load-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.md-recommends-load-more-btn {
+    padding: 14px 40px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    background-color: #fff;
+    border: 2px solid #333;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.md-recommends-load-more-btn:hover:not(:disabled) {
+    background-color: #333;
+    color: #fff;
+}
+
+.md-recommends-load-more-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}

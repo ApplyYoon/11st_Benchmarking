@@ -1,0 +1,57 @@
+/* BestSwiper */
+.best-swiper-section {
+    margin-bottom: 60px;
+}
+
+.best-swiper-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.best-swiper-title {
+    font-size: 26px;
+    font-weight: 900;
+    margin: 0;
+    color: #111;
+}
+
+.best-swiper-more {
+    font-size: 14px;
+    color: #666;
+    cursor: pointer;
+}
+
+.best-swiper-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.best-swiper-loading-trigger {
+    height: 1px;
+    margin-top: 20px;
+}
+
+.best-swiper-loading {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.best-swiper-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #eee;
+    border-top: 3px solid #f01a21;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

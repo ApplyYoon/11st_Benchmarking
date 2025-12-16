@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DaumPostcodeEmbed from 'react-daum-postcode';
 import { useAuth } from '../context/AuthContext';
+import '../styles/Signup.css';
 
 const Signup = () => {
     const [agreed, setAgreed] = useState(false);
@@ -56,19 +57,15 @@ const Signup = () => {
     };
 
     return (
-        <div style={{ maxWidth: '400px', margin: '60px auto', padding: '0 20px' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '30px', textAlign: 'center' }}>회원가입</h2>
+        <div className="signup-container">
+            <h2 className="signup-title">회원가입</h2>
 
             {isAddressModalOpen && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000,
-                    display: 'flex', justifyContent: 'center', alignItems: 'center'
-                }}>
-                    <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', width: '90%', maxWidth: '500px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                            <h3 style={{ margin: 0 }}>주소 찾기</h3>
-                            <button onClick={() => setIsAddressModalOpen(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+                <div className="signup-address-modal">
+                    <div className="signup-address-modal-box">
+                        <div className="signup-address-modal-header">
+                            <h3 className="signup-address-modal-title">주소 찾기</h3>
+                            <button onClick={() => setIsAddressModalOpen(false)} className="signup-address-modal-close">✕</button>
                         </div>
                         <DaumPostcodeEmbed onComplete={handleComplete} style={{ height: '400px' }} />
                     </div>
@@ -76,61 +73,61 @@ const Signup = () => {
             )}
 
             <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px' }}>이름</label>
+                <div className="signup-form-group">
+                    <label className="signup-label">이름</label>
                     <input
                         type="text"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        style={{ width: '100%', padding: '12px', boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: '4px' }}
+                        className="signup-input"
                         required
                     />
                 </div>
-                <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px' }}>이메일</label>
+                <div className="signup-form-group">
+                    <label className="signup-label">이메일</label>
                     <input
                         type="email"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        style={{ width: '100%', padding: '12px', boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: '4px' }}
+                        className="signup-input"
                         required
                     />
                 </div>
-                <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px' }}>비밀번호</label>
+                <div className="signup-form-group">
+                    <label className="signup-label">비밀번호</label>
                     <input
                         type="password"
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        style={{ width: '100%', padding: '12px', boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: '4px' }}
+                        className="signup-input"
                         required
                     />
                 </div>
-                <div style={{ marginBottom: '30px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px' }}>비밀번호 확인</label>
+                <div className="signup-form-group-large">
+                    <label className="signup-label">비밀번호 확인</label>
                     <input
                         type="password"
                         value={formData.passwordConfirm}
                         onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target.value })}
-                        style={{ width: '100%', padding: '12px', boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: '4px' }}
+                        className="signup-input"
                         required
                     />
                 </div>
 
-                <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px' }}>주소</label>
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                <div className="signup-form-group">
+                    <label className="signup-label">주소</label>
+                    <div className="signup-address-group">
                         <input
                             type="text"
                             value={formData.zipCode}
                             placeholder="우편번호"
                             readOnly
-                            style={{ flex: 1, padding: '12px', boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f5f5f5' }}
+                            className="signup-input signup-input-readonly"
                         />
                         <button
                             type="button"
                             onClick={() => setIsAddressModalOpen(true)}
-                            style={{ padding: '0 20px', backgroundColor: '#444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}
+                            className="signup-address-search-btn"
                         >
                             주소 찾기
                         </button>
@@ -140,28 +137,29 @@ const Signup = () => {
                         value={formData.address}
                         placeholder="기본 주소"
                         readOnly
-                        style={{ width: '100%', padding: '12px', marginBottom: '8px', boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f5f5f5' }}
+                        className="signup-input signup-input-readonly"
+                        style={{ marginBottom: '8px' }}
                     />
                     <input
                         type="text"
                         value={formData.detailAddress}
                         onChange={(e) => setFormData({ ...formData, detailAddress: e.target.value })}
                         placeholder="상세 주소를 입력해주세요"
-                        style={{ width: '100%', padding: '12px', boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: '4px' }}
+                        className="signup-input"
                     />
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '4px', marginBottom: '30px' }}>
-                    <label style={{ display: 'flex', alignItems: 'flex-start', cursor: 'pointer', gap: '8px' }}>
+                <div className="signup-agreement-box">
+                    <label className="signup-agreement-label">
                         <input
                             type="checkbox"
                             checked={agreed}
                             onChange={(e) => setAgreed(e.target.checked)}
-                            style={{ marginTop: '3px' }}
+                            className="signup-checkbox"
                         />
                         <div>
-                            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>[필수] 11번가 이용약관 동의</span>
-                            <div style={{ fontSize: '12px', color: '#666', marginTop: '5px', lineHeight: '1.4' }}>
+                            <span className="signup-agreement-title">[필수] 11번가 이용약관 동의</span>
+                            <div className="signup-agreement-text">
                                 전자상거래 표준약관 및 개인정보 수집 이용에 대한 내용을 확인하였으며 이에 동의합니다.
                             </div>
                         </div>
@@ -170,7 +168,7 @@ const Signup = () => {
 
                 <button
                     type="submit"
-                    style={{ width: '100%', padding: '16px', backgroundColor: agreed ? '#f01a21' : '#ccc', color: 'white', border: 'none', borderRadius: '4px', fontSize: '16px', fontWeight: 'bold', cursor: agreed ? 'pointer' : 'default' }}
+                    className={`signup-submit-btn ${agreed ? 'signup-submit-btn-enabled' : 'signup-submit-btn-disabled'}`}
                     disabled={!agreed}
                 >
                     가입하기

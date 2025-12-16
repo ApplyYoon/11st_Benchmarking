@@ -1,0 +1,155 @@
+/* MyCoupons Container */
+.mycoupons-container {
+    background-color: #f8f8f8;
+    min-height: 100vh;
+    padding: 40px 0;
+}
+
+.mycoupons-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.mycoupons-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+.mycoupons-box {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.mycoupons-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+.mycoupons-count {
+    font-size: 18px;
+}
+
+.mycoupons-count-number {
+    color: #f01a21;
+    font-weight: bold;
+}
+
+.mycoupons-register-btn {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background-color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.mycoupons-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #eee;
+    border-top: 3px solid #f01a21;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.mycoupons-loading {
+    display: flex;
+    justify-content: center;
+    padding: 50px 0;
+}
+
+.mycoupons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.mycoupons-card {
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 180px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.mycoupons-discount {
+    color: #f01a21;
+    font-weight: bold;
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.mycoupons-name {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.mycoupons-condition {
+    font-size: 13px;
+    color: #888;
+}
+
+.mycoupons-validity {
+    font-size: 12px;
+    color: #666;
+    border-top: 1px dashed #eee;
+    padding-top: 10px;
+    margin-top: 15px;
+}
+
+.mycoupons-empty {
+    text-align: center;
+    padding: 50px 0;
+    color: #888;
+}
+
+.mycoupons-bottom {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.mycoupons-shopping-btn {
+    padding: 15px 40px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Login Required */
+.mycoupons-login-required {
+    padding: 50px;
+    text-align: center;
+}
+
+.mycoupons-login-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    cursor: pointer;
+}

@@ -1,0 +1,104 @@
+/* HeroBanner */
+.hero-banner {
+    width: 100%;
+    max-width: 1280px;
+    height: 400px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 60px;
+    margin: 0 auto 60px auto;
+}
+
+.hero-banner-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    background-size: cover;
+    background-position: center;
+}
+
+.hero-banner-slide-active {
+    opacity: 1;
+    z-index: 1;
+}
+
+.hero-banner-slide-clickable {
+    cursor: pointer;
+}
+
+.hero-banner-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 10;
+}
+
+.hero-banner-control-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s;
+    backdrop-filter: blur(4px);
+}
+
+.hero-banner-control-btn:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+    transform: scale(1.05);
+}
+
+.hero-banner-control-btn-nav {
+    font-size: 18px;
+}
+
+.hero-banner-slide-number {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 18px;
+    font-size: 13px;
+    font-weight: bold;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-banner-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.hero-banner-indicator {
+    height: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.hero-banner-indicator-inactive {
+    width: 8px;
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.hero-banner-indicator-active {
+    width: 28px;
+    background-color: white;
+}

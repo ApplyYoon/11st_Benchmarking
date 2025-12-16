@@ -1,0 +1,232 @@
+/* MyPage Container */
+.mypage-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    display: flex;
+    gap: 30px;
+}
+
+/* Sidebar */
+.mypage-sidebar {
+    width: 200px;
+}
+
+.mypage-user-box {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.mypage-user-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.mypage-user-points {
+    font-size: 14px;
+    font-weight: bold;
+    color: #f01a21;
+    margin-top: 10px;
+}
+
+.mypage-menu-container {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #eee;
+}
+
+.mypage-menu-header {
+    padding: 15px;
+    font-weight: bold;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #eee;
+}
+
+.mypage-menu-item {
+    padding: 12px 15px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #333;
+    font-weight: normal;
+}
+
+.mypage-menu-item-active {
+    color: #f01a21;
+    font-weight: bold;
+}
+
+/* Content */
+.mypage-content {
+    flex: 1;
+}
+
+.mypage-content-section {
+    margin-bottom: 60px;
+}
+
+.mypage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #333;
+}
+
+.mypage-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.mypage-year-select {
+    padding: 5px 10px;
+    font-size: 14px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+/* Order Card */
+.mypage-order-card {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    margin-top: 15px;
+}
+
+.mypage-order-card-cancelled {
+    opacity: 0.7;
+}
+
+.mypage-order-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.mypage-order-date {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.mypage-order-id {
+    font-size: 12px;
+    color: #888;
+}
+
+.mypage-order-items {
+    margin-bottom: 15px;
+}
+
+.mypage-order-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.mypage-order-item-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.mypage-order-item-info {
+    flex: 1;
+}
+
+.mypage-order-item-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.mypage-order-item-details {
+    font-size: 13px;
+    color: #666;
+}
+
+.mypage-order-item-total {
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.mypage-order-no-items {
+    margin-bottom: 15px;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-radius: 6px;
+}
+
+.mypage-order-no-items-name {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.mypage-order-no-items-text {
+    font-size: 14px;
+    color: #666;
+}
+
+.mypage-order-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+.mypage-order-total {
+    font-size: 16px;
+    font-weight: bold;
+    color: #f01a21;
+}
+
+.mypage-order-total-cancelled {
+    font-size: 16px;
+    font-weight: bold;
+    color: #888;
+}
+
+.mypage-order-status {
+    font-size: 16px;
+    font-weight: bold;
+    color: #888;
+}
+
+.mypage-order-actions {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.mypage-cancel-button {
+    font-size: 12px;
+    padding: 5px 10px;
+    border: 1px solid #f01a21;
+    background-color: #f01a21;
+    color: white;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+/* Empty State */
+.mypage-empty-state {
+    padding: 50px 0;
+    text-align: center;
+    color: #888;
+    border-bottom: 1px solid #eee;
+}

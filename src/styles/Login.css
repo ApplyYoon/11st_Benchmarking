@@ -1,0 +1,191 @@
+/* Login Page Container */
+.login-page-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: #f8f8f8;
+    padding: 40px 20px;
+}
+
+.login-box {
+    max-width: 460px;
+    width: 100%;
+    background-color: white;
+    border-radius: 8px;
+    padding: 60px 50px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Logo */
+.login-logo-container {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.login-logo {
+    font-size: 48px;
+    font-weight: 900;
+    margin: 0;
+    background: linear-gradient(135deg, #f01a21 0%, #ff1744 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -2px;
+}
+
+/* Form */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.login-input {
+    padding: 16px 18px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.login-input:focus {
+    border-color: #f01a21;
+}
+
+.login-input-wrapper {
+    position: relative;
+}
+
+.login-input-wrapper .login-input {
+    width: 100%;
+}
+
+.login-error {
+    color: #f01a21;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+/* Login Button */
+.login-button {
+    padding: 18px;
+    background-color: #f01a21;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background-color 0.2s;
+}
+
+.login-button:hover {
+    background-color: #d01519;
+}
+
+/* Social Login */
+.login-social-section {
+    margin-top: 35px;
+}
+
+.login-social-buttons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    justify-content: center;
+}
+
+.login-social-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.login-social-btn:hover {
+    transform: scale(1.05);
+}
+
+.login-social-btn-kakao {
+    background-color: #FEE500;
+}
+
+.login-social-btn-naver {
+    background-color: #03C75A;
+}
+
+.login-social-icon {
+    font-size: 22px;
+}
+
+.login-social-icon-naver {
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* Keep Login */
+.login-keep-section {
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-keep-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+}
+
+.login-keep-checkbox {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Bottom Links */
+.login-bottom-links {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.login-link {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.login-link:hover {
+    color: #f01a21;
+}
+
+.login-link-bold {
+    cursor: pointer;
+    font-weight: bold;
+    color: #333;
+    transition: color 0.2s;
+}
+
+.login-link-bold:hover {
+    color: #f01a21;
+}
+
+.login-link-divider {
+    color: #ddd;
+}

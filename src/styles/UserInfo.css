@@ -1,0 +1,233 @@
+/* UserInfo Page */
+.user-info-container {
+    background-color: #f8f8f8;
+    min-height: 100vh;
+    padding: 40px 0;
+}
+
+.user-info-login-required {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f8f8;
+}
+
+.user-info-login-required-content {
+    text-align: center;
+}
+
+.user-info-login-required-text {
+    margin-bottom: 20px;
+    color: #666;
+}
+
+.user-info-login-btn {
+    padding: 10px 20px;
+    background-color: #f01a21;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Address Modal */
+.user-info-address-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.user-info-address-modal-box {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.user-info-address-modal-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.user-info-address-modal-title {
+    margin: 0;
+}
+
+.user-info-address-modal-close {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.user-info-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.user-info-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+.user-info-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 40px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.user-info-profile {
+    display: flex;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.user-info-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin-right: 20px;
+}
+
+.user-info-profile-name {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.user-info-profile-email {
+    color: #666;
+}
+
+.user-info-section {
+    border-top: 1px solid #eee;
+    padding-top: 30px;
+}
+
+.user-info-section-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.user-info-section-margin {
+    margin-top: 30px;
+}
+
+.user-info-info-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.user-info-info-label {
+    color: #666;
+}
+
+.user-info-info-value {
+    color: #f01a21;
+    font-weight: bold;
+}
+
+.user-info-address-box {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+.user-info-address-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.user-info-address-title {
+    font-weight: bold;
+}
+
+.user-info-address-search-btn {
+    border: 1px solid #ddd;
+    background-color: white;
+    padding: 2px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.user-info-address-content {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.user-info-address-empty {
+    color: #999;
+}
+
+.user-info-address-detail-input {
+    margin-top: 5px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 100%;
+}
+
+.user-info-actions {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.user-info-btn {
+    padding: 12px 30px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.user-info-btn-primary {
+    background-color: #f01a21;
+    color: white;
+    border: none;
+}
+
+.user-info-btn-secondary {
+    background-color: white;
+    color: #666;
+    border: 1px solid #ccc;
+}
+
+.user-info-btn-dark {
+    background-color: #333;
+    color: white;
+    border: none;
+}
+
+.user-info-edit-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}

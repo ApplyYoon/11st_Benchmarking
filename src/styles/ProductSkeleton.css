@@ -1,0 +1,28 @@
+/* ProductSkeleton */
+.product-skeleton {
+    width: 100%;
+    background-color: white;
+}
+
+.product-skeleton-image {
+    padding-top: 100%;
+    background-color: #eee;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.product-skeleton-text {
+    height: 20px;
+    background-color: #eee;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.product-skeleton-text-medium {
+    width: 60%;
+}
+
+.product-skeleton-text-small {
+    height: 16px;
+    width: 40%;
+}

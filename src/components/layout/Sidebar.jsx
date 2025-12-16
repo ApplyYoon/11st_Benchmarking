@@ -13,8 +13,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { X, User, ChevronRight, Home, Zap, Star, Gift } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import './Sidebar.css';
+import { useAuth } from '../../context/AuthContext';
+import '../../styles/Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
     const { user, logout } = useAuth();

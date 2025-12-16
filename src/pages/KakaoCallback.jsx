@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
+import '../styles/KakaoCallback.css';
 
 const KakaoCallback = () => {
     const [searchParams] = useSearchParams();
@@ -65,52 +66,30 @@ const KakaoCallback = () => {
     };
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#f8f8f8'
-        }}>
-            <div style={{
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                padding: '60px 80px',
-                textAlign: 'center',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
-            }}>
+        <div className="kakao-callback-container">
+            <div className="kakao-callback-box">
                 {status === 'processing' && (
                     <>
-                        <div style={{
-                            width: '60px',
-                            height: '60px',
-                            border: '4px solid #f0f0f0',
-                            borderTop: '4px solid #FEE500',
-                            borderRadius: '50%',
-                            animation: 'spin 1s linear infinite',
-                            margin: '0 auto 20px'
-                        }} />
-                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-                        <h2 style={{ fontSize: '20px', color: '#333', marginBottom: '10px' }}>카카오 로그인 처리 중...</h2>
-                        <p style={{ color: '#888', fontSize: '14px' }}>잠시만 기다려 주세요</p>
+                        <div className="kakao-callback-spinner" />
+                        <h2 className="kakao-callback-title">카카오 로그인 처리 중...</h2>
+                        <p className="kakao-callback-message">잠시만 기다려 주세요</p>
                     </>
                 )}
 
                 {status === 'success' && (
                     <>
-                        <div style={{ fontSize: '60px', marginBottom: '20px' }}>✅</div>
-                        <h2 style={{ fontSize: '20px', color: '#333', marginBottom: '10px' }}>로그인 성공!</h2>
-                        <p style={{ color: '#888', fontSize: '14px' }}>홈페이지로 이동합니다...</p>
+                        <div className="kakao-callback-icon">✅</div>
+                        <h2 className="kakao-callback-title">로그인 성공!</h2>
+                        <p className="kakao-callback-message">홈페이지로 이동합니다...</p>
                     </>
                 )}
 
                 {status === 'error' && (
                     <>
-                        <div style={{ fontSize: '60px', marginBottom: '20px' }}>❌</div>
-                        <h2 style={{ fontSize: '20px', color: '#f01a21', marginBottom: '10px' }}>로그인 실패</h2>
-                        <p style={{ color: '#888', fontSize: '14px' }}>{error}</p>
-                        <p style={{ color: '#aaa', fontSize: '12px', marginTop: '15px' }}>로그인 페이지로 이동합니다...</p>
+                        <div className="kakao-callback-icon">❌</div>
+                        <h2 className="kakao-callback-title-error">로그인 실패</h2>
+                        <p className="kakao-callback-error-message">{error}</p>
+                        <p className="kakao-callback-redirect-message">로그인 페이지로 이동합니다...</p>
                     </>
                 )}
             </div>

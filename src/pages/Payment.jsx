@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { couponApi } from '../api/productApi';
 import client from '../api/client';
+import '../styles/Payment.css';
 
 const clientKey = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
 
@@ -21,6 +22,7 @@ const Payment = () => {
 
     // Form and Payment Method State
     const [paymentMethod, setPaymentMethod] = useState('카카오페이');
+    const [addressType, setAddressType] = useState('default'); // 'default' | 'custom'
     const [shippingInfo, setShippingInfo] = useState({
         recipient: user?.name || '',
         postalCode: user?.zipCode || '',
@@ -29,18 +31,43 @@ const Payment = () => {
         phone: ''
     });
 
+    // Check if user has default address
+    const hasDefaultAddress = user && user.zipCode && user.address;
+
     // Update shipping info when user data loads
     useEffect(() => {
-        if (user) {
-            setShippingInfo(prev => ({
-                ...prev,
-                recipient: prev.recipient || user.name || '',
-                postalCode: prev.postalCode || user.zipCode || '',
-                baseAddress: prev.baseAddress || user.address || '',
-                detailAddress: prev.detailAddress || user.detailAddress || ''
-            }));
+        if (user && addressType === 'default') {
+            setShippingInfo({
+                recipient: user.name || '',
+                postalCode: user.zipCode || '',
+                baseAddress: user.address || '',
+                detailAddress: user.detailAddress || '',
+                phone: ''
+            });
         }
-    }, [user]);
+    }, [user, addressType]);
+
+    // Handle address type change
+    const handleAddressTypeChange = (type) => {
+        setAddressType(type);
+        if (type === 'default' && user) {
+            setShippingInfo({
+                recipient: user.name || '',
+                postalCode: user.zipCode || '',
+                baseAddress: user.address || '',
+                detailAddress: user.detailAddress || '',
+                phone: shippingInfo.phone // 전화번호는 유지
+            });
+        } else if (type === 'custom') {
+            setShippingInfo({
+                recipient: '',
+                postalCode: '',
+                baseAddress: '',
+                detailAddress: '',
+                phone: shippingInfo.phone // 전화번호는 유지
+            });
+        }
+    };
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
     // Coupon State
@@ -176,6 +203,12 @@ const Payment = () => {
 
     // Handlers
     const handleInputChange = (field, value) => {
+        // 전화번호 입력 시 숫자만 허용
+        if (field === 'phone') {
+            const numbersOnly = value.replace(/[^0-9]/g, '');
+            setShippingInfo(prev => ({ ...prev, [field]: numbersOnly }));
+            return;
+        }
         setShippingInfo(prev => ({ ...prev, [field]: value }));
     };
 
@@ -206,6 +239,7 @@ const Payment = () => {
         if (!shippingInfo.postalCode || !shippingInfo.baseAddress) { alert('주소를 입력해주세요.'); return false; }
         if (!shippingInfo.detailAddress) { alert('상세 주소를 입력해주세요.'); return false; }
         if (!shippingInfo.phone) { alert('휴대폰 번호를 입력해주세요.'); return false; }
+        if (shippingInfo.phone.length !== 11) { alert('휴대폰 번호는 11자리 숫자여야 합니다.'); return false; }
         return true;
     };
 
@@ -238,24 +272,24 @@ const Payment = () => {
     };
 
     // Render Logic
-    if (status === 'processing') return <div style={{ textAlign: 'center', padding: '100px' }}>결제 승인 중입니다...</div>;
+    if (status === 'processing') return <div className="payment-status-processing">결제 승인 중입니다...</div>;
     if (status === 'fail') return (
-        <div style={{ textAlign: 'center', padding: '100px' }}>
+        <div className="payment-status-fail">
             <h2>결제 실패</h2>
             <p>{errorMsg}</p>
             <button onClick={() => navigate('/cart')}>장바구니로 돌아가기</button>
         </div>
     );
     if (status === 'success') return (
-        <div style={{ backgroundColor: '#f8f8f8', minHeight: '100vh', paddingTop: '60px' }}>
-            <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 20px' }}>
-                <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '60px 40px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                    <div style={{ fontSize: '72px', marginBottom: '20px' }}>✅</div>
-                    <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '15px', color: '#111' }}>주문이 완료되었습니다</h2>
-                    <p style={{ color: '#666', fontSize: '15px', marginBottom: '40px' }}>11번가를 이용해 주셔서 감사합니다.</p>
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                        <button onClick={() => navigate('/mypage')} style={{ flex: 1, maxWidth: '200px', padding: '16px 30px', border: '1px solid #e5e5e5', background: 'white', borderRadius: '4px', cursor: 'pointer', fontSize: '15px', fontWeight: 'bold', color: '#333' }}>주문내역 보기</button>
-                        <button onClick={() => navigate('/')} style={{ flex: 1, maxWidth: '200px', padding: '16px 30px', backgroundColor: '#f01a21', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '15px', fontWeight: 'bold' }}>쇼핑 계속하기</button>
+        <div className="payment-status-success">
+            <div className="payment-success-wrapper">
+                <div className="payment-success-box">
+                    <div className="payment-success-icon">✅</div>
+                    <h2 className="payment-success-title">주문이 완료되었습니다</h2>
+                    <p className="payment-success-message">11번가를 이용해 주셔서 감사합니다.</p>
+                    <div className="payment-success-buttons">
+                        <button onClick={() => navigate('/mypage')} className="payment-success-btn payment-success-btn-secondary">주문내역 보기</button>
+                        <button onClick={() => navigate('/')} className="payment-success-btn payment-success-btn-primary">쇼핑 계속하기</button>
                     </div>
                 </div>
             </div>
@@ -263,77 +297,76 @@ const Payment = () => {
     );
 
     if (!amount) return (
-        <div style={{ textAlign: 'center', padding: '100px 20px', color: '#999' }}>
-            <div style={{ fontSize: '48px', marginBottom: '20px' }}>⚠️</div>
-            <div style={{ fontSize: '18px', fontWeight: 'bold' }}>잘못된 접근입니다</div>
+        <div className="payment-error-state">
+            <div className="payment-error-icon">⚠️</div>
+            <div className="payment-error-title">잘못된 접근입니다</div>
         </div>
     );
 
     return (
-        <div style={{ backgroundColor: '#f8f8f8', minHeight: '100vh', paddingTop: '40px', paddingBottom: '60px' }}>
-            <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 20px' }}>
-                <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#111', marginBottom: '30px' }}>주문/결제</h1>
+        <div className="payment-container">
+            <div className="payment-wrapper">
+                <h1 className="payment-title">주문/결제</h1>
 
                 {isAddressModalOpen && (
-                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', width: '90%', maxWidth: '500px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                                <h3 style={{ margin: 0 }}>주소 찾기</h3>
-                                <button onClick={() => setIsAddressModalOpen(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+                    <div className="payment-address-modal">
+                        <div className="payment-address-modal-box">
+                            <div className="payment-address-modal-header">
+                                <h3 className="payment-address-modal-title">주소 찾기</h3>
+                                <button onClick={() => setIsAddressModalOpen(false)} className="payment-address-modal-close">✕</button>
                             </div>
                             <DaumPostcodeEmbed onComplete={handleComplete} style={{ height: '400px' }} />
                         </div>
                     </div>
                 )}
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '20px' }}>
+                <div className="payment-grid">
                     {/* Left Column */}
                     <div>
                         {/* Order Product */}
-                        <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>
-                                주문상품 <span style={{ color: '#f01a21', marginLeft: '5px' }}>{items ? items.length : 1}건</span>
+                        <div className="payment-section">
+                            <h2 className="payment-section-title">
+                                주문상품 <span className="payment-section-title-count">{items ? items.length : 1}건</span>
                             </h2>
                             {items && items.length > 0 ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <div className="payment-order-items">
                                     {items.map((item, index) => (
-                                        <div key={index} style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#f8f8f8', borderRadius: '6px', alignItems: 'center' }}>
-                                            <img src={item.imageUrl || item.image} alt={item.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', backgroundColor: 'white' }} />
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '4px' }}>{item.name}</div>
-                                                {item.selectedSize && <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>옵션: {item.selectedSize}</div>}
-                                                <div style={{ fontSize: '13px', color: '#666' }}>
+                                        <div key={index} className="payment-order-item">
+                                            <img src={item.imageUrl || item.image} alt={item.name} className="payment-order-item-image" />
+                                            <div className="payment-order-item-info">
+                                                <div className="payment-order-item-name">{item.name}</div>
+                                                {item.selectedSize && <div className="payment-order-item-option">옵션: {item.selectedSize}</div>}
+                                                <div className="payment-order-item-details">
                                                     {item.quantity}개 / {item.price.toLocaleString()}원
                                                 </div>
                                             </div>
-                                            <div style={{ fontWeight: 'bold', fontSize: '15px' }}>
+                                            <div className="payment-order-item-total">
                                                 {(item.price * item.quantity).toLocaleString()}원
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div style={{ padding: '20px', backgroundColor: '#f8f8f8', borderRadius: '6px', fontSize: '15px' }}>
-                                    <div style={{ fontWeight: 'bold', color: '#333' }}>{orderName}</div>
+                                <div className="payment-order-simple">
+                                    <div className="payment-order-simple-name">{orderName}</div>
                                 </div>
                             )}
                         </div>
 
                         {/* Coupon Discount */}
-                        <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111', margin: 0 }}>쿠폰 할인</h2>
-                                {discountAmount > 0 && <span style={{ color: '#f01a21', fontWeight: 'bold' }}>-{discountAmount.toLocaleString()}원 할인 적용 중</span>}
+                        <div className="payment-section">
+                            <div className="payment-coupon-header">
+                                <h2 className="payment-coupon-header-title">쿠폰 할인</h2>
+                                {discountAmount > 0 && <span className="payment-coupon-discount">-{discountAmount.toLocaleString()}원 할인 적용 중</span>}
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                 {couponsLoading ? (
-                                    <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-                                        <div style={{ width: '20px', height: '20px', border: '2px solid #eee', borderTop: '2px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                                    <div className="payment-coupon-loading">
+                                        <div className="payment-coupon-spinner" />
                                     </div>
                                 ) : (
                                     <>
-                                        <select value={selectedCouponId} onChange={handleCouponChange} style={{ padding: '12px', borderRadius: '4px', border: '1px solid #e5e5e5', fontSize: '14px', outline: 'none', cursor: 'pointer' }}>
+                                        <select value={selectedCouponId} onChange={handleCouponChange} className="payment-coupon-select">
                                             <option value="">쿠폰을 선택해 주세요</option>
                                             {userCoupons
                                                 .filter(coupon => !coupon.isUsed)
@@ -345,24 +378,24 @@ const Payment = () => {
                                                     </option>
                                                 ))}
                                         </select>
-                                        <div style={{ fontSize: '13px', color: '#888' }}>* 조건이 맞지 않는 쿠폰은 선택할 수 없습니다.</div>
+                                        <div className="payment-coupon-note">* 조건이 맞지 않는 쿠폰은 선택할 수 없습니다.</div>
                                     </>
                                 )}
                             </div>
                         </div>
 
                         {/* Point Usage */}
-                        <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111', margin: 0 }}>포인트 사용</h2>
-                                {usedPoints > 0 && <span style={{ color: '#f01a21', fontWeight: 'bold' }}>-{usedPoints.toLocaleString()}P 사용</span>}
+                        <div className="payment-section">
+                            <div className="payment-point-header">
+                                <h2 className="payment-point-header-title">포인트 사용</h2>
+                                {usedPoints > 0 && <span className="payment-point-used">-{usedPoints.toLocaleString()}P 사용</span>}
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <span style={{ fontSize: '14px', color: '#666' }}>보유 포인트</span>
-                                    <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#f01a21' }}>{availablePoints.toLocaleString()}P</span>
+                                <div className="payment-point-info">
+                                    <span className="payment-point-label">보유 포인트</span>
+                                    <span className="payment-point-available">{availablePoints.toLocaleString()}P</span>
                                 </div>
-                                <div style={{ display: 'flex', gap: '8px' }}>
+                                <div className="payment-point-input-group">
                                     <input
                                         type="number"
                                         value={usedPoints || ''}
@@ -370,91 +403,131 @@ const Payment = () => {
                                         placeholder="사용할 포인트"
                                         min="0"
                                         max={Math.min(availablePoints, amount - discountAmount)}
-                                        style={{ flex: 1, padding: '12px', borderRadius: '4px', border: '1px solid #e5e5e5', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                                        className="payment-point-input"
                                     />
                                     <button
                                         onClick={handleUseAllPoints}
-                                        style={{ padding: '12px 20px', backgroundColor: '#f8f8f8', color: '#333', border: '1px solid #e5e5e5', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                        className="payment-point-all-btn"
                                     >
                                         모두 사용
                                     </button>
                                 </div>
-                                <div style={{ fontSize: '13px', color: '#888' }}>
+                                <div className="payment-point-note">
                                     * 최대 {Math.min(availablePoints, amount - discountAmount).toLocaleString()}P까지 사용 가능합니다.
                                 </div>
                             </div>
                         </div>
 
                         {/* Shipping Info */}
-                        <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>배송정보</h2>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 'bold', color: '#333' }}>받는 사람 <span style={{ color: '#f01a21' }}>*</span></label>
-                                    <input type="text" value={shippingInfo.recipient} onChange={(e) => handleInputChange('recipient', e.target.value)} placeholder="받는 사람 이름을 입력하세요" style={{ width: '100%', padding: '12px 15px', border: '1px solid #e5e5e5', borderRadius: '4px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 'bold', color: '#333' }}>주소 <span style={{ color: '#f01a21' }}>*</span></label>
-                                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                                        <input type="text" value={shippingInfo.postalCode} readOnly placeholder="우편번호" style={{ flex: 1, padding: '12px 15px', border: '1px solid #e5e5e5', borderRadius: '4px', fontSize: '14px', backgroundColor: '#f8f8f8', boxSizing: 'border-box' }} />
-                                        <button onClick={handleAddressSearch} style={{ padding: '12px 24px', backgroundColor: '#666', color: 'white', border: 'none', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>주소 찾기</button>
+                        <div className="payment-section">
+                            <h2 className="payment-section-title">배송정보</h2>
+                            
+                            {/* Address Type Selection */}
+                            <div className="payment-shipping-address-type">
+                                <label className={`payment-address-type-label ${addressType === 'default' ? 'payment-address-type-label-selected' : ''}`}>
+                                    <input
+                                        type="radio"
+                                        name="addressType"
+                                        checked={addressType === 'default'}
+                                        onChange={() => handleAddressTypeChange('default')}
+                                        className="payment-address-type-radio"
+                                    />
+                                    <div>
+                                        <div className={`payment-address-type-info ${addressType === 'default' ? 'payment-address-type-info-selected' : ''}`}>기본 배송지</div>
+                                        {hasDefaultAddress && (
+                                            <div className="payment-address-type-preview">{user.address}</div>
+                                        )}
+                                        {!hasDefaultAddress && (
+                                            <div className="payment-address-type-preview-empty">등록된 기본 배송지가 없습니다</div>
+                                        )}
                                     </div>
-                                    <input type="text" value={shippingInfo.baseAddress} readOnly placeholder="기본 주소" style={{ width: '100%', padding: '12px 15px', border: '1px solid #e5e5e5', borderRadius: '4px', fontSize: '14px', backgroundColor: '#f8f8f8', marginBottom: '10px', boxSizing: 'border-box' }} />
-                                    <input type="text" value={shippingInfo.detailAddress} onChange={(e) => handleInputChange('detailAddress', e.target.value)} placeholder="상세 주소 및 건물명을 입력하세요" style={{ width: '100%', padding: '12px 15px', border: '1px solid #e5e5e5', borderRadius: '4px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                                </label>
+                                <label className={`payment-address-type-label ${addressType === 'custom' ? 'payment-address-type-label-selected' : ''}`}>
+                                    <input
+                                        type="radio"
+                                        name="addressType"
+                                        checked={addressType === 'custom'}
+                                        onChange={() => handleAddressTypeChange('custom')}
+                                        className="payment-address-type-radio"
+                                    />
+                                    <div>
+                                        <div className={`payment-address-type-info ${addressType === 'custom' ? 'payment-address-type-info-selected' : ''}`}>직접 입력</div>
+                                        <div className="payment-address-type-preview">새로운 배송지를 입력합니다</div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div className="payment-form-group">
+                                <div>
+                                    <label className="payment-form-field">받는 사람 <span className="payment-form-field-required">*</span></label>
+                                    <input type="text" value={shippingInfo.recipient} onChange={(e) => handleInputChange('recipient', e.target.value)} placeholder="받는 사람 이름을 입력하세요" className="payment-form-input" />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 'bold', color: '#333' }}>휴대폰 번호 <span style={{ color: '#f01a21' }}>*</span></label>
-                                    <input type="tel" value={shippingInfo.phone} onChange={(e) => handleInputChange('phone', e.target.value)} placeholder="010-0000-0000" style={{ width: '100%', padding: '12px 15px', border: '1px solid #e5e5e5', borderRadius: '4px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                                    <label className="payment-form-field">주소 <span className="payment-form-field-required">*</span></label>
+                                    <div className="payment-form-input-group">
+                                        <input type="text" value={shippingInfo.postalCode} readOnly placeholder="우편번호" className="payment-form-input payment-form-input-readonly" />
+                                        <button onClick={handleAddressSearch} className="payment-address-search-btn">주소 찾기</button>
+                                    </div>
+                                    <input type="text" value={shippingInfo.baseAddress} readOnly placeholder="기본 주소" className="payment-form-input payment-form-input-readonly" style={{ marginBottom: '10px' }} />
+                                    <input type="text" value={shippingInfo.detailAddress} onChange={(e) => handleInputChange('detailAddress', e.target.value)} placeholder="상세 주소 및 건물명을 입력하세요" className="payment-form-input" />
+                                </div>
+                                <div>
+                                    <label className="payment-form-field">휴대폰 번호 <span className="payment-form-field-required">*</span></label>
+                                    <input type="tel" value={shippingInfo.phone} onChange={(e) => handleInputChange('phone', e.target.value)} placeholder="010-XXXX-XXXX (숫자만 입력)" maxLength={11} className="payment-form-input" />
+                                    <div className={`payment-phone-hint ${shippingInfo.phone.length === 11 ? 'payment-phone-hint-valid' : ''}`}>
+                                        <span>* 숫자 11자리를 입력해주세요 (-)제외</span>
+                                        {shippingInfo.phone.length === 11 && ' ✓'}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Payment Method */}
-                        <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>결제수단 <span style={{ color: '#f01a21' }}>*</span></h2>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <button style={{ padding: '12px 24px', border: '2px solid #fecb02', backgroundColor: '#fffbe6', color: '#3c1e1e', borderRadius: '6px', cursor: 'default', fontSize: '15px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', width: '100%', justifyContent: 'center', maxWidth: '200px' }}>
-                                    <span style={{ fontSize: '18px' }}>💬</span> 카카오페이
+                        <div className="payment-section">
+                            <h2 className="payment-method-title">결제수단 <span className="payment-method-title-required">*</span></h2>
+                            <div className="payment-method-buttons">
+                                <button className="payment-method-btn">
+                                    <span className="payment-method-icon">💬</span> 카카오페이
                                 </button>
                             </div>
-                            <div style={{ marginTop: '15px', padding: '12px 15px', backgroundColor: '#f8f8f8', borderRadius: '4px', fontSize: '13px', color: '#666' }}>
-                                선택된 결제수단: <strong style={{ color: '#333' }}>카카오페이</strong>
+                            <div className="payment-method-info">
+                                선택된 결제수단: <strong>카카오페이</strong>
                             </div>
                         </div>
                     </div>
 
                     {/* Right Column: Payment Amount */}
                     <div>
-                        <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '30px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', position: 'sticky', top: '20px' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '20px', color: '#111' }}>결제금액</h2>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', paddingBottom: '20px', borderBottom: '1px solid #e5e5e5', marginBottom: '20px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                    <span style={{ color: '#666' }}>상품금액</span>
-                                    <span style={{ color: '#333' }}>{amount?.toLocaleString()}원</span>
+                        <div className="payment-summary-box">
+                            <h2 className="payment-summary-title">결제금액</h2>
+                            <div className="payment-summary-list">
+                                <div className="payment-summary-row">
+                                    <span className="payment-summary-label">상품금액</span>
+                                    <span className="payment-summary-value">{amount?.toLocaleString()}원</span>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                    <span style={{ color: '#666' }}>배송비</span>
-                                    <span style={{ color: '#333' }}>무료</span>
+                                <div className="payment-summary-row">
+                                    <span className="payment-summary-label">배송비</span>
+                                    <span className="payment-summary-value">무료</span>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                    <span style={{ color: '#666' }}>쿠폰 할인</span>
-                                    <span style={{ color: '#f01a21' }}>-{discountAmount.toLocaleString()}원</span>
+                                <div className="payment-summary-row">
+                                    <span className="payment-summary-label">쿠폰 할인</span>
+                                    <span className="payment-summary-value-discount">-{discountAmount.toLocaleString()}원</span>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                    <span style={{ color: '#666' }}>포인트 사용</span>
-                                    <span style={{ color: '#f01a21' }}>-{usedPoints.toLocaleString()}원</span>
+                                <div className="payment-summary-row">
+                                    <span className="payment-summary-label">포인트 사용</span>
+                                    <span className="payment-summary-value-discount">-{usedPoints.toLocaleString()}원</span>
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '20px' }}>
-                                <span style={{ fontWeight: 'bold', color: '#111' }}>최종 결제금액</span>
-                                <span style={{ fontWeight: '900', color: '#f01a21' }}>{finalAmount.toLocaleString()}원</span>
+                            <div className="payment-summary-total">
+                                <span className="payment-summary-total-label">최종 결제금액</span>
+                                <span className="payment-summary-total-amount">{finalAmount.toLocaleString()}원</span>
                             </div>
                             {earnedPoints > 0 && (
-                                <div style={{ padding: '12px', backgroundColor: '#f0faff', borderRadius: '6px', marginBottom: '15px', fontSize: '13px', color: '#0056b3', textAlign: 'center' }}>
+                                <div className="payment-summary-points">
                                     💰 결제 시 {earnedPoints.toLocaleString()}P 적립 예정
                                 </div>
                             )}
-                            <button onClick={handleKakaoPayment} style={{ width: '100%', padding: '18px', backgroundColor: '#f01a21', color: 'white', border: 'none', borderRadius: '6px', fontSize: '17px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <button onClick={handleKakaoPayment} className="payment-summary-button">
                                 {finalAmount.toLocaleString()}원 결제하기
                             </button>
                         </div>

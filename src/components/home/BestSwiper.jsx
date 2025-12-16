@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { productApi } from '../../api/productApi';
 import ProductCard from '../shared/ProductCard';
 import { Link } from 'react-router-dom';
+import '../../styles/BestSwiper.css';
 
 const BestSwiper = ({ onLoadComplete }) => {
     const [initialBestItems, setInitialBestItems] = useState([]);
@@ -86,13 +87,13 @@ const BestSwiper = ({ onLoadComplete }) => {
     return (
         <>
             {isVisible && (
-                <div id="best-section" style={{ marginBottom: '60px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                        <h2 style={{ fontSize: '26px', fontWeight: '900', margin: 0, color: '#111' }}>11번가 베스트</h2>
-                        <Link to='/best'><span style={{ fontSize: '14px', color: '#666', cursor: 'pointer' }}>더보기 &gt;</span></Link>
+                <div id="best-section" className="best-swiper-section">
+                    <div className="best-swiper-header">
+                        <h2 className="best-swiper-title">11번가 베스트</h2>
+                        <Link to='/best'><span className="best-swiper-more">더보기 &gt;</span></Link>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+                    <div className="best-swiper-grid">
                         {bestItems.map(product => (
                             <ProductCard key={product.id} product={product} />
                         ))}
@@ -100,15 +101,14 @@ const BestSwiper = ({ onLoadComplete }) => {
 
                     {/* 로딩 트리거 - 섹션 하단에 위치 */}
                     {bestItems.length < Math.min(initialBestItems.length, MAX_ITEMS_LIMIT) && (
-                        <div id="best-loading-trigger" style={{ height: '1px', marginTop: '20px' }} />
+                        <div id="best-loading-trigger" className="best-swiper-loading-trigger" />
                     )}
 
                     {loading && (
-                        <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '20px' }}>
-                            <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                        <div className="best-swiper-loading">
+                            <div className="best-swiper-spinner" />
                         </div>
                     )}
-                    <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                 </div>
             )}
         </>
