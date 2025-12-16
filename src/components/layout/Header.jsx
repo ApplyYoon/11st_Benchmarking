@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, ShoppingCart, User, Menu, Truck, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -9,10 +9,37 @@ const Header = ({ onMenuClick }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
+    const [relatedKeywords, setRelatedKeywords] = useState([]);
+    const [loadingKeywords, setLoadingKeywords] = useState(false);
     const { user, logout } = useAuth();
     const { cart } = useCart();
     const navigate = useNavigate();
     const location = useLocation();
+
+    // 연관 검색어 로드
+    useEffect(() => {
+        const fetchRelatedKeywords = async () => {
+            if (!searchTerm || searchTerm.trim().length < 1) {
+                setRelatedKeywords([]);
+                return;
+            }
+
+            setLoadingKeywords(true);
+            try {
+                const keywords = await productApi.getRelatedKeywords(searchTerm.trim());
+                setRelatedKeywords(keywords);
+            } catch (error) {
+                console.error('연관 검색어 로딩 실패:', error);
+                setRelatedKeywords([]);
+            } finally {
+                setLoadingKeywords(false);
+            }
+        };
+
+        // 디바운싱: 300ms 후에 요청
+        const timeoutId = setTimeout(fetchRelatedKeywords, 300);
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm]);
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -97,29 +124,50 @@ const Header = ({ onMenuClick }) => {
                                 overflow: 'hidden',
                                 boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
                             }}>
-                                {['노트북', '삼성전자', 'LG전자', '아이폰', '갤럭시', '나이키', '아디다스', '생수', '라면', '커피', '마스크', '영양제', '게이밍 노트북', '기계식 키보드']
-                                    .filter(keyword => keyword.includes(searchTerm))
-                                    .slice(0, 8)
-                                    .map(keyword => (
-                                        <div
-                                            key={keyword}
-                                            onClick={() => {
-                                                setSearchTerm(keyword);
-                                                navigate(`/search?q=${encodeURIComponent(keyword)}`);
-                                            }}
-                                            style={{
-                                                padding: '12px 25px',
-                                                cursor: 'pointer',
-                                                fontSize: '14px',
-                                                color: '#333'
-                                            }}
-                                            onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                                        >
-                                            <span style={{ color: '#f01a21', fontWeight: 'bold' }}>{searchTerm}</span>
-                                            {keyword.replace(searchTerm, '')}
-                                        </div>
-                                    ))}
+                                {loadingKeywords ? (
+                                    <div style={{ padding: '20px', textAlign: 'center', color: '#999', fontSize: '14px' }}>
+                                        검색 중...
+                                    </div>
+                                ) : relatedKeywords.length > 0 ? (
+                                    relatedKeywords.map(keyword => {
+                                        const searchLower = searchTerm.toLowerCase();
+                                        const keywordLower = keyword.toLowerCase();
+                                        const index = keywordLower.indexOf(searchLower);
+                                        
+                                        return (
+                                            <div
+                                                key={keyword}
+                                                onClick={() => {
+                                                    setSearchTerm(keyword);
+                                                    navigate(`/search?q=${encodeURIComponent(keyword)}`);
+                                                    setIsFocused(false);
+                                                }}
+                                                style={{
+                                                    padding: '12px 25px',
+                                                    cursor: 'pointer',
+                                                    fontSize: '14px',
+                                                    color: '#333'
+                                                }}
+                                                onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                                            >
+                                                {index >= 0 ? (
+                                                    <>
+                                                        {keyword.substring(0, index)}
+                                                        <span style={{ color: '#f01a21', fontWeight: 'bold' }}>{keyword.substring(index, index + searchTerm.length)}</span>
+                                                        {keyword.substring(index + searchTerm.length)}
+                                                    </>
+                                                ) : (
+                                                    keyword
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <div style={{ padding: '20px', textAlign: 'center', color: '#999', fontSize: '14px' }}>
+                                        연관 검색어가 없습니다
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

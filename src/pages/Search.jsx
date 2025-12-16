@@ -30,7 +30,7 @@ const Search = () => {
                 setResults(products);
 
                 // 카테고리 목록 가져오기
-                const allProducts = await productApi.getAllProducts();
+                const allProducts = await productApi.getProducts();
                 const uniqueCategories = ['all', ...new Set(allProducts.map(p => p.category).filter(Boolean))];
                 setCategories(uniqueCategories);
 

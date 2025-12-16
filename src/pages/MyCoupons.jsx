@@ -19,7 +19,8 @@ const MyCoupons = () => {
             try {
                 setLoading(true);
                 const coupons = await couponApi.getMyCoupons();
-                setMyCoupons(coupons);
+                // is_used가 false인 쿠폰만 표시
+                setMyCoupons(coupons.filter(coupon => !coupon.isUsed));
             } catch (error) {
                 console.error('쿠폰 로딩 실패:', error);
                 setMyCoupons([]);
@@ -74,7 +75,9 @@ const MyCoupons = () => {
                         </div>
                     ) : myCoupons.length > 0 ? (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-                            {myCoupons.map(coupon => (
+                            {myCoupons
+                                .filter(coupon => !coupon.isUsed)
+                                .map(coupon => (
                                 <div key={coupon.id} style={{
                                     border: '1px solid #e5e5e5',
                                     borderRadius: '8px',

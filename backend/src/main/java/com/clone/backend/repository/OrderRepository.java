@@ -13,6 +13,7 @@ import com.clone.backend.sharding.OrderRouter;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -105,5 +106,52 @@ public class OrderRepository {
                 }
             }
         }
+    }
+
+    /**
+     * 주문 취소 (상태를 CANCELLED로 변경)
+     */
+    public Order cancelOrder(User user, String orderId) {
+        if (user == null || user.getId() == null) {
+            throw new IllegalArgumentException("User is required for canceling order");
+        }
+
+        Long userId = user.getId();
+        MongoTemplate template = orderRouter.getShard(userId);
+
+        // Scan collections to find and update
+        int currentYear = java.time.LocalDate.now().getYear();
+        Query query = new Query(Criteria.where("_id").is(orderId).and("userId").is(userId));
+        Update update = new Update().set("status", Order.OrderStatus.CANCELLED.name());
+
+        System.out.println("DEBUG: Attempting to cancel order " + orderId + " for user " + userId);
+
+        for (int year = currentYear; year >= 2024; year--) {
+            String collectionName = orderRouter.getCollectionNameForYear(year);
+            System.out.println("DEBUG: Checking collection " + collectionName);
+
+            if (template.collectionExists(collectionName)) {
+                // First, try to find the order to verify it exists
+                Order existingOrder = template.findOne(query, Order.class, collectionName);
+                if (existingOrder != null) {
+                    System.out.println("DEBUG: Found order in " + collectionName + ", updating status");
+                    var result = template.updateFirst(query, update, Order.class, collectionName);
+                    if (result.getModifiedCount() > 0) {
+                        // Return updated order
+                        Order updatedOrder = template.findOne(query, Order.class, collectionName);
+                        System.out.println("DEBUG: Order cancelled successfully");
+                        return updatedOrder;
+                    } else {
+                        System.out.println("DEBUG: Update failed - modifiedCount: " + result.getModifiedCount());
+                    }
+                } else {
+                    System.out.println("DEBUG: Order not found in " + collectionName);
+                }
+            } else {
+                System.out.println("DEBUG: Collection " + collectionName + " does not exist");
+            }
+        }
+
+        throw new RuntimeException("주문을 찾을 수 없거나 취소할 수 없습니다. (주문 ID: " + orderId + ", 사용자 ID: " + userId + ")");
     }
 }
