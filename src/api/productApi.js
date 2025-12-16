@@ -14,6 +14,14 @@ export const productApi = {
         return response.data;
     },
 
+    // MD 추천 상품 (페이징 지원)
+    getRecommendedProducts: async (page, size) => {
+        const response = await client.get('/products', {
+            params: { page, size }
+        });
+        return response.data;
+    },
+
     // 상품 상세 조회
     getProduct: async (id) => {
         const response = await client.get(`/products/${id}`);
