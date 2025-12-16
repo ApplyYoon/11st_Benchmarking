@@ -177,9 +177,9 @@ public class CouponController {
             return ResponseEntity.badRequest().body(error);
         }
 
-        // 이미 발급받은 쿠폰인지 확인
+        // 이미 발급받은 쿠폰인지 확인 (사용 여부와 관계없이 1번만 발급 가능)
         var existingCoupon = userCouponRepository.findByUserIdAndCouponId(user.getId(), couponId);
-        if (existingCoupon.isPresent() && !existingCoupon.get().isUsed()) {
+        if (existingCoupon.isPresent()) {
             Map<String, Object> error = new HashMap<>();
             error.put("message", "이미 발급받은 쿠폰입니다.");
             return ResponseEntity.badRequest().body(error);
