@@ -83,7 +83,7 @@ const TimeDeal = () => {
                         <div style={{ backgroundColor: '#f01a21', color: 'white', borderRadius: '4px', padding: '0 6px', minWidth: '40px', textAlign: 'center' }}>{formatTime(timeLeft.s)}</div>
                     </div>
                 </div>
-                <span style={{ fontSize: '14px', color: '#666', cursor: 'pointer' }}>더보기 &gt;</span>
+                <Link to='/shocking-deal'><span style={{ fontSize: '14px', color: '#666', cursor: 'pointer' }}>더보기 &gt;</span></Link>
             </div>
 
             {loading ? (

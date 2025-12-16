@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { productApi } from '../../api/productApi';
 import ProductCard from '../shared/ProductCard';
+import { Link } from 'react-router-dom';
 
 const BestSwiper = ({ onLoadComplete }) => {
     const [initialBestItems, setInitialBestItems] = useState([]);
@@ -88,7 +89,7 @@ const BestSwiper = ({ onLoadComplete }) => {
                 <div id="best-section" style={{ marginBottom: '60px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                         <h2 style={{ fontSize: '26px', fontWeight: '900', margin: 0, color: '#111' }}>11번가 베스트</h2>
-                        <span style={{ fontSize: '14px', color: '#666', cursor: 'pointer' }}>더보기 &gt;</span>
+                        <Link to='/best'><span style={{ fontSize: '14px', color: '#666', cursor: 'pointer' }}>더보기 &gt;</span></Link>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>

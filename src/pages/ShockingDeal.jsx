@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { productApi } from '../api/productApi';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+
+const ITEMS_PER_PAGE = 32;
+const MAX_ITEMS = 15000;
 
 const ShockingDeal = () => {
     const { addToCart } = useCart();
@@ -11,6 +14,10 @@ const ShockingDeal = () => {
     const [shockingDeals, setShockingDeals] = useState([]);
     const [bannerItems, setBannerItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const loaderRef = useRef(null);
 
     // Countdown Timer Logic
     const [timeLeft, setTimeLeft] = useState('');
@@ -18,16 +25,59 @@ const ShockingDeal = () => {
     // Banner Carousel State
     const [currentSlide, setCurrentSlide] = useState(0);
 
+    // 추가 데이터 로딩
+    const loadMore = useCallback(async () => {
+        if (loadingMore || !hasMore || shockingDeals.length >= MAX_ITEMS) return;
+        
+        setLoadingMore(true);
+        try {
+            const newProducts = await productApi.getTimeDealProductsPaginated(offset, ITEMS_PER_PAGE);
+            
+            if (newProducts.length === 0 || newProducts.length < ITEMS_PER_PAGE) {
+                setHasMore(false);
+            }
+            
+            if (newProducts.length > 0) {
+                setShockingDeals(prev => [...prev, ...newProducts]);
+                setOffset(prev => prev + ITEMS_PER_PAGE);
+            }
+        } catch (error) {
+            console.error('추가 상품 로딩 실패:', error);
+        } finally {
+            setLoadingMore(false);
+        }
+    }, [offset, loadingMore, hasMore, shockingDeals.length]);
+
+    // IntersectionObserver로 하단 감지
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && !loadingMore && hasMore && !loading) {
+                    loadMore();
+                }
+            },
+            { threshold: 0.1, rootMargin: '200px' }
+        );
+
+        if (loaderRef.current) {
+            observer.observe(loaderRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, [loadMore, loadingMore, hasMore, loading]);
+
     useEffect(() => {
         const fetchTimeDealData = async () => {
             try {
                 setLoading(true);
                 const [products, endTimeData] = await Promise.all([
-                    productApi.getTimeDealProducts(),
+                    productApi.getTimeDealProductsPaginated(0, ITEMS_PER_PAGE),
                     productApi.getTimeDealEndTime()
                 ]);
                 
                 setShockingDeals(products);
+                setOffset(ITEMS_PER_PAGE);
+                setHasMore(products.length === ITEMS_PER_PAGE);
                 setBannerItems(products.slice(0, 5));
 
                 // 타임딜 종료 시간 설정
@@ -200,9 +250,10 @@ const ShockingDeal = () => {
                         <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
                     </div>
                 ) : (
+                    <>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
-                        {shockingDeals.map(product => (
-                        <div key={product.id} style={{
+                        {shockingDeals.map((product, index) => (
+                        <div key={`${product.id}-${index}`} style={{
                             backgroundColor: 'white',
                             borderRadius: '12px',
                             overflow: 'hidden',
@@ -309,6 +360,21 @@ const ShockingDeal = () => {
                         </div>
                         ))}
                     </div>
+
+                    {/* 무한 스크롤 로더 */}
+                    <div ref={loaderRef} style={{ height: '50px', margin: '20px 0' }}>
+                        {loadingMore && (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                <div style={{ width: '30px', height: '30px', border: '3px solid #eee', borderTop: '3px solid #f01a21', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                            </div>
+                        )}
+                        {!hasMore && shockingDeals.length > 0 && (
+                            <div style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
+                                모든 상품을 불러왔습니다 ({shockingDeals.length}개)
+                            </div>
+                        )}
+                    </div>
+                    </>
                 )}
             </div>
         </div>

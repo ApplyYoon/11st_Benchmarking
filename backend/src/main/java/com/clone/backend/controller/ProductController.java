@@ -14,8 +14,6 @@ import com.clone.backend.service.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -39,9 +37,8 @@ public class ProductController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String priceRange,
-            @RequestParam(required = false) Integer limit,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) {
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false) Integer limit) {
 
         List<Product> products;
 
@@ -54,10 +51,6 @@ public class ProductController {
         } else if (search != null) {
             products = productRepository.findByNameContaining(search);
         } else {
-            // Default: MD Recommendations (exclude TimeDeal/Best)
-            if (page != null && size != null) {
-                return productRepository.findByIsTimeDealFalseAndIsBestFalse(PageRequest.of(page, size)).getContent();
-            }
             products = productRepository.findAll();
         }
 
@@ -65,11 +58,13 @@ public class ProductController {
             products = filterByPriceRange(products, priceRange);
         }
 
-        if (limit != null && limit > 0 && products.size() > limit) {
-            return products.subList(0, limit);
-        }
-
-        return products;
+        // offset과 limit 적용
+        int start = Math.min(offset, products.size());
+        int end = (limit != null && limit > 0) 
+            ? Math.min(start + limit, products.size()) 
+            : products.size();
+        
+        return products.subList(start, end);
     }
 
     @GetMapping("/{id}")
