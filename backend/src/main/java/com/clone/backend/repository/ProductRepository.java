@@ -108,7 +108,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
       FROM product_keywords
       WHERE length(keyword) >= 2
         AND keyword ILIKE '%' || :query || '%'
-        AND keyword != :query
       ORDER BY
         CASE
           WHEN keyword LIKE :query || '%' THEN 1
