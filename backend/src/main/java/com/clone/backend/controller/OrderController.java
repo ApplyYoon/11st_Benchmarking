@@ -309,7 +309,8 @@ public class OrderController {
             if (itemsData != null && !itemsData.isEmpty()) {
                 for (Map<String, Object> itemData : itemsData) {
                     int itemPrice = itemData.get("price") != null ? ((Number) itemData.get("price")).intValue() : 0;
-                    int itemQuantity = itemData.get("quantity") != null ? ((Number) itemData.get("quantity")).intValue() : 1;
+                    int itemQuantity = itemData.get("quantity") != null ? ((Number) itemData.get("quantity")).intValue()
+                            : 1;
                     actualTotalAmount += itemPrice * itemQuantity;
                 }
             }
@@ -317,18 +318,18 @@ public class OrderController {
             // 쿠폰 할인 금액 계산 및 검증
             Long couponId = payload.get("couponId") != null ? Long.valueOf(payload.get("couponId").toString()) : null;
             int calculatedDiscount = 0;
-            
+
             if (couponId != null) {
                 var userCouponOpt = userCouponRepository.findByUserIdAndCouponId(user.getId(), couponId);
                 if (userCouponOpt.isPresent()) {
                     UserCoupon userCoupon = userCouponOpt.get();
                     Coupon coupon = userCoupon.getCoupon();
-                    
+
                     if (userCoupon.isUsed()) {
                         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                                 .body(Map.of("message", "이미 사용된 쿠폰입니다."));
                     }
-                    
+
                     // 쿠폰 유효성 검증
                     java.time.LocalDateTime now = java.time.LocalDateTime.now();
                     if (coupon.getValidFrom() != null && coupon.getValidFrom().isAfter(now)) {
@@ -343,7 +344,7 @@ public class OrderController {
                         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                                 .body(Map.of("message", "최소 주문 금액을 만족하지 않습니다."));
                     }
-                    
+
                     // 카테고리 제한 쿠폰인 경우 해당 카테고리 상품 금액만 계산
                     int applicableAmount = actualTotalAmount;
                     if (coupon.getCategory() != null && itemsData != null && !itemsData.isEmpty()) {
@@ -351,19 +352,23 @@ public class OrderController {
                         for (Map<String, Object> itemData : itemsData) {
                             String itemCategory = (String) itemData.get("category");
                             if (coupon.getCategory().equalsIgnoreCase(itemCategory)) {
-                                int itemPrice = itemData.get("price") != null ? ((Number) itemData.get("price")).intValue() : 0;
-                                int itemQuantity = itemData.get("quantity") != null ? ((Number) itemData.get("quantity")).intValue() : 1;
+                                int itemPrice = itemData.get("price") != null
+                                        ? ((Number) itemData.get("price")).intValue()
+                                        : 0;
+                                int itemQuantity = itemData.get("quantity") != null
+                                        ? ((Number) itemData.get("quantity")).intValue()
+                                        : 1;
                                 applicableAmount += itemPrice * itemQuantity;
                             }
                         }
-                        
+
                         // 카테고리 제한 쿠폰인데 해당 카테고리 상품이 없으면 에러
                         if (applicableAmount == 0) {
                             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                                     .body(Map.of("message", "이 쿠폰은 " + coupon.getCategory() + " 카테고리 상품에만 적용 가능합니다."));
                         }
                     }
-                    
+
                     // 할인 금액 계산
                     if (coupon.getType() == Coupon.CouponType.AMOUNT) {
                         calculatedDiscount = Math.min(coupon.getDiscountAmount(), applicableAmount);
@@ -374,7 +379,7 @@ public class OrderController {
                         }
                         calculatedDiscount = Math.min(calculatedDiscount, applicableAmount);
                     }
-                    
+
                     // 쿠폰 사용 처리
                     userCoupon.setUsed(true);
                     userCoupon.setUsedAt(now);
@@ -384,18 +389,21 @@ public class OrderController {
                             .body(Map.of("message", "쿠폰을 찾을 수 없습니다."));
                 }
             }
-            
+
             // 최종 결제 금액 계산 및 검증
             int finalAmount = actualTotalAmount - calculatedDiscount - usedPoints;
             if (finalAmount < 0) {
                 finalAmount = 0;
             }
-            
+
             // 프론트엔드에서 보낸 amount와 비교하여 검증 (100원 이내 오차 허용)
             if (Math.abs(amount - finalAmount) > 100) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of("message", "결제 금액이 일치하지 않습니다. 계산된 금액: " + finalAmount + "원"));
             }
+
+            // 적립 포인트 계산 (0.5%, 최대 5000P)
+            int earnedPoints = Math.min((int) Math.floor(finalAmount * 0.005), 5000);
 
             // 포인트 차감 처리
             if (usedPoints > 0) {
@@ -408,14 +416,12 @@ public class OrderController {
                             .body(Map.of("message", "사용 포인트는 결제 금액을 초과할 수 없습니다."));
                 }
 
-                // 포인트 차감 및 적립 (결제 금액의 0.5%, 최대 5000P)
-                int earnedPoints = Math.min((int) Math.floor(finalAmount * 0.005), 5000);
+                // 포인트 차감 및 적립
                 int newPoints = user.getPoints() - usedPoints + earnedPoints;
                 user.setPoints(newPoints);
                 userRepository.save(user);
             } else {
                 // 포인트 미사용 시에도 적립만 처리
-                int earnedPoints = Math.min((int) Math.floor(finalAmount * 0.005), 5000);
                 int newPoints = user.getPoints() + earnedPoints;
                 user.setPoints(newPoints);
                 userRepository.save(user);
@@ -438,9 +444,6 @@ public class OrderController {
                     orderItems.add(orderItem);
                 }
             }
-
-            // 적립 포인트 계산 (0.5%, 최대 5000P)
-            int earnedPoints = Math.min((int) Math.floor(amount * 0.005), 5000);
 
             // Create order directly without Toss verification
             Order order = Order.builder()
