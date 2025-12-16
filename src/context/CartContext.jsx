@@ -22,6 +22,7 @@ export const CartProvider = ({ children }) => {
                     image: item.productImage,
                     discount: item.discountRate,
                     quantity: item.quantity,
+                    category: item.category, // 카테고리 추가
                     // 백엔드에 사이즈 정보가 없으므로 옵션 기능은 제한됨
                     cartItemId: item.productId,
                     selectedSize: null

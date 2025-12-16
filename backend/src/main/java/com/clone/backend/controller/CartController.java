@@ -71,6 +71,7 @@ public class CartController {
                 .price(product.getPrice())
                 .originalPrice(product.getOriginalPrice())
                 .discountRate(product.getDiscountRate())
+                .category(product.getCategory())
                 .quantity(quantity)
                 .build();
 
