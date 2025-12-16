@@ -12,6 +12,9 @@ import com.clone.backend.model.Product;
 import com.clone.backend.repository.ProductRepository;
 import com.clone.backend.service.ProductService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -40,6 +43,28 @@ public class ProductController {
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false) Integer limit) {
 
+        // Use DB pagination if no complex in-memory filtering (like priceRange) is
+        // needed
+        if ((priceRange == null || "all".equals(priceRange)) && limit != null && limit > 0) {
+            int page = offset / limit;
+            Pageable pageable = PageRequest.of(page, limit);
+            Page<Product> productPage;
+
+            if ("timedeal".equals(type)) {
+                productPage = productRepository.findByIsTimeDealTrue(pageable);
+            } else if ("best".equals(type)) {
+                productPage = productRepository.findByIsBestTrueOrderByRankAsc(pageable);
+            } else if (category != null && !category.equals("all")) {
+                productPage = productRepository.findByCategory(category, pageable);
+            } else if (search != null) {
+                productPage = productRepository.findByNameContaining(search, pageable);
+            } else {
+                productPage = productRepository.findAll(pageable);
+            }
+            return productPage.getContent();
+        }
+
+        // Fallback to in-memory pagination for priceRange filtering or other cases
         List<Product> products;
 
         if ("timedeal".equals(type)) {
@@ -60,10 +85,10 @@ public class ProductController {
 
         // offset과 limit 적용
         int start = Math.min(offset, products.size());
-        int end = (limit != null && limit > 0) 
-            ? Math.min(start + limit, products.size()) 
-            : products.size();
-        
+        int end = (limit != null && limit > 0)
+                ? Math.min(start + limit, products.size())
+                : products.size();
+
         return products.subList(start, end);
     }
 

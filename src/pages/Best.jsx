@@ -23,15 +23,16 @@ const Best = () => {
     // 추가 데이터 로딩
     const loadMore = useCallback(async () => {
         if (loadingMore || !hasMore || products.length >= MAX_ITEMS) return;
-        
+
         setLoadingMore(true);
         try {
-            const newProducts = await productApi.getProductsPaginated(offset, ITEMS_PER_PAGE);
-            
+            const type = mainTab === '베스트 25' ? 'best' : 'timedeal';
+            const newProducts = await productApi.getProductsPaginated(offset, ITEMS_PER_PAGE, type);
+
             if (newProducts.length === 0 || newProducts.length < ITEMS_PER_PAGE) {
                 setHasMore(false);
             }
-            
+
             if (newProducts.length > 0) {
                 setProducts(prev => [...prev, ...newProducts]);
                 setOffset(prev => prev + ITEMS_PER_PAGE);
@@ -41,7 +42,7 @@ const Best = () => {
         } finally {
             setLoadingMore(false);
         }
-    }, [offset, loadingMore, hasMore, products.length]);
+    }, [offset, loadingMore, hasMore, products.length, mainTab]);
 
     // IntersectionObserver로 하단 감지
     useEffect(() => {
@@ -61,12 +62,17 @@ const Best = () => {
         return () => observer.disconnect();
     }, [loadMore, loadingMore, hasMore, loading]);
 
-    // 초기 데이터 로딩
+    // 탭 변경 시 데이터 초기화 및 로딩
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                const data = await productApi.getProductsPaginated(0, ITEMS_PER_PAGE);
+                setProducts([]);
+                setOffset(0);
+
+                const type = mainTab === '베스트 25' ? 'best' : 'timedeal';
+                const data = await productApi.getProductsPaginated(0, ITEMS_PER_PAGE, type);
+
                 setProducts(data);
                 setOffset(ITEMS_PER_PAGE);
                 setHasMore(data.length === ITEMS_PER_PAGE);
@@ -77,29 +83,16 @@ const Best = () => {
             }
         };
         fetchProducts();
-    }, []);
+    }, [mainTab]);
 
     // 탭에 따라 카테고리 목록 업데이트
     useEffect(() => {
         if (products.length === 0) return;
 
-        let baseProductsForCategories = [];
-        if (mainTab === '베스트 25') {
-            baseProductsForCategories = products.filter(p => p.isBest || p.best);
-        } else if (mainTab === '쇼킹딜 베스트') {
-            baseProductsForCategories = products.filter(p => {
-                const discountRate = p.discountRate || p.discount || 0;
-                return discountRate >= 20 || p.isTimeDeal || p.timeDeal;
-            });
-        }
-
-        if (baseProductsForCategories.length > 0) {
-            const uniqueCategories = ['전체', ...new Set(baseProductsForCategories.map(p => p.category).filter(Boolean))];
-            setCategories(uniqueCategories);
-        } else {
-            setCategories(['전체']);
-        }
-    }, [mainTab, products]);
+        // Backend now returns filtered products, so use all of them to determine categories
+        const uniqueCategories = ['전체', ...new Set(products.map(p => p.category).filter(Boolean))];
+        setCategories(uniqueCategories);
+    }, [products]);
 
     // 선택된 카테고리가 현재 카테고리 목록에 없으면 '전체'로 리셋
     useEffect(() => {
@@ -108,18 +101,12 @@ const Best = () => {
         }
     }, [categories, selectedCategory]);
 
-    // 탭에 따라 상품 필터링
-    let baseProducts = [];
-    if (mainTab === '베스트 25') {
-        // 베스트 25: isBest가 true인 상품만
-        baseProducts = products.filter(p => p.isBest || p.best);
-    } else if (mainTab === '쇼킹딜 베스트') {
-        // 쇼킹딜 베스트: 할인율이 높은 상품들 (할인율 20% 이상 또는 타임딜 상품)
-        baseProducts = products.filter(p => {
-            const discountRate = p.discountRate || p.discount || 0;
-            return discountRate >= 20 || p.isTimeDeal || p.timeDeal;
-        }).sort((a, b) => {
-            // 할인율이 높은 순으로 정렬
+    // 탭에 따라 상품 필터링 (backend has already filtered by type)
+    let baseProducts = products;
+    if (mainTab === '쇼킹딜 베스트') {
+        // 쇼킹딜의 경우 추가적인 정렬만 적용 (이미 timedeal로 필터링됨)
+        // 할인율이 높은 순으로 정렬 (Optional clientside sort)
+        baseProducts = [...products].sort((a, b) => {
             const discountA = a.discountRate || a.discount || 0;
             const discountB = b.discountRate || b.discount || 0;
             return discountB - discountA;
@@ -276,7 +263,7 @@ const Best = () => {
                     <div style={{ display: 'flex', gap: '8px' }}>
                         {sortOptions.map((option) => (
                             <button
-                                key={option} 
+                                key={option}
                                 onClick={() => setSortBy(option)}
                                 style={{
                                     padding: '8px 16px',

@@ -52,11 +52,13 @@ export const productApi = {
         return response.data;
     },
 
-    // 전체 상품 페이지네이션 조회
-    getProductsPaginated: async (offset = 0, limit = 32) => {
-        const response = await client.get('/products', {
-            params: { offset, limit }
-        });
+    // 전체 상품 페이지네이션 조회 (type 추가)
+    getProductsPaginated: async (offset = 0, limit = 32, type = null) => {
+        const params = { offset, limit };
+        if (type) {
+            params.type = type;
+        }
+        const response = await client.get('/products', { params });
         return response.data;
     },
 
