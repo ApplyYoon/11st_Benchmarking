@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { productApi } from '../api/productApi';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import '../styles.css';
+
+const ITEMS_PER_PAGE = 32;
+const MAX_ITEMS = 15000;
 
 const ShockingDeal = () => {
     const { addToCart } = useCart();
@@ -12,6 +15,10 @@ const ShockingDeal = () => {
     const [shockingDeals, setShockingDeals] = useState([]);
     const [bannerItems, setBannerItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const loaderRef = useRef(null);
 
     // Countdown Timer Logic
     const [timeLeft, setTimeLeft] = useState('');
@@ -19,16 +26,59 @@ const ShockingDeal = () => {
     // Banner Carousel State
     const [currentSlide, setCurrentSlide] = useState(0);
 
+    // 추가 데이터 로딩
+    const loadMore = useCallback(async () => {
+        if (loadingMore || !hasMore || shockingDeals.length >= MAX_ITEMS) return;
+        
+        setLoadingMore(true);
+        try {
+            const newProducts = await productApi.getTimeDealProductsPaginated(offset, ITEMS_PER_PAGE);
+            
+            if (newProducts.length === 0 || newProducts.length < ITEMS_PER_PAGE) {
+                setHasMore(false);
+            }
+            
+            if (newProducts.length > 0) {
+                setShockingDeals(prev => [...prev, ...newProducts]);
+                setOffset(prev => prev + ITEMS_PER_PAGE);
+            }
+        } catch (error) {
+            console.error('추가 상품 로딩 실패:', error);
+        } finally {
+            setLoadingMore(false);
+        }
+    }, [offset, loadingMore, hasMore, shockingDeals.length]);
+
+    // IntersectionObserver로 하단 감지
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && !loadingMore && hasMore && !loading) {
+                    loadMore();
+                }
+            },
+            { threshold: 0.1, rootMargin: '200px' }
+        );
+
+        if (loaderRef.current) {
+            observer.observe(loaderRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, [loadMore, loadingMore, hasMore, loading]);
+
     useEffect(() => {
         const fetchTimeDealData = async () => {
             try {
                 setLoading(true);
                 const [products, endTimeData] = await Promise.all([
-                    productApi.getTimeDealProducts(),
+                    productApi.getTimeDealProductsPaginated(0, ITEMS_PER_PAGE),
                     productApi.getTimeDealEndTime()
                 ]);
                 
                 setShockingDeals(products);
+                setOffset(ITEMS_PER_PAGE);
+                setHasMore(products.length === ITEMS_PER_PAGE);
                 setBannerItems(products.slice(0, 5));
 
                 // 타임딜 종료 시간 설정
@@ -170,64 +220,80 @@ const ShockingDeal = () => {
                         <div className="spinner" />
                     </div>
                 ) : (
-                    <div className="shockingdeal-grid">
-                        {shockingDeals.map(product => (
-                        <div key={product.id} className="shockingdeal-product-card">
-                            {/* Badge */}
-                            <div className="shockingdeal-product-badge">
-                                {product.discountRate || product.discount}% OFF
-                            </div>
+                    <>
+                        <div className="shockingdeal-grid">
+                            {shockingDeals.map((product, index) => (
+                            <div key={`${product.id}-${index}`} className="shockingdeal-product-card">
+                                {/* Badge */}
+                                <div className="shockingdeal-product-badge">
+                                    {product.discountRate || product.discount}% OFF
+                                </div>
 
-                            {/* Image */}
-                            <div className="shockingdeal-product-image">
-                                <img
-                                    src={product.imageUrl || product.image}
-                                    alt={product.name}
-                                    className="shockingdeal-product-img"
-                                />
-                            </div>
+                                {/* Image */}
+                                <div className="shockingdeal-product-image">
+                                    <img
+                                        src={product.imageUrl || product.image}
+                                        alt={product.name}
+                                        className="shockingdeal-product-img"
+                                    />
+                                </div>
 
-                            {/* Content */}
-                            <div className="shockingdeal-product-content">
-                                {product.stockQuantity !== undefined && (
-                                    <>
-                                        <div className="shockingdeal-product-stock">
-                                            남은 수량 <span className="shockingdeal-product-stock-number">{product.stockQuantity}개</span>
+                                {/* Content */}
+                                <div className="shockingdeal-product-content">
+                                    {product.stockQuantity !== undefined && (
+                                        <>
+                                            <div className="shockingdeal-product-stock">
+                                                남은 수량 <span className="shockingdeal-product-stock-number">{product.stockQuantity}개</span>
+                                            </div>
+
+                                            {/* Stock Bar */}
+                                            <div className="shockingdeal-product-stock-bar">
+                                                <div className="shockingdeal-product-stock-bar-fill" style={{ width: `${Math.min((product.stockQuantity / 100) * 100, 100)}%` }}></div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: '#333' }}>
+                                        <h3 className="shockingdeal-product-name">
+                                            {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
+                                        </h3>
+                                    </Link>
+
+                                    <div className="shockingdeal-product-price-row">
+                                        <div>
+                                            <div className="shockingdeal-product-original-price">
+                                                {product.originalPrice.toLocaleString()}원
+                                            </div>
+                                            <div className="shockingdeal-product-price">
+                                                {product.price.toLocaleString()}원
+                                            </div>
                                         </div>
-
-                                        {/* Stock Bar */}
-                                        <div className="shockingdeal-product-stock-bar">
-                                            <div className="shockingdeal-product-stock-bar-fill" style={{ width: `${Math.min((product.stockQuantity / 100) * 100, 100)}%` }}></div>
-                                        </div>
-                                    </>
-                                )}
-
-                                <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: '#333' }}>
-                                    <h3 className="shockingdeal-product-name">
-                                        {(product.isTimeDeal || product.timeDeal) ? `[타임딜] ${product.name}` : product.name}
-                                    </h3>
-                                </Link>
-
-                                <div className="shockingdeal-product-price-row">
-                                    <div>
-                                        <div className="shockingdeal-product-original-price">
-                                            {product.originalPrice.toLocaleString()}원
-                                        </div>
-                                        <div className="shockingdeal-product-price">
-                                            {product.price.toLocaleString()}원
-                                        </div>
+                                        <button
+                                            onClick={() => addToCart(product)}
+                                            className="shockingdeal-product-cart-btn"
+                                        >
+                                            <ShoppingCart size={18} />
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={() => addToCart(product)}
-                                        className="shockingdeal-product-cart-btn"
-                                    >
-                                        <ShoppingCart size={18} />
-                                    </button>
                                 </div>
                             </div>
+                            ))}
                         </div>
-                        ))}
-                    </div>
+
+                        {/* 무한 스크롤 로더 */}
+                        <div ref={loaderRef} style={{ height: '50px', margin: '20px 0' }}>
+                            {loadingMore && (
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                                    <div className="spinner" />
+                                </div>
+                            )}
+                            {!hasMore && shockingDeals.length > 0 && (
+                                <div style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
+                                    모든 상품을 불러왔습니다 ({shockingDeals.length}개)
+                                </div>
+                            )}
+                        </div>
+                    </>
                 )}
             </div>
         </div>

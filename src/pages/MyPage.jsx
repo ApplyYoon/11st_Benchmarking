@@ -86,19 +86,55 @@ const MyPage = () => {
                                 </select>
                             </div>
 
-                            {filteredOrders.length > 0 ? (
-                                filteredOrders.map(order => (
-                                    <div key={order.id} className="mypage-order-card">
-                                        <div className="mypage-order-header">
-                                            <span className="mypage-order-date">{order.date}</span>
-                                            <span className="mypage-order-id">주문번호 {order.id}</span>
+                            {filteredOrders.filter(o => o.status !== 'CANCELLED' && o.status !== '취소완료').length > 0 ? (
+                                filteredOrders.filter(o => o.status !== 'CANCELLED' && o.status !== '취소완료').map(order => (
+                                    <div key={order.id} style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '20px', marginTop: '15px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                                            <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{order.date}</span>
+                                            <span style={{ fontSize: '12px', color: '#888' }}>주문번호 {order.id}</span>
                                         </div>
-                                        <div className="mypage-order-body">
-                                            <div>
-                                                <div className="mypage-order-name">{order.name}</div>
-                                                <div className="mypage-order-amount">{order.amount.toLocaleString()}원</div>
+                                        
+                                        {/* 주문 상품 목록 */}
+                                        {order.items && order.items.length > 0 ? (
+                                            <div style={{ marginBottom: '15px' }}>
+                                                {order.items.map((item, index) => (
+                                                    <div key={index} style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#f8f8f8', borderRadius: '6px', marginBottom: '10px', alignItems: 'center' }}>
+                                                        {item.productImage && (
+                                                            <img 
+                                                                src={item.productImage} 
+                                                                alt={item.productName || '상품 이미지'} 
+                                                                style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', backgroundColor: 'white' }} 
+                                                            />
+                                                        )}
+                                                        <div style={{ flex: 1 }}>
+                                                            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '4px' }}>
+                                                                {item.productName || '상품명 없음'}
+                                                            </div>
+                                                            <div style={{ fontSize: '13px', color: '#666' }}>
+                                                                {item.quantity}개 × {item.priceAtPurchase?.toLocaleString() || 0}원
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ fontWeight: 'bold', fontSize: '15px' }}>
+                                                            {((item.quantity || 1) * (item.priceAtPurchase || 0)).toLocaleString()}원
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
-                                            <div className="mypage-order-actions">
+                                        ) : (
+                                            <div style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#f8f8f8', borderRadius: '6px' }}>
+                                                <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px' }}>{order.name || order.orderName}</div>
+                                                <div style={{ fontSize: '14px', color: '#666' }}>상품 정보 없음</div>
+                                            </div>
+                                        )}
+
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #eee', paddingTop: '15px' }}>
+                                            <div>
+                                                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#f01a21' }}>
+                                                    총 결제금액: {order.amount.toLocaleString()}원
+                                                </div>
+                                            </div>
+                                            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                                {/* 주문완료 상태일 때 취소 가능 */}
                                                 {order.status === 'PAID' && (
                                                     <button
                                                         onClick={() => cancelOrder(order.id)}
@@ -121,18 +157,53 @@ const MyPage = () => {
 
                     {activeTab === 'cancel' && (
                         <>
-                            <h2 className="mypage-title" style={{ paddingBottom: '15px', borderBottom: '2px solid #333' }}>취소/반품/교환 내역</h2>
-                            {user.orders && user.orders.filter(o => o.status === '취소완료').length > 0 ? (
-                                user.orders.filter(o => o.status === '취소완료').map(order => (
-                                    <div key={order.id} className="mypage-order-card cancelled">
-                                        <div className="mypage-order-header">
-                                            <span className="mypage-order-date">{order.date}</span>
-                                            <span className="mypage-order-id">주문번호 {order.id}</span>
+                            <h2 style={{ fontSize: '20px', fontWeight: 'bold', paddingBottom: '15px', borderBottom: '2px solid #333' }}>취소/반품/교환 내역</h2>
+                            {user.orders && user.orders.filter(o => o.status === 'CANCELLED' || o.status === '취소완료').length > 0 ? (
+                                user.orders.filter(o => o.status === 'CANCELLED' || o.status === '취소완료').map(order => (
+                                    <div key={order.id} style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '20px', marginTop: '15px', opacity: 0.7 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                                            <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{order.date}</span>
+                                            <span style={{ fontSize: '12px', color: '#888' }}>주문번호 {order.id}</span>
                                         </div>
-                                        <div className="mypage-order-body">
+                                        
+                                        {/* 주문 상품 목록 */}
+                                        {order.items && order.items.length > 0 ? (
+                                            <div style={{ marginBottom: '15px' }}>
+                                                {order.items.map((item, index) => (
+                                                    <div key={index} style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#f8f8f8', borderRadius: '6px', marginBottom: '10px', alignItems: 'center' }}>
+                                                        {item.productImage && (
+                                                            <img 
+                                                                src={item.productImage} 
+                                                                alt={item.productName || '상품 이미지'} 
+                                                                style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', backgroundColor: 'white' }} 
+                                                            />
+                                                        )}
+                                                        <div style={{ flex: 1 }}>
+                                                            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '4px' }}>
+                                                                {item.productName || '상품명 없음'}
+                                                            </div>
+                                                            <div style={{ fontSize: '13px', color: '#666' }}>
+                                                                {item.quantity}개 × {item.priceAtPurchase?.toLocaleString() || 0}원
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ fontWeight: 'bold', fontSize: '15px' }}>
+                                                            {((item.quantity || 1) * (item.priceAtPurchase || 0)).toLocaleString()}원
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#f8f8f8', borderRadius: '6px' }}>
+                                                <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px' }}>{order.name || order.orderName}</div>
+                                                <div style={{ fontSize: '14px', color: '#666' }}>상품 정보 없음</div>
+                                            </div>
+                                        )}
+
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #eee', paddingTop: '15px' }}>
                                             <div>
-                                                <div className="mypage-order-name">{order.name}</div>
-                                                <div className="mypage-order-amount">{order.amount.toLocaleString()}원</div>
+                                                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#888' }}>
+                                                    총 결제금액: {order.amount.toLocaleString()}원
+                                                </div>
                                             </div>
                                             <div className="mypage-order-status cancelled">취소완료</div>
                                         </div>

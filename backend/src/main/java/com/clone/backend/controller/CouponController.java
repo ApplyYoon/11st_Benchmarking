@@ -70,6 +70,8 @@ public class CouponController {
                     map.put("minOrderAmount", coupon.getMinOrderAmount());
                     map.put("category", coupon.getCategory());
                     map.put("validUntil", coupon.getValidUntil());
+                    map.put("isUsed", uc.isUsed());
+                    map.put("userCouponId", uc.getId());
                     return map;
                 })
                 .collect(Collectors.toList());
@@ -113,14 +115,17 @@ public class CouponController {
                     map.put("maxDiscountAmount", coupon.getMaxDiscountAmount());
                     map.put("minOrderAmount", coupon.getMinOrderAmount());
                     map.put("category", coupon.getCategory());
+                    map.put("isUsed", uc.isUsed());
+                    map.put("userCouponId", uc.getId());
 
                     // 사용 가능 여부 체크
                     boolean isAmountSatisfied = coupon.getMinOrderAmount() == null || coupon.getMinOrderAmount() <= amount;
                     boolean isCategorySatisfied = coupon.getCategory() == null || coupon.getCategory().equals(category);
                     boolean isValid = (coupon.getValidFrom() == null || coupon.getValidFrom().isBefore(now)) &&
                                      (coupon.getValidUntil() == null || coupon.getValidUntil().isAfter(now));
+                    boolean isNotUsed = !uc.isUsed();
 
-                    boolean isApplicable = isAmountSatisfied && isCategorySatisfied && isValid;
+                    boolean isApplicable = isAmountSatisfied && isCategorySatisfied && isValid && isNotUsed;
 
                     String reason = "";
                     if (!isAmountSatisfied) {
@@ -129,6 +134,8 @@ public class CouponController {
                         reason = coupon.getCategory() + " 전용";
                     } else if (!isValid) {
                         reason = "유효기간 만료";
+                    } else if (!isNotUsed) {
+                        reason = "이미 사용된 쿠폰";
                     }
 
                     map.put("isApplicable", isApplicable);

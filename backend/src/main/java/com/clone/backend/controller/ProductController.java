@@ -36,32 +36,35 @@ public class ProductController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String type,
-            @RequestParam(required = false) String priceRange) {
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false) Integer limit) {
+
+        List<Product> products;
+
         if ("timedeal".equals(type)) {
-            return productRepository.findByIsTimeDealTrue();
+            products = productRepository.findByIsTimeDealTrue();
+        } else if ("best".equals(type)) {
+            products = productRepository.findByIsBestTrueOrderByRankAsc();
+        } else if (category != null && !category.equals("all")) {
+            products = productRepository.findByCategory(category);
+        } else if (search != null) {
+            products = productRepository.findByNameContaining(search);
+        } else {
+            products = productRepository.findAll();
         }
-        if ("best".equals(type)) {
-            return productRepository.findByIsBestTrueOrderByRankAsc();
-        }
-        if (category != null && !category.equals("all")) {
-            List<Product> products = productRepository.findByCategory(category);
-            if (priceRange != null && !priceRange.equals("all")) {
-                return filterByPriceRange(products, priceRange);
-            }
-            return products;
-        }
-        if (search != null) {
-            List<Product> products = productRepository.findByNameContaining(search);
-            if (priceRange != null && !priceRange.equals("all")) {
-                return filterByPriceRange(products, priceRange);
-            }
-            return products;
-        }
-        List<Product> products = productRepository.findAll();
+
         if (priceRange != null && !priceRange.equals("all")) {
-            return filterByPriceRange(products, priceRange);
+            products = filterByPriceRange(products, priceRange);
         }
-        return products;
+
+        // offset과 limit 적용
+        int start = Math.min(offset, products.size());
+        int end = (limit != null && limit > 0) 
+            ? Math.min(start + limit, products.size()) 
+            : products.size();
+        
+        return products.subList(start, end);
     }
 
     @GetMapping("/{id}")
@@ -85,6 +88,19 @@ public class ProductController {
             response.put("original", query);
         }
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 연관 검색어 조회 API
+     * 검색어를 포함하는 상품명 키워드들을 반환
+     */
+    @GetMapping("/search/related")
+    public ResponseEntity<List<String>> getRelatedKeywords(@RequestParam String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+        List<String> relatedKeywords = productRepository.findRelatedKeywords(query.trim());
+        return ResponseEntity.ok(relatedKeywords);
     }
 
     /**

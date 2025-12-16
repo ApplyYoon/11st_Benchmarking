@@ -4,9 +4,13 @@ import client from './client';
  * 상품 API 호출 함수
  */
 export const productApi = {
-    // 모든 상품 조회
-    getAllProducts: async () => {
-        const response = await client.get('/products');
+    // 상품 조회 (limit를 주면 해당 개수만, 없으면 전체)
+    getProducts: async (limit) => {
+        const config = {};
+        if (limit != null) {
+            config.params = { limit };
+        }
+        const response = await client.get('/products', config);
         return response.data;
     },
 
@@ -17,18 +21,30 @@ export const productApi = {
     },
 
     // 타임딜 상품 조회
-    getTimeDealProducts: async () => {
+    getTimeDealProducts: async (limit) => {
+        const params = { type: 'timedeal' };
+        if (limit != null) {
+            params.limit = limit;
+        }
+        const response = await client.get('/products', { params });
+        return response.data;
+    },
+
+    // 타임딜 상품 페이지네이션 조회
+    getTimeDealProductsPaginated: async (offset = 0, limit = 32) => {
         const response = await client.get('/products', {
-            params: { type: 'timedeal' }
+            params: { type: 'timedeal', offset, limit }
         });
         return response.data;
     },
 
     // 베스트 상품 조회
-    getBestProducts: async () => {
-        const response = await client.get('/products', {
-            params: { type: 'best' }
-        });
+    getBestProducts: async (limit) => {
+        const params = { type: 'best' };
+        if (limit != null) {
+            params.limit = limit;
+        }
+        const response = await client.get('/products', { params });
         return response.data;
     },
 
@@ -56,6 +72,14 @@ export const productApi = {
     // 검색어 오타수정
     correctSearchQuery: async (query) => {
         const response = await client.get('/products/search/correct', {
+            params: { query }
+        });
+        return response.data;
+    },
+
+    // 연관 검색어 조회
+    getRelatedKeywords: async (query) => {
+        const response = await client.get('/products/search/related', {
             params: { query }
         });
         return response.data;

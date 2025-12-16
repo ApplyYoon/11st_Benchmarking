@@ -51,7 +51,7 @@ const Best = () => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                const data = await productApi.getAllProducts();
+                const data = await productApi.getProducts(32);
                 setProducts(data);
             } catch (error) {
                 console.error('상품 로딩 실패:', error);

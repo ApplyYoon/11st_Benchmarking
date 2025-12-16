@@ -20,7 +20,8 @@ const MyCoupons = () => {
             try {
                 setLoading(true);
                 const coupons = await couponApi.getMyCoupons();
-                setMyCoupons(coupons);
+                // is_used가 false인 쿠폰만 표시
+                setMyCoupons(coupons.filter(coupon => !coupon.isUsed));
             } catch (error) {
                 console.error('쿠폰 로딩 실패:', error);
                 setMyCoupons([]);
@@ -64,9 +65,22 @@ const MyCoupons = () => {
                             <div className="spinner" />
                         </div>
                     ) : myCoupons.length > 0 ? (
-                        <div className="mycoupons-grid">
-                            {myCoupons.map(coupon => (
-                                <div key={coupon.id} className="mycoupons-card">
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                            {myCoupons
+                                .filter(coupon => !coupon.isUsed)
+                                .map(coupon => (
+                                <div key={coupon.id} style={{
+                                    border: '1px solid #e5e5e5',
+                                    borderRadius: '8px',
+                                    padding: '20px',
+                                    position: 'relative',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    height: '180px',
+                                    backgroundColor: '#fff',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
+                                }}>
                                     <div>
                                         <div className="mycoupons-discount">
                                             {coupon.type === 'amount'
