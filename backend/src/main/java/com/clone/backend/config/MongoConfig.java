@@ -8,6 +8,7 @@ package com.clone.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 
@@ -15,7 +16,7 @@ import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 public class MongoConfig {
 
     // Shard A Connection (Odd Users)
-    @org.springframework.context.annotation.Primary
+    @Primary
     @Bean(name = "shardAMongoTemplate")
     public MongoTemplate shardAMongoTemplate() {
         // Docker container name: mongo_shard_a, Port: 27017
