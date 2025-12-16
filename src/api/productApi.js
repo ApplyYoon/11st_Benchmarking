@@ -81,6 +81,19 @@ export const productApi = {
         return response.data;
     },
 
+    // 검색 페이지네이션
+    searchProductsPaginated: async (query, category = 'all', priceRange = 'all', offset = 0, limit = 32) => {
+        const params = { search: query, offset, limit };
+        if (category !== 'all') {
+            params.category = category;
+        }
+        if (priceRange !== 'all') {
+            params.priceRange = priceRange;
+        }
+        const response = await client.get('/products', { params });
+        return response.data;
+    },
+
     // 검색어 오타수정
     correctSearchQuery: async (query) => {
         const response = await client.get('/products/search/correct', {
