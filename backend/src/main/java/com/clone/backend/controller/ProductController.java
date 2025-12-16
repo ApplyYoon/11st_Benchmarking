@@ -14,6 +14,8 @@ import com.clone.backend.service.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +38,13 @@ public class ProductController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String type,
-            @RequestParam(required = false) String priceRange) {
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "8") int size) {
+        if ("md".equals(type)) {
+            Pageable pageable = PageRequest.of(page, size);
+            return productRepository.findByIsTimeDealFalseAndIsBestFalse(pageable).getContent();
+        }
         if ("timedeal".equals(type)) {
             return productRepository.findByIsTimeDealTrue();
         }
