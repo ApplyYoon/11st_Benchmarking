@@ -7,6 +7,7 @@
 package com.clone.backend.model;
 
 import lombok.*;
+import org.springframework.data.annotation.Id;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import java.util.List;
 @Builder
 public class Order {
 
+    @Id
     private String id; // Order ID (Toss OrderId)
     private Long userId; // Sharding Key (Reference to User)
 

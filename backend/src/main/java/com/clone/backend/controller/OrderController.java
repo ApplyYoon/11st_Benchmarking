@@ -194,6 +194,72 @@ public class OrderController {
     }
 
     /**
+     * 주문 취소 API
+     * 주문 상태를 CANCELLED로 변경
+     */
+    @PatchMapping("/{orderId}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable String orderId) {
+        try {
+            System.out.println("DEBUG: Cancel order request for orderId: " + orderId);
+            
+            // Get current user from SecurityContext
+            String email = null;
+            Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                    .getAuthentication().getPrincipal();
+            if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+                email = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+            } else {
+                email = principal.toString();
+            }
+
+            System.out.println("DEBUG: User email: " + email);
+
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+            System.out.println("DEBUG: User found - ID: " + user.getId());
+
+            // 주문 찾기 및 상태 확인
+            List<Order> userOrders = orderRepository.findByUserOrderByCreatedAtDesc(user);
+            System.out.println("DEBUG: Found " + userOrders.size() + " orders for user");
+            
+            Order order = userOrders.stream()
+                    .filter(o -> o.getId().equals(orderId))
+                    .findFirst()
+                    .orElseThrow(() -> {
+                        System.out.println("DEBUG: Order not found in user's order list. OrderId: " + orderId);
+                        System.out.println("DEBUG: Available order IDs: " + userOrders.stream().map(Order::getId).collect(java.util.stream.Collectors.toList()));
+                        return new RuntimeException("주문을 찾을 수 없습니다. (주문 ID: " + orderId + ")");
+                    });
+
+            System.out.println("DEBUG: Order found - Status: " + order.getStatus());
+
+            // 이미 취소된 주문인지 확인
+            if (Order.OrderStatus.CANCELLED.name().equals(order.getStatus())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "이미 취소된 주문입니다."));
+            }
+
+            // 주문 취소 처리
+            Order cancelledOrder = orderRepository.cancelOrder(user, orderId);
+
+            System.out.println("DEBUG: Order cancelled successfully");
+            return ResponseEntity.ok(cancelledOrder);
+
+        } catch (RuntimeException e) {
+            System.err.println("ERROR: RuntimeException in cancelOrder: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("ERROR: Exception in cancelOrder: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "주문 취소에 실패했습니다: " + e.getMessage()));
+        }
+    }
+
+    /**
      * 데모용 주문 생성 엔드포인트 (토스 인증 없이 바로 주문 생성)
      * 포트폴리오/시연 목적으로 사용
      */
@@ -204,6 +270,8 @@ public class OrderController {
             String orderName = (String) payload.get("orderName");
             Integer amount = (Integer) payload.get("amount");
             Integer usedPoints = payload.get("usedPoints") != null ? ((Number) payload.get("usedPoints")).intValue() : 0;
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> itemsData = (List<Map<String, Object>>) payload.get("items");
             String orderId = "DEMO_" + System.currentTimeMillis();
 
             // Get current user from SecurityContext
@@ -259,6 +327,21 @@ public class OrderController {
                 userRepository.save(user);
             }
 
+            // Create order items from payload
+            List<OrderItem> orderItems = new java.util.ArrayList<>();
+            if (itemsData != null && !itemsData.isEmpty()) {
+                for (Map<String, Object> itemData : itemsData) {
+                    OrderItem orderItem = OrderItem.builder()
+                            .productId(itemData.get("id") != null ? Long.valueOf(itemData.get("id").toString()) : null)
+                            .productName((String) itemData.get("name"))
+                            .productImage((String) itemData.get("imageUrl") != null ? (String) itemData.get("imageUrl") : (String) itemData.get("image"))
+                            .priceAtPurchase(itemData.get("price") != null ? ((Number) itemData.get("price")).intValue() : 0)
+                            .quantity(itemData.get("quantity") != null ? ((Number) itemData.get("quantity")).intValue() : 1)
+                            .build();
+                    orderItems.add(orderItem);
+                }
+            }
+
             // Create order directly without Toss verification
             Order order = Order.builder()
                     .id(orderId)
@@ -270,8 +353,7 @@ public class OrderController {
                     .createdAt(java.time.LocalDateTime.now())
                     .build();
 
-            // For demo, we don't have cart items - just create empty order items list
-            order.setItems(java.util.Collections.emptyList());
+            order.setItems(orderItems);
 
             // Save to MongoDB
             orderRepository.save(order);

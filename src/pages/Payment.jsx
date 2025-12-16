@@ -150,11 +150,13 @@ const Payment = () => {
                     // 토스 API 승인 대신 데모 주문 생성 (테스트 키로는 실제 승인 불가)
                     // 클론코딩/포트폴리오 목적이므로 결제 흐름만 시연
                     const couponIdParam = urlParams.get('couponId');
+                    const itemsParam = urlParams.get('items');
                     const response = await client.post('/orders/demo', {
                         orderName: decodeURIComponent(urlParams.get('orderName') || '상품 결제'),
                         amount: parseInt(amountVal),
                         usedPoints: usedPointsParam ? parseInt(usedPointsParam) : 0,
-                        couponId: couponIdParam ? parseInt(couponIdParam) : null
+                        couponId: couponIdParam ? parseInt(couponIdParam) : null,
+                        items: itemsParam ? JSON.parse(decodeURIComponent(itemsParam)) : items || []
                     });
 
                     setStatus('success');
@@ -220,7 +222,7 @@ const Payment = () => {
                 orderId: orderId,
                 orderName: orderName,
                 customerName: shippingInfo.recipient,
-                successUrl: window.location.origin + `/payment?orderName=${encodeURIComponent(orderName)}&usedPoints=${usedPoints}${selectedCouponId ? `&couponId=${selectedCouponId}` : ''}`,
+                successUrl: window.location.origin + `/payment?orderName=${encodeURIComponent(orderName)}&usedPoints=${usedPoints}${selectedCouponId ? `&couponId=${selectedCouponId}` : ''}${items ? `&items=${encodeURIComponent(JSON.stringify(items))}` : ''}`,
                 failUrl: window.location.origin + '/payment',
                 flowMode: 'DIRECT',
                 easyPay: 'KAKAOPAY'
