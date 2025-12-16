@@ -86,7 +86,7 @@ public class CouponController {
     public ResponseEntity<List<Map<String, Object>>> getAvailableCoupons(
             Authentication authentication,
             @RequestParam Integer amount,
-            @RequestParam(required = false) String category) {
+            @RequestParam(required = false) String categories) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).build();
         }
@@ -102,6 +102,19 @@ public class CouponController {
 
         List<UserCoupon> userCoupons = userCouponRepository.findByUserIdAndIsUsedFalse(userId);
         LocalDateTime now = LocalDateTime.now();
+
+        // 카테고리 문자열을 리스트로 변환 (콤마로 구분된 경우 처리)
+        final List<String> categoryList;
+        if (categories != null && !categories.isEmpty()) {
+            // 콤마로 분리하고 공백 제거, 소문자로 변환하여 정규화
+            categoryList = java.util.Arrays.stream(categories.split(","))
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .filter(s -> !s.isEmpty())
+                    .collect(java.util.stream.Collectors.toList());
+        } else {
+            categoryList = null;
+        }
 
         List<Map<String, Object>> result = userCoupons.stream()
                 .map(uc -> {
@@ -121,7 +134,25 @@ public class CouponController {
                     // 사용 가능 여부 체크
                     boolean isAmountSatisfied = coupon.getMinOrderAmount() == null
                             || coupon.getMinOrderAmount() <= amount;
-                    boolean isCategorySatisfied = coupon.getCategory() == null || coupon.getCategory().equals(category);
+                    
+                    // 카테고리 체크: 쿠폰에 카테고리 제한이 없거나, 전달된 카테고리 목록에 포함되어 있으면 만족
+                    boolean isCategorySatisfied;
+                    if (coupon.getCategory() == null) {
+                        // 쿠폰에 카테고리 제한이 없으면 모든 상품에 적용 가능
+                        isCategorySatisfied = true;
+                    } else if (categoryList == null || categoryList.isEmpty()) {
+                        // 주문에 카테고리 정보가 없으면 카테고리 제한이 있는 쿠폰은 적용 불가
+                        isCategorySatisfied = false;
+                    } else {
+                        // 쿠폰의 카테고리가 주문의 카테고리 목록에 포함되어 있는지 확인
+                        // 대소문자 구분 없이 비교
+                        String couponCategory = coupon.getCategory() != null 
+                                ? coupon.getCategory().toLowerCase().trim() 
+                                : null;
+                        isCategorySatisfied = couponCategory != null 
+                                && categoryList.contains(couponCategory);
+                    }
+                    
                     boolean isValid = (coupon.getValidFrom() == null || coupon.getValidFrom().isBefore(now)) &&
                             (coupon.getValidUntil() == null || coupon.getValidUntil().isAfter(now));
                     boolean isNotUsed = !uc.isUsed();

@@ -104,7 +104,37 @@ const Payment = () => {
 
             try {
                 setCouponsLoading(true);
-                const coupons = await couponApi.getAvailableCoupons(amount, category);
+                // category가 없거나 빈 배열이면 items에서 추출
+                let categories = Array.isArray(category) ? category : (category ? [category] : []);
+                
+                // category가 없거나 빈 배열이고 items가 있으면 items에서 category 추출
+                if ((!categories || categories.length === 0) && items && items.length > 0) {
+                    // items에서 category 추출 시도
+                    const itemCategories = items.map(item => item.category).filter(Boolean);
+                    
+                    // items에 category가 없으면 상품 ID로 조회
+                    if (itemCategories.length === 0) {
+                        const { productApi } = await import('../api/productApi');
+                        const categoryPromises = items
+                            .filter(item => item.id || item.productId)
+                            .map(async (item) => {
+                                try {
+                                    const productId = item.id || item.productId;
+                                    const product = await productApi.getProduct(productId);
+                                    return product.category;
+                                } catch (err) {
+                                    console.error(`Failed to fetch product ${item.id || item.productId}:`, err);
+                                    return null;
+                                }
+                            });
+                        const fetchedCategories = await Promise.all(categoryPromises);
+                        categories = [...new Set(fetchedCategories.filter(Boolean))];
+                    } else {
+                        categories = [...new Set(itemCategories)];
+                    }
+                }
+                
+                const coupons = await couponApi.getAvailableCoupons(amount, categories);
                 setUserCoupons(coupons);
             } catch (error) {
                 console.error('쿠폰 로딩 실패:', error);
@@ -115,7 +145,7 @@ const Payment = () => {
         };
 
         fetchCoupons();
-    }, [user, amount, category]);
+    }, [user, amount, category, items]);
 
     const handleCouponChange = (e) => {
         const couponId = Number(e.target.value);
@@ -135,13 +165,27 @@ const Payment = () => {
 
         if (selectedCoupon) {
             let discount = 0;
+            
+            // 카테고리 제한 쿠폰인 경우, 해당 카테고리 상품 금액만 계산
+            let applicableAmount = amount;
+            if (selectedCoupon.category && items && items.length > 0) {
+                // 해당 카테고리의 상품 금액만 합산
+                applicableAmount = items
+                    .filter(item => item.category === selectedCoupon.category)
+                    .reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+            }
+            
             if (selectedCoupon.type === 'amount') {
-                discount = selectedCoupon.discountAmount;
+                // 금액 할인: 해당 카테고리 상품 금액을 초과할 수 없음
+                discount = Math.min(selectedCoupon.discountAmount, applicableAmount);
             } else if (selectedCoupon.type === 'percent') {
-                discount = Math.floor(amount * (selectedCoupon.discountRate / 100));
+                // 비율 할인: 해당 카테고리 상품 금액 기준으로 계산
+                discount = Math.floor(applicableAmount * (selectedCoupon.discountRate / 100));
                 if (selectedCoupon.maxDiscountAmount) {
                     discount = Math.min(discount, selectedCoupon.maxDiscountAmount);
                 }
+                // 해당 카테고리 상품 금액을 초과할 수 없음
+                discount = Math.min(discount, applicableAmount);
             }
             setDiscountAmount(discount);
         }

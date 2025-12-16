@@ -25,5 +25,6 @@ public class RedisCartItem implements Serializable {
     private int originalPrice;
     private int discountRate;
     private int quantity;
+    private String category; // 상품 카테고리
     private LocalDateTime addedAt;
 }
