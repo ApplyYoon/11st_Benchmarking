@@ -14,10 +14,10 @@ const MDRecommends = () => {
     useEffect(() => {
         const fetchInitialProducts = async () => {
             try {
-                const allProducts = await productApi.getProducts();
-                // Start with non-Timedeal/Best items
-                const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
+                // Fetch first page (page 0)
+                const initialItems = await productApi.getRecommendedProducts(0, ITEMS_PER_LOAD);
                 setItems(initialItems);
+                setPage(1); // Next page will be 1
                 if (initialItems.length < ITEMS_PER_LOAD) {
                     setHasMore(false);
                 }
@@ -33,14 +33,15 @@ const MDRecommends = () => {
         setLoading(true);
 
         try {
+            const newItems = await productApi.getRecommendedProducts(page, ITEMS_PER_LOAD);
             // Generate mock unique items
             const allProducts = await productApi.getProducts();
             const initialItems = allProducts.filter(p => !p.isTimeDeal && !p.isBest);
-            const newItems = initialItems.map((item, idx) => ({
-                ...item,
-                id: Date.now() + idx + Math.random(),
-                name: `[추천] ${item.name}`
-            }));
+//             const newItems = initialItems.map((item, idx) => ({
+//                 ...item,
+//                 id: Date.now() + idx + Math.random(),
+//                 name: `[추천] ${item.name}`
+//             }));
 
             if (newItems.length === 0) {
                 setHasMore(false);

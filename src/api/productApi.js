@@ -14,6 +14,14 @@ export const productApi = {
         return response.data;
     },
 
+    // MD 추천 상품 (페이징 지원)
+    getRecommendedProducts: async (page, size) => {
+        const response = await client.get('/products', {
+            params: { page, size }
+        });
+        return response.data;
+    },
+
     // 상품 상세 조회
     getProduct: async (id) => {
         const response = await client.get(`/products/${id}`);
@@ -28,10 +36,26 @@ export const productApi = {
         return response.data;
     },
 
+    // 타임딜 상품 페이지네이션 조회
+    getTimeDealProductsPaginated: async (offset = 0, limit = 32) => {
+        const response = await client.get('/products', {
+            params: { type: 'timedeal', offset, limit }
+        });
+        return response.data;
+    },
+
     // 베스트 상품 조회
     getBestProducts: async () => {
         const response = await client.get('/products', {
             params: { type: 'best' }
+        });
+        return response.data;
+    },
+
+    // 전체 상품 페이지네이션 조회
+    getProductsPaginated: async (offset = 0, limit = 32) => {
+        const response = await client.get('/products', {
+            params: { offset, limit }
         });
         return response.data;
     },
@@ -47,6 +71,19 @@ export const productApi = {
     // 검색
     searchProducts: async (query, category = 'all', priceRange = 'all') => {
         const params = { search: query };
+        if (category !== 'all') {
+            params.category = category;
+        }
+        if (priceRange !== 'all') {
+            params.priceRange = priceRange;
+        }
+        const response = await client.get('/products', { params });
+        return response.data;
+    },
+
+    // 검색 페이지네이션
+    searchProductsPaginated: async (query, category = 'all', priceRange = 'all', offset = 0, limit = 32) => {
+        const params = { search: query, offset, limit };
         if (category !== 'all') {
             params.category = category;
         }
