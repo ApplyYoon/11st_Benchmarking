@@ -47,7 +47,9 @@ export const AuthProvider = ({ children }) => {
                     // Normalize backend fields (camelCase/date) to frontend expectations
                     date: o.createdAt ? o.createdAt.split('T')[0] : '', // "2024-12-14"
                     name: o.orderName,
-                    amount: o.totalAmount
+                    amount: o.totalAmount,
+                    // items는 그대로 전달 (이미 camelCase로 변환됨)
+                    items: o.items || []
                 }));
             } catch (err) {
                 console.log("Failed to fetch orders:", err);
@@ -165,19 +167,37 @@ export const AuthProvider = ({ children }) => {
     const cancelOrder = async (orderId) => {
         if (!user) return;
 
-        if (window.confirm('주문을 취소하시겠습니까? 복구할 수 없습니다.')) {
+        if (window.confirm('주문을 취소하시겠습니까?')) {
             try {
-                await client.delete(`/orders/${orderId}`);
+                const response = await client.patch(`/orders/${orderId}/cancel`);
+                const cancelledOrder = response.data;
 
-                // Remove order from local state (Hard Delete)
-                const updatedOrders = user.orders.filter(order => order.id !== orderId);
+                // Update order status in local state
+                const updatedOrders = user.orders.map(order => {
+                    if (order.id === orderId) {
+                        return {
+                            ...order,
+                            status: cancelledOrder.status || 'CANCELLED',
+                            date: cancelledOrder.createdAt ? cancelledOrder.createdAt.split('T')[0] : order.date,
+                            name: cancelledOrder.orderName || order.name,
+                            amount: cancelledOrder.totalAmount || order.amount
+                        };
+                    }
+                    return order;
+                });
+
                 const updatedUser = { ...user, orders: updatedOrders };
                 setUser(updatedUser);
                 localStorage.setItem('user_profile', JSON.stringify(updatedUser));
+                
+                // Reload user to get fresh data
+                await loadUser();
+                
                 alert('주문이 취소되었습니다.');
             } catch (error) {
                 console.error("Order cancellation failed:", error);
-                alert('주문 취소에 실패했습니다.');
+                const errorMessage = error.response?.data?.message || '주문 취소에 실패했습니다.';
+                alert(errorMessage);
             }
         }
     };
