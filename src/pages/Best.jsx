@@ -225,7 +225,7 @@ const Best = () => {
                     <div style={{ display: 'flex', gap: '8px' }}>
                         {sortOptions.map((option) => (
                             <button
-                                key={option}
+                                key={option} 
                                 onClick={() => setSortBy(option)}
                                 style={{
                                     padding: '8px 16px',
