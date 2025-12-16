@@ -24,6 +24,7 @@ const Search = () => {
     // Filters
     const [category, setCategory] = useState('all');
     const [price, setPrice] = useState('all');
+    const [prevQuery, setPrevQuery] = useState('');
 
     // 추가 데이터 로딩
     const loadMore = useCallback(async () => {
@@ -79,7 +80,12 @@ const Search = () => {
             setResults([]);
             setOffset(0);
             setHasMore(true);
-            setCategory('all'); // 검색어 변경 시 카테고리 리셋
+
+            // 검색어가 변경된 경우에만 카테고리 리셋
+            if (query !== prevQuery) {
+                setCategory('all');
+                setPrevQuery(query);
+            }
 
             try {
                 const products = await productApi.searchProductsPaginated(query, category, price, 0, ITEMS_PER_PAGE);

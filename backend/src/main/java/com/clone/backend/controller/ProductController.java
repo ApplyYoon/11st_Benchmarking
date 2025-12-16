@@ -54,6 +54,9 @@ public class ProductController {
                 productPage = productRepository.findByIsTimeDealTrue(pageable);
             } else if ("best".equals(type)) {
                 productPage = productRepository.findByIsBestTrueOrderByRankAsc(pageable);
+            } else if (search != null && category != null && !category.equals("all")) {
+                // 검색어와 카테고리 모두 있는 경우
+                productPage = productRepository.findByNameContainingAndCategory(search, category, pageable);
             } else if (category != null && !category.equals("all")) {
                 productPage = productRepository.findByCategory(category, pageable);
             } else if (search != null) {
@@ -71,6 +74,9 @@ public class ProductController {
             products = productRepository.findByIsTimeDealTrue();
         } else if ("best".equals(type)) {
             products = productRepository.findByIsBestTrueOrderByRankAsc();
+        } else if (search != null && category != null && !category.equals("all")) {
+            // 검색어와 카테고리 모두 있는 경우
+            products = productRepository.findByNameContainingAndCategory(search, category);
         } else if (category != null && !category.equals("all")) {
             products = productRepository.findByCategory(category);
         } else if (search != null) {
