@@ -4,12 +4,14 @@ import { productApi } from '../api/productApi';
 import { useCart } from '../context/CartContext';
 import { ShoppingCart, Heart, ChevronLeft, Truck, Shield, RotateCcw } from 'lucide-react';
 import { getCategoryName } from '../utils/categoryUtils';
+import { useAuth } from '../context/AuthContext';
 import '../styles/ProductDetail.css';
 
 const ProductDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { addToCart } = useCart();
+    const { user } = useAuth();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
@@ -79,6 +81,11 @@ const ProductDetail = () => {
     const handleBuyNow = () => {
         if (product.category === 'fashion' && !selectedSize) {
             alert('사이즈를 선택해주세요.');
+            return;
+        }
+
+        if (!user) {
+            alert('로그인이 필요합니다.');
             return;
         }
 

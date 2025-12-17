@@ -1,48 +1,48 @@
-import React, { useRef, useCallback, useState } from "react";
-import { ShoppingCart } from 'lucide-react';
+import React, { useRef, useCallback } from "react";
+import { ShoppingCart } from "lucide-react";
+import '../../styles/ProductCard.css';
 
 const ProductCardImage = ({ product, onCartClick }) => {
-    const imgRef = useRef(null);
+  const imgRef = useRef(null);
 
-    // useCallback으로 안정적인 참조 유지, DOM 직접 조작으로 리렌더링 방지
-    const handleImageLoad = useCallback(() => {
-        if (imgRef.current) {
-            imgRef.current.classList.remove('loading');
-            imgRef.current.classList.add('loaded');
-        }
-    }, []);
+  const handleImageLoad = useCallback(() => {
+    const el = imgRef.current;
+    if (!el) return;
 
-    return (
-        <div className="product-card-image-area">
-                        <img
-                            ref={imgRef}
-                            src={product.imageUrl || product.image}
-                            alt={product.name}
-                            loading="lazy"
-                            onLoad={handleImageLoad}
-                            className='product-card-image'
-                        />
+    el.classList.remove("product-card-image-loading");
+    el.classList.add("product-card-image-loaded");
+  }, []);
 
-                        {/* Badges */}
-                        {(product.isTimeDeal || product.timeDeal) && (
-                            <div className="product-card-badge">
-                                [타임딜]
-                            </div>
-                        )}
-                        {(product.isBest || product.best) && (
-                            <div className="product-card-rank">
-                                {product.rank}
-                            </div>
-                        )}
+  return (
+    <div className="product-card-image-area">
+        <img
+            ref={imgRef}
+            src={product.imageUrl || product.image}
+            alt={product.name}
+            loading="lazy"
+            onLoad={handleImageLoad}
+            className="product-card-image product-card-image-loading"
+        />
 
-                        {/* Hover Action (Cart) */}
-                        <div className="product-card-cart-btn">
-                            <button onClick={onCartClick}>
-                                <ShoppingCart size={18} color="#333" />
-                            </button>
-                        </div>
-                    </div>
-    )
-}
+        {(product.isTimeDeal || product.timeDeal) && (
+            <div className="product-card-badge">
+                [타임딜]
+            </div>
+        )}
+        
+        {(product.isBest || product.best) && (
+            <div className="product-card-rank">
+                {product.rank}
+            </div>
+        )}
+
+      <div className="product-card-cart-btn">
+        <button onClick={onCartClick}>
+          <ShoppingCart size={18} color="#333" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default ProductCardImage;

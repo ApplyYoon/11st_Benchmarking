@@ -10,7 +10,6 @@ import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
     const { addToCart } = useCart();
-    const [imageLoaded, setImageLoaded] = useState(false);
     const [showSizeModal, setShowSizeModal] = useState(false);
     const [selectedSize, setSelectedSize] = useState(null);
 

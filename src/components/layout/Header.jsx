@@ -1,349 +1,252 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, Truck, LayoutGrid } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { productApi } from '../../api/productApi';
+import '../../styles/Header.css';
 
 const Header = ({ onMenuClick }) => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-    const [isFocused, setIsFocused] = useState(false);
-    const [relatedKeywords, setRelatedKeywords] = useState([]);
-    const [loadingKeywords, setLoadingKeywords] = useState(false);
-    const { user, logout } = useAuth();
-    const { cart } = useCart();
-    const navigate = useNavigate();
-    const location = useLocation();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [relatedKeywords, setRelatedKeywords] = useState([]);
+  const [loadingKeywords, setLoadingKeywords] = useState(false);
 
-    // 연관 검색어 로드
-    useEffect(() => {
-        const fetchRelatedKeywords = async () => {
-            if (!searchTerm || searchTerm.trim().length < 1) {
-                setRelatedKeywords([]);
-                return;
-            }
+  const { user, logout } = useAuth();
+  const { cart } = useCart();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-            setLoadingKeywords(true);
-            try {
-                const keywords = await productApi.getRelatedKeywords(searchTerm.trim());
-                setRelatedKeywords(keywords);
-            } catch (error) {
-                console.error('연관 검색어 로딩 실패:', error);
-                setRelatedKeywords([]);
-            } finally {
-                setLoadingKeywords(false);
-            }
-        };
+  useEffect(() => {
+    const fetchRelatedKeywords = async () => {
+      if (!searchTerm || searchTerm.trim().length < 1) {
+        setRelatedKeywords([]);
+        return;
+      }
 
-        // 디바운싱: 300ms 후에 요청
-        const timeoutId = setTimeout(fetchRelatedKeywords, 300);
-        return () => clearTimeout(timeoutId);
-    }, [searchTerm]);
-
-    const handleSearch = async (e) => {
-        e.preventDefault();
-        if (searchTerm.trim()) {
-            try {
-                const correctionResult = await productApi.correctSearchQuery(searchTerm);
-                if (correctionResult.corrected) {
-                    navigate(`/search?q=${encodeURIComponent(correctionResult.corrected)}&original=${encodeURIComponent(searchTerm)}`);
-                } else {
-                    navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
-                }
-            } catch (error) {
-                console.error('검색 오타수정 실패:', error);
-                navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
-            }
-            setIsFocused(false);
-        }
+      setLoadingKeywords(true);
+      try {
+        const keywords = await productApi.getRelatedKeywords(searchTerm.trim());
+        setRelatedKeywords(keywords);
+      } catch (error) {
+        console.error('연관 검색어 로딩 실패:', error);
+        setRelatedKeywords([]);
+      } finally {
+        setLoadingKeywords(false);
+      }
     };
 
-    return (
-        <header style={{ borderBottom: '1px solid #e5e5e5', backgroundColor: 'white', zIndex: 1000, position: 'sticky', top: 0 }}>
-            {/* Main Header Row */}
-            <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '30px', height: '80px' }}>
+    const timeoutId = setTimeout(fetchRelatedKeywords, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
 
-                {/* Burger Menu & Logo */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <button
-                        onClick={onMenuClick}
-                        style={{ border: '1px solid #ddd', borderRadius: '50%', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white', cursor: 'pointer' }}>
-                        <Menu size={24} color="#333" strokeWidth={1.5} />
-                    </button>
-                    <Link to="/" style={{ fontSize: '34px', fontWeight: '900', textDecoration: 'none', color: '#f01a21', letterSpacing: '-1.5px', fontFamily: 'sans-serif' }}>
-                        11st
-                    </Link>
-                </div>
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      try {
+        const correctionResult = await productApi.correctSearchQuery(searchTerm);
+        if (correctionResult.corrected) {
+          navigate(
+            `/search?q=${encodeURIComponent(
+              correctionResult.corrected
+            )}&original=${encodeURIComponent(searchTerm)}`
+          );
+        } else {
+          navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+        }
+      } catch (error) {
+        console.error('검색 오타수정 실패:', error);
+        navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+      }
+      setIsFocused(false);
+    }
+  };
 
-                {/* 11st Style Rounded Search Bar */}
-                <form onSubmit={handleSearch} style={{ flex: 1, position: 'relative', maxWidth: '580px', marginLeft: '20px' }}>
-                    <div style={{ position: 'relative', width: '100%' }}>
-                        <input
-                            type="text"
-                            placeholder="통합검색"
-                            value={searchTerm}
-                            onChange={(e) => {
-                                setSearchTerm(e.target.value);
-                            }}
-                            onFocus={() => {
-                                setIsFocused(true);
-                                if (searchTerm) setIsUserMenuOpen(false); // Close other menus
-                            }}
-                            onBlur={() => {
-                                setTimeout(() => setIsFocused(false), 200);
-                            }}
-                            style={{
-                                width: '100%',
-                                padding: '13px 60px 13px 25px',
-                                border: '2px solid #f01a21',
-                                borderRadius: (searchTerm && isFocused) ? '20px 20px 0 0' : '28px', // Change border radius when open
-                                borderBottom: (searchTerm && isFocused) ? 'none' : '2px solid #f01a21',
-                                fontSize: '16px',
-                                outline: 'none',
-                                backgroundColor: '#fff',
-                                color: '#333',
-                                boxSizing: 'border-box',
-                                zIndex: 1002,
-                                position: 'relative'
-                            }}
-                        />
+  const isSearchOpen = Boolean(searchTerm) && isFocused;
 
-                        {/* Search Suggestions Dropdown */}
-                        {searchTerm && isFocused && (
-                            <div style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: 0,
-                                width: '100%',
-                                backgroundColor: 'white',
-                                border: '2px solid #f01a21',
-                                borderTop: 'none',
-                                borderRadius: '0 0 20px 20px',
-                                zIndex: 1001,
-                                overflow: 'hidden',
-                                boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
-                            }}>
-                                {loadingKeywords ? (
-                                    <div style={{ padding: '20px', textAlign: 'center', color: '#999', fontSize: '14px' }}>
-                                        검색 중...
-                                    </div>
-                                ) : relatedKeywords.length > 0 ? (
-                                    relatedKeywords.map(keyword => {
-                                        const searchLower = searchTerm.toLowerCase();
-                                        const keywordLower = keyword.toLowerCase();
-                                        const index = keywordLower.indexOf(searchLower);
-                                        
-                                        return (
-                                            <div
-                                                key={keyword}
-                                                onClick={() => {
-                                                    setSearchTerm(keyword);
-                                                    navigate(`/search?q=${encodeURIComponent(keyword)}`);
-                                                    setIsFocused(false);
-                                                }}
-                                                style={{
-                                                    padding: '12px 25px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '14px',
-                                                    color: '#333'
-                                                }}
-                                                onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                                            >
-                                                {index >= 0 ? (
-                                                    <>
-                                                        {keyword.substring(0, index)}
-                                                        <span style={{ color: '#f01a21', fontWeight: 'bold' }}>{keyword.substring(index, index + searchTerm.length)}</span>
-                                                        {keyword.substring(index + searchTerm.length)}
-                                                    </>
-                                                ) : (
-                                                    keyword
-                                                )}
-                                            </div>
-                                        );
-                                    })
-                                ) : (
-                                    <div style={{ padding: '20px', textAlign: 'center', color: '#999', fontSize: '14px' }}>
-                                        연관 검색어가 없습니다
-                                    </div>
-                                )}
-                            </div>
+  return (
+    <header className="header">
+      {/* Main Header Row */}
+      <div className="header__inner">
+        {/* Burger Menu & Logo */}
+        <div className="header__left">
+          <button className="header__menuBtn" onClick={onMenuClick} type="button">
+            <Menu size={24} color="#333" strokeWidth={1.5} />
+          </button>
+
+          <Link to="/" className="header__logo">
+            11st
+          </Link>
+        </div>
+
+        {/* Search Bar */}
+        <form onSubmit={handleSearch} className="searchForm">
+          <div className="searchForm__wrap">
+            <input
+              type="text"
+              placeholder="통합검색"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => {
+                setIsFocused(true);
+                if (searchTerm) setIsUserMenuOpen(false);
+              }}
+              onBlur={() => {
+                setTimeout(() => setIsFocused(false), 200);
+              }}
+              className={`searchInput ${isSearchOpen ? 'searchInput--open' : ''}`}
+            />
+
+            {/* Suggestions Dropdown */}
+            {isSearchOpen && (
+              <div className="suggestions">
+                {loadingKeywords ? (
+                  <div className="suggestions__empty">검색 중...</div>
+                ) : relatedKeywords.length > 0 ? (
+                  relatedKeywords.map((keyword) => {
+                    const searchLower = searchTerm.toLowerCase();
+                    const keywordLower = keyword.toLowerCase();
+                    const index = keywordLower.indexOf(searchLower);
+
+                    return (
+                      <div
+                        key={keyword}
+                        className="suggestions__item"
+                        onClick={() => {
+                          setSearchTerm(keyword);
+                          navigate(`/search?q=${encodeURIComponent(keyword)}`);
+                          setIsFocused(false);
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            setSearchTerm(keyword);
+                            navigate(`/search?q=${encodeURIComponent(keyword)}`);
+                            setIsFocused(false);
+                          }
+                        }}
+                      >
+                        {index >= 0 ? (
+                          <>
+                            {keyword.substring(0, index)}
+                            <span className="suggestions__highlight">
+                              {keyword.substring(index, index + searchTerm.length)}
+                            </span>
+                            {keyword.substring(index + searchTerm.length)}
+                          </>
+                        ) : (
+                          keyword
                         )}
-                    </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="suggestions__empty">연관 검색어가 없습니다</div>
+                )}
+              </div>
+            )}
+          </div>
 
-                    <button
-                        type="submit"
-                        style={{
-                            position: 'absolute',
-                            right: '6px',
-                            top: '24px', // Hardcode for alignment since input height changes visually with border
-                            transform: 'translateY(-50%)',
-                            background: '#f01a21',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '38px',
-                            height: '38px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            zIndex: 1003
-                        }}
-                    >
-                        <Search color="white" size={20} strokeWidth={2.5} />
-                    </button>
-                </form>
+          <button type="submit" className="searchBtn">
+            <Search color="white" size={20} strokeWidth={2.5} />
+          </button>
+        </form>
 
-                {/* Right Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '25px', marginLeft: 'auto' }}>
-                    {user ? (
-                        <div
-                            style={{ position: 'relative', cursor: 'pointer', zIndex: 1000, height: '100%', display: 'flex', alignItems: 'center' }}
-                            onMouseEnter={() => setIsUserMenuOpen(true)}
-                            onMouseLeave={() => setIsUserMenuOpen(false)}
-                        >
-                            <Link to="/user-info" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <User size={26} strokeWidth={1.5} color="#f01a21" />
-                                <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>{user.name}님</span>
-                            </Link>
+        {/* Right Actions */}
+        <div className="actions">
+          {user ? (
+            <div
+              className="userMenu"
+              onMouseEnter={() => setIsUserMenuOpen(true)}
+              onMouseLeave={() => setIsUserMenuOpen(false)}
+            >
+              <Link to="/user-info" className="actionLink actionLink--user">
+                <User size={26} strokeWidth={1.5} color="#f01a21" />
+                <span className="actionLabel">{user.name}님</span>
+              </Link>
 
-                            {/* Hover Dropdown Menu */}
-                            {isUserMenuOpen && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '40px',
-                                    left: '50%',
-                                    transform: 'translateX(-50%)',
-                                    backgroundColor: 'white',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '4px',
-                                    padding: '10px 0',
-                                    minWidth: '160px',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                    zIndex: 1001,
-                                    whiteSpace: 'nowrap'
-                                }}>
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '-6px',
-                                        left: '50%',
-                                        transform: 'translateX(-50%) rotate(45deg)',
-                                        width: '10px',
-                                        height: '10px',
-                                        backgroundColor: 'white',
-                                        borderLeft: '1px solid #ddd',
-                                        borderTop: '1px solid #ddd',
-                                        zIndex: 1002
-                                    }}></div>
+              {isUserMenuOpen && (
+                <div className="userDropdown">
+                  <div className="userDropdown__arrow" />
 
-                                    <Link to="/my-coupons" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
-                                        나의 쿠폰
-                                    </Link>
-                                    <Link to="/mypage" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
-                                        주문/배송조회
-                                    </Link>
-                                    <Link to="/mypage" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
-                                        취소/반품/교환
-                                    </Link>
-                                    <div style={{ width: '100%', height: '1px', backgroundColor: '#eee', margin: '5px 0' }}></div>
-                                    <Link to="/" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
-                                        고객센터
-                                    </Link>
-                                    <Link to="/user-info" style={{ display: 'block', padding: '10px 20px', textDecoration: 'none', color: '#333', fontSize: '13px' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
-                                        회원정보
-                                    </Link>
-                                    <div style={{ width: '100%', height: '1px', backgroundColor: '#eee', margin: '5px 0' }}></div>
-                                    <button onClick={logout} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 20px', background: 'none', border: 'none', color: '#888', fontSize: '12px', cursor: 'pointer' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f9f9f9'} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>
-                                        로그아웃
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <Link to="/login" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <User size={26} strokeWidth={1.5} />
-                            <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>로그인</span>
-                        </Link>
-                    )}
+                  <Link to="/my-coupons" className="userDropdown__item">
+                    나의 쿠폰
+                  </Link>
+                  <Link to="/mypage" className="userDropdown__item">
+                    주문/배송조회
+                  </Link>
+                  <Link to="/mypage" className="userDropdown__item">
+                    취소/반품/교환
+                  </Link>
 
-                    <Link to="/mypage" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <LayoutGrid size={26} strokeWidth={1.5} />
-                        <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>마이페이지</span>
-                    </Link>
+                  <div className="userDropdown__divider" />
 
-                    <Link to="/cart" style={{ textDecoration: 'none', color: '#333', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-                        <div style={{ position: 'relative' }}>
-                            <ShoppingCart size={26} strokeWidth={1.5} />
-                            {cart.length > 0 && (
-                                <span style={{
-                                    position: 'absolute',
-                                    top: '-6px',
-                                    right: '-6px',
-                                    backgroundColor: '#f01a21',
-                                    color: 'white',
-                                    borderRadius: '50%',
-                                    minWidth: '18px',
-                                    height: '18px',
-                                    fontSize: '11px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontWeight: 'bold',
-                                    padding: '0 4px'
-                                }}>
-                                    {cart.length}
-                                </span>
-                            )}
-                        </div>
-                        <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>장바구니</span>
-                    </Link>
+                  <Link to="/" className="userDropdown__item">
+                    고객센터
+                  </Link>
+                  <Link to="/user-info" className="userDropdown__item">
+                    회원정보
+                  </Link>
+
+                  <div className="userDropdown__divider" />
+
+                  <button type="button" onClick={logout} className="userDropdown__logout">
+                    로그아웃
+                  </button>
                 </div>
+              )}
             </div>
+          ) : (
+            <Link to="/login" className="actionLink">
+              <User size={26} strokeWidth={1.5} />
+              <span className="actionLabel">로그인</span>
+            </Link>
+          )}
 
-            {/* Secondary Navigation Row - Replicating top section of 11st */}
-            <div style={{ borderTop: '1px solid #f0f0f0' }}>
-                <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', height: '48px', gap: '25px', fontSize: '14px' }}>
-                    <Link 
-                        to="/" 
-                        style={{ 
-                            textDecoration: 'none', 
-                            color: location.pathname === '/' ? '#f01a21' : '#333', 
-                            fontWeight: 'bold',
-                            borderBottom: location.pathname === '/' ? '2px solid #f01a21' : 'none',
-                            paddingBottom: '2px'
-                        }}
-                    >
-                        홈
-                    </Link>
-                    <Link 
-                        to="/best" 
-                        style={{ 
-                            textDecoration: 'none', 
-                            color: location.pathname === '/best' ? '#f01a21' : '#333', 
-                            fontWeight: 'bold',
-                            borderBottom: location.pathname === '/best' ? '2px solid #f01a21' : 'none',
-                            paddingBottom: '2px'
-                        }}
-                    >
-                        베스트
-                    </Link>
-                    <Link 
-                        to="/shocking-deal" 
-                        style={{ 
-                            textDecoration: 'none', 
-                            color: '#f01a21', 
-                            fontWeight: 'bold',
-                            borderBottom: location.pathname === '/shocking-deal' ? '2px solid #f01a21' : 'none',
-                            paddingBottom: '2px'
-                        }}
-                    >
-                        쇼킹딜
-                    </Link>
-                </div>
+          <Link to="/mypage" className="actionLink">
+            <LayoutGrid size={26} strokeWidth={1.5} />
+            <span className="actionLabel">마이페이지</span>
+          </Link>
+
+          <Link to="/cart" className="actionLink actionLink--cart">
+            <div className="cartIconWrap">
+              <ShoppingCart size={26} strokeWidth={1.5} />
+              {cart.length > 0 && <span className="cartBadge">{cart.length}</span>}
             </div>
-        </header>
-    );
+            <span className="actionLabel">장바구니</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Secondary Navigation Row */}
+      <div className="subnav">
+        <div className="subnav__inner">
+          <Link
+            to="/"
+            className={`subnav__link ${location.pathname === '/' ? 'subnav__link--active' : ''}`}
+          >
+            홈
+          </Link>
+          <Link
+            to="/best"
+            className={`subnav__link ${location.pathname === '/best' ? 'subnav__link--active' : ''}`}
+          >
+            베스트
+          </Link>
+          <Link
+            to="/shocking-deal"
+            className={`subnav__link ${
+              location.pathname === '/shocking-deal' ? 'subnav__link--active subnav__link--red' : 'subnav__link--red'
+            }`}
+          >
+            쇼킹딜
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
 };
 
 export default Header;
