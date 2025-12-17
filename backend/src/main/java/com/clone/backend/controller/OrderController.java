@@ -135,6 +135,8 @@ public class OrderController {
     @GetMapping
     public List<Order> getOrders() {
         // Get current user from SecurityContext
+
+        // 신원 검사
         String email = null;
         Object principal = org.springframework.security.core.context.SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
