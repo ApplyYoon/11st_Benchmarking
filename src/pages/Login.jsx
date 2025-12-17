@@ -72,6 +72,17 @@ const Login = () => {
                     </button>
                 </form>
 
+                {/* 로그인 상태 유지 */}
+                <div className="login-keep-section">
+                    <label className="login-keep-label">
+                        <input
+                            type="checkbox"
+                            className="login-keep-checkbox"
+                        />
+                        로그인 상태 유지
+                    </label>
+                </div>
+
                 {/* 소셜 로그인 - 카카오톡, 네이버만 */}
                 <div className="login-social-section">
                     <div className="login-social-buttons">
@@ -82,26 +93,7 @@ const Login = () => {
                         >
                             <span className="login-social-icon">💬</span>
                         </div>
-
-                        {/* 네이버 */}
-                        <div
-                            className="login-social-btn login-social-btn-naver"
-                            onClick={() => handleSocialLogin('Naver')}
-                        >
-                            <span className="login-social-icon-naver">N</span>
-                        </div>
                     </div>
-                </div>
-
-                {/* 로그인 상태 유지 */}
-                <div className="login-keep-section">
-                    <label className="login-keep-label">
-                        <input
-                            type="checkbox"
-                            className="login-keep-checkbox"
-                        />
-                        로그인 상태 유지
-                    </label>
                 </div>
             </div>
 

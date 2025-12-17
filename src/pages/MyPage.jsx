@@ -57,8 +57,6 @@ const MyPage = () => {
                     <div className="mypage-menu-header">나의 쇼핑</div>
                     <div onClick={() => setActiveTab('orders')} className={`mypage-menu-item ${activeTab === 'orders' ? 'mypage-menu-item-active' : ''}`}>주문/배송 조회</div>
                     <div onClick={() => setActiveTab('cancel')} className={`mypage-menu-item ${activeTab === 'cancel' ? 'mypage-menu-item-active' : ''}`}>취소/반품/교환</div>
-                    <div onClick={() => setActiveTab('wishlist')} className={`mypage-menu-item ${activeTab === 'wishlist' ? 'mypage-menu-item-active' : ''}`}>찜한 상품</div>
-                    <div onClick={() => setActiveTab('recent')} className={`mypage-menu-item ${activeTab === 'recent' ? 'mypage-menu-item-active' : ''}`}>최근 본 상품</div>
                 </div>
             </div>
 
@@ -90,16 +88,16 @@ const MyPage = () => {
                                             <span className="mypage-order-date">{order.date}</span>
                                             <span className="mypage-order-id">주문번호 {order.id}</span>
                                         </div>
-                                        
+
                                         {/* 주문 상품 목록 */}
                                         {order.items && order.items.length > 0 ? (
                                             <div className="mypage-order-items">
                                                 {order.items.map((item, index) => (
                                                     <div key={index} className="mypage-order-item">
                                                         {item.productImage && (
-                                                            <img 
-                                                                src={item.productImage} 
-                                                                alt={item.productName || '상품 이미지'} 
+                                                            <img
+                                                                src={item.productImage}
+                                                                alt={item.productName || '상품 이미지'}
                                                                 className="mypage-order-item-image"
                                                             />
                                                         )}
@@ -164,16 +162,16 @@ const MyPage = () => {
                                             <span className="mypage-order-date">{order.date}</span>
                                             <span className="mypage-order-id">주문번호 {order.id}</span>
                                         </div>
-                                        
+
                                         {/* 주문 상품 목록 */}
                                         {order.items && order.items.length > 0 ? (
                                             <div className="mypage-order-items">
                                                 {order.items.map((item, index) => (
                                                     <div key={index} className="mypage-order-item">
                                                         {item.productImage && (
-                                                            <img 
-                                                                src={item.productImage} 
-                                                                alt={item.productName || '상품 이미지'} 
+                                                            <img
+                                                                src={item.productImage}
+                                                                alt={item.productName || '상품 이미지'}
                                                                 className="mypage-order-item-image"
                                                             />
                                                         )}
