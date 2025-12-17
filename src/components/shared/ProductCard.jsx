@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { ShoppingCart, X } from 'lucide-react';
 import '../../styles/ProductCard.css';
+import ProductCardImage from './ProductCardImage';
 
 const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 import { useNavigate } from 'react-router-dom';
@@ -55,34 +56,7 @@ const ProductCard = ({ product }) => {
                     className="product-card"
                 >
                     {/* Image Area */}
-                    <div className="product-card-image-area">
-                        <img
-                            src={product.imageUrl || product.image}
-                            alt={product.name}
-                            loading="lazy"
-                            onLoad={() => setImageLoaded(true)}
-                            className={`product-card-image ${imageLoaded ? 'product-card-image-loaded' : 'product-card-image-loading'}`}
-                        />
-
-                        {/* Badges */}
-                        {(product.isTimeDeal || product.timeDeal) && (
-                            <div className="product-card-badge">
-                                [타임딜]
-                            </div>
-                        )}
-                        {(product.isBest || product.best) && (
-                            <div className="product-card-rank">
-                                {product.rank}
-                            </div>
-                        )}
-
-                        {/* Hover Action (Cart) */}
-                        <div className="product-card-cart-btn">
-                            <button onClick={handleCartClick}>
-                                <ShoppingCart size={18} color="#333" />
-                            </button>
-                        </div>
-                    </div>
+                    <ProductCardImage product={product} onCartClick={handleCartClick} />
 
                     {/* Info Area */}
                     <div>
