@@ -28,7 +28,7 @@ const Signup = () => {
         try {
             await signup(formData);
             alert('회원가입이 완료되었습니다.');
-            navigate('/');
+            navigate('/login');
         } catch (error) {
             alert(error.message);
         }
