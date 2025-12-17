@@ -10,8 +10,10 @@ import com.clone.backend.model.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -30,6 +32,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
   List<Product> findByIsTimeDealTrue();
 
   Page<Product> findByIsTimeDealTrue(Pageable pageable);
+
+  /**
+   * 만료된 타임딜 상품의 isTimeDeal을 false로 업데이트
+   * timeDealEndTime이 현재 시간보다 이전인 타임딜 상품들을 업데이트
+   */
+  @Modifying
+  @Query("UPDATE Product p SET p.isTimeDeal = false WHERE p.isTimeDeal = true AND p.timeDealEndTime IS NOT NULL AND p.timeDealEndTime < :now")
+  int updateExpiredTimeDeals(@Param("now") LocalDateTime now);
 
   List<Product> findByIsBestTrueOrderByRankAsc();
 
